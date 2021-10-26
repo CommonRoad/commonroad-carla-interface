@@ -1,0 +1,45 @@
+# Ignore the maps and scenarios for local testing - So that the redundant files are not pushed
+/scenarios/*
+# ignore converted maps to not clutter the repo
+/maps/converted/*
+
+# Editors
+.vscode/
+.idea/
+.coverage
+
+# debug folder is used for development
+# these files should not be uploaded
+debug/
+test_maps/
+htmlcov/
+
+# Mac/OSX
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Source for the following rules: 
+# https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
