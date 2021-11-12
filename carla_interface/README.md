@@ -1,32 +1,49 @@
-# CommonRoad CarlaInterface
-
+# CommonRoad-CARLA Interface
 ## Introduction
-
-Interface for using CommonRoad together with CARLA<br/>
-Entrypoint is CarlaInterface.py
+This repository contains only the current draft version of the interface itself. 
+The code for converting a map from CommonRoad to OpenDRIVE is located in the CommonRoad Scenario Designer.
 
 ## Requirements
-
-To use the interface, CARLA (_https://carla.readthedocs.io/en/latest/start_quickstart/_) needs to be installed and running.
-Also _pygame_ and _imageio_ need to be installed.<br/>
-`pip install pygame imageio`
+Interface for using CommonRoad together with CARLA
+Entrypoint is CarlaInterface.py
+pygame
+imageio 
+(Optional) commonroad-motion-planning-library
 
 ## Installation
+`pip install pygame imageio` 
 
-To install the CommonRoad-CarlaInterface please run a normal pip install within the folder. 
+to install requirement open terminal in CommonRoad-CARLA Interface and run:
+
+`pip install -e .`
 
 ## Getting started
-To simulate only a CommonRoad scenario in CARLA without using a motion please follow those steps (see also cr_sim_example_no_mpl.py):
-1. Create a CARLA client object<br/>
+To simulate only a CommonRoad scenario in CARLA:
+1. Run a CARLA server (Debian installation:)
+    ```
+   cd /opt/carla-simulator/
+    ./CarlaUE4.sh
+   ```
+2. Create a CARLA client object<br/>
 `client = carla.Client('localhost', 2000)`
-2. Initialize _CarlaInterface_<br/>
-`ci = CarlaInterface(commonroad_scenario, open_drive_map, client)`
-3. Load the map in CARLA<br/>
-`ci.load_map()`
-4. Setup CarlaInterface<br/>
+3. Initialize _CarlaInterface_<br/>
+    A. without MPL:
+
+    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client,None)`
+
+    B. with MPL:
+
+    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client, MotionPlanner)`
+
+4. Load the map in CARLA<br/>
+    require all user write permissition for directory: CarlaUE4/Content/Carla/Maps/OpenDrive/
+
+    `ci.load_map()`
+
+5. Setup CarlaInterface<br/>
 `ci.setup_carla()`
-5. Run the scenario<br/>
+6. Run the scenario<br/>
 `ci.run_scenario()`
 
 
-To run the CarlaInterface together with a motion planner please take a look at https://gitlab.lrz.de/mpfav-ss21-driving-simulator/mpl-carla-example.git
+
