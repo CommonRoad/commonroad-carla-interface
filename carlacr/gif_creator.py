@@ -9,6 +9,7 @@ class Gif_Creator():
     """
     def __init__(self, path, gif_name):
         """
+
         :param path: path of the root folder for the GIF, within this directory is a folder /img containing all images saved by the ego-vehicle camera
         :param gif_name: filename of the GIF to be created
         """

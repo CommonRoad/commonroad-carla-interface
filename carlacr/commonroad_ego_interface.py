@@ -13,7 +13,7 @@ from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
 
-from carla_interface.vehicle_dict import (similar_by_area, similar_by_length,
+from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                           similar_by_width)
 
 
@@ -36,6 +36,7 @@ class CommonRoadEgoInterface():
     def spawn(self, world: carla.World, physics=True, create_gif=False, path=None) -> carla.Actor:
         """
         Tries to spawn the ego-vehicle and a camera for it in the given CARLA world and returns the spawned vehicle.
+
         :param world: the CARLA world object
         :param physics: if physics should be enabled for the ego-vehicle
         :param create_gif: True if a GIF should be created
@@ -72,6 +73,7 @@ class CommonRoadEgoInterface():
     def set_trajectory(self, trajectory: Trajectory):
         """
         Sets trajectory for the ego-vehicle
+
         :param trajectory: CommonRoad trajectory for the ego-vehicle
         """
         if trajectory is not None:
@@ -83,6 +85,7 @@ class CommonRoadEgoInterface():
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
         Tries to update the position of the ego-vehicle
+
         :param world: the CARLA world object
         :param timestep: timestep that should be used to update
         """
@@ -107,6 +110,7 @@ class CommonRoadEgoInterface():
     def process_image(self, path: str, image: carla.Image):
         """
         Process image from ego RGB camera
+
         :param path: path to base folder, where in folder /img the images will be saved
         :param image: CARLA image to be saved
         """
@@ -115,6 +119,7 @@ class CommonRoadEgoInterface():
     def destroy_carla_actor(self, world):
         """
         Destroys ego-vehicle in CARLA
+
         :param world: the CARLA world object
         """
         if self.is_spawned:

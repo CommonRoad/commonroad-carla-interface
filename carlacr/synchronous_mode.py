@@ -66,6 +66,9 @@ class CarlaSyncMode(object):
         return self
 
     def tick(self, timeout):
+        """
+        tick world
+        """
         self.frame = self.world.tick()
         data = [self._retrieve_data(q, timeout) for q in self._queues]
         assert all(x.frame == self.frame for x in data)

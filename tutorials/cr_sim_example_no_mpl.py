@@ -1,6 +1,6 @@
 import time
 import carla
-from carla_interface.CarlaInterface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 
 map_path = "../maps/"
 scenario_path = "../scenarios/"
@@ -17,7 +17,7 @@ time.sleep(5)  # time to move your view in carla-window
 ci.setup_carla(hybrid_physics_mode=False)
 
 startTime = time.time()
-ci.run_scenario(clean_up=True, carla_vehicles=4, carla_pedestrians=0)
+ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=10)
 executionTime = (time.time() - startTime)
 
 print('Execution time in seconds: ' + str(executionTime))

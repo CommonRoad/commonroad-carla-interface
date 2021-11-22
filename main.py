@@ -24,7 +24,7 @@ except Exception as e:
     pass
 
 import carla
-from carla_interface.CarlaInterface import CarlaInterface
+from src.carla_interface import CarlaInterface
 
 
 if __name__ == "__main__":
