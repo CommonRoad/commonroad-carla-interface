@@ -17,7 +17,7 @@ from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
 
-from carla_interface.vehicle_dict import (similar_by_area, similar_by_length,
+from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                           similar_by_width)
 
 
@@ -35,6 +35,7 @@ class CarlaVehicleInterface():
 
     def __init__(self, cr_scenario: Scenario, carla_client: carla.Client, traffic_manager_port: int = 8000):
         """
+
         :param cr_scenario: CommonRoad scenario object
         :param carla_client: carla.Client() object connected to the simulation
         :param traffic_manager_port: port of the CARLA traffic manager
@@ -59,6 +60,7 @@ class CarlaVehicleInterface():
     def get_cr_state(self) -> State:
         """
         Get current CommonRoad state if spawned, else None
+
         :return: CommonRoad state of the CARLA vehicle represented by this class
         """
         if self.carla_id:
@@ -84,6 +86,7 @@ class CarlaVehicleInterface():
     def get_cr_dynamic_obstacle(self) -> DynamicObstacle:
         """
         Returns a CommonRoad DynamicObstacle from this CARLA Vehicle
+
         :return: CommonRoad dynamic obstacle of the CARLA vehicle represented by this class
         """
         if self.is_spawned and self.carla_id:
@@ -106,6 +109,7 @@ class CarlaVehicleInterface():
     def update_after_spawn(self, spawned=True, cr_id=None, actor_id=None):
         """
         Stores assigned CommonRoad & CARLA Id in the class and sets is_spawned flag
+
         :param spawned: sets is_spawned flag
         :param cr_id: sets CommonRoad id for the class
         :param actor_id: sets CARLA id for the class
@@ -117,10 +121,11 @@ class CarlaVehicleInterface():
 
     def get_spawnable(self, random_vehicle=True, blue_print=None, spawn_point=None) -> carla.command.SpawnActor:
         """
-        Returns a spawnable actor to be spawned in bulk
+
         :param random_obs: if true a random blue print & random spawn point will be used to create a spawnable
         :param blue_print: blue print to be used to create the vehicle
         :param spawn_point: spawn point to be used to spawn the vehicle
+        :return: a spawnable actor to be spawned in bulk
         """
         world = self.client.get_world()
 

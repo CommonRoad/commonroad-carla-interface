@@ -19,7 +19,7 @@ from commonroad.scenario.trajectory import State
 from commonroad.visualization.mp_renderer import MPRenderer
 from numpy import array, random
 
-from carla_interface.vehicle_dict import (similar_by_area, similar_by_length,
+from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                           similar_by_width)
 
 
@@ -180,7 +180,7 @@ class CarlaPedestrianHandler():
         # stop walker controllers (list is [controller, actor, controller, actor ...])
         for i in range(0, len(self.actor_ids), 2):
             try:
-                self.actor_ids[i].stop()
+                self.client.get_world().get_actor(self.actor_ids[i]).stop()
             except Exception as e:
                 print(e)
         print('\ndestroying %d walkers' % len(self.walkers_list))

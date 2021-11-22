@@ -11,7 +11,7 @@ from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
 
-from carla_interface.vehicle_dict import (similar_by_area, similar_by_length,
+from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                           similar_by_width)
 
 
@@ -28,6 +28,7 @@ class CommonRoadObstacleInterface():
     """
     def __init__(self, cr_obstacle: Obstacle):
         """
+
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
         self.commonroad_id = cr_obstacle.obstacle_id
@@ -48,6 +49,7 @@ class CommonRoadObstacleInterface():
     def spawn(self, world: carla.World, approx_type=ApproximationType.LENGTH, physics=True) -> carla.Actor:
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
+
         :param world: the CARLA world object
         :param approx_type: based on what approximation of the vehicle size the blue print should be selected
         :param physics: if physics should be enabled for the vehicle
@@ -101,6 +103,7 @@ class CommonRoadObstacleInterface():
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
         Tries to update the position of the obstacle and sets lights
+
         :param world: the CARLA world object
         :param timestep: timestep that should be used to update
         """
@@ -141,6 +144,7 @@ class CommonRoadObstacleInterface():
     def destroy_carla_obstacle(self, world):
         """
         Destroys vehicle in CARLA
+
         :param world: the CARLA world object
         """
         if self.is_spawned:

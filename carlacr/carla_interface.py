@@ -13,17 +13,21 @@ import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
-from motion_planner.motion_planner import MotionPlanner
+try:
+    from motion_planner.motion_planner import MotionPlanner
+except ModuleNotFoundError:
+    class MotionPlanner:
+        pass
 
-from carla_interface.CarlaPedestrianHandler import CarlaPedestrianHandler
-from carla_interface.CarlaVehicleInterface import CarlaVehicleInterface
-from carla_interface.CommonRoadEgoInterface import CommonRoadEgoInterface
-from carla_interface.CommonRoadObstacleInterface import (
+from carlacr.carla_pedestrian_handler import CarlaPedestrianHandler
+from carlacr.carla_vehicle_interface import CarlaVehicleInterface
+from carlacr.commonroad_ego_interface import CommonRoadEgoInterface
+from carlacr.commonroad_obstacle_interface import (
     ApproximationType, CommonRoadObstacleInterface)
-from carla_interface.Gif_Creator import Gif_Creator
-from carla_interface.synchronous_mode import (CarlaSyncMode, draw_image,
+from carlacr.gif_creator import Gif_Creator
+from carlacr.synchronous_mode import (CarlaSyncMode, draw_image,
                                               get_font, should_quit)
-from carla_interface.vehicle_dict import (similar_by_area, similar_by_length,
+from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                           similar_by_width)
 
 
@@ -40,6 +44,7 @@ class CarlaInterface:
         mpl_update_n: int = -1
     ):
         """
+
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map: full path & filename to the according OpenDRIVE map for the scenario
         :param carla_client: carla.Client() object connected to the simulation
@@ -56,6 +61,7 @@ class CarlaInterface:
     def setup_carla(self, time_step_delta: int = None, tm_port=8000, hybrid_physics_mode=False):
         """
         Configures CARLA (self.client)
+
         :param time_step_delta: time_step_delta within the simulation (how much time is between two timesteps for CARLA), if None using dt from CommonRoad scenario
         :param tm_port: port of the CARLA traffic manager
         :param hybrid_physics_mode: sets hybrid_physics_mode in CARLA
@@ -131,6 +137,7 @@ class CarlaInterface:
     def _run_scenario_with_mpl(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0, create_gif=False, gif_path=None, gif_name="ego"):
         """
         Runs the CommonRoad Scenario in CARLA (with MPL & PyGame)
+
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to the objects defined in the scenario
@@ -324,6 +331,7 @@ class CarlaInterface:
     def _run_scenario_without_mpl(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0):
         """
         Runs the CommonRoad Scenario in CARLA without mpl
+
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to the objects defined in the scenario
@@ -448,6 +456,7 @@ class CarlaInterface:
     def run_scenario(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0, create_gif=False, gif_path=None, gif_name="ego"):
         """
         Runs the CommonRoad Scenario in CARLA. Splits up between a simulation with and without a motion planner
+
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to the objects defined in the scenario

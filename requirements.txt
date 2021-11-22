@@ -1,0 +1,3 @@
+pygame
+imageio
+numpy~=1.2

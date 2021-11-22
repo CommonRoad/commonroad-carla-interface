@@ -1,1 +1,1 @@
-from carla_interface.CarlaInterface import CarlaInterface
+from src.carla_interface import CarlaInterface
