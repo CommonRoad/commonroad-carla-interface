@@ -9,28 +9,39 @@ import carla
 import numpy as np
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
+from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, Obstacle
 from commonroad.scenario.trajectory import Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                          similar_by_width)
+                                  similar_by_width)
 
 
-class CommonRoadEgoInterface():
+class CommonRoadEgoInterface:
     """
     Creates and controles the ego-vehicle in CARLA
     """
-    def __init__(self, planning_problem: PlanningProblem, trajectory: Trajectory = None):
+
+    def __init__(self, planning_problem: PlanningProblem = None, trajectory: Trajectory = None,
+                 initial_state: Obstacle.initial_state = None):
         """
         :param planning_problem: CommonRoad planning problem object
         :param trajectory: CommonRoad trajectory for the ego-vehicle
+        :param initial_state: initial_state of commonroad obstacle when commonroad obstacle used as ego vehicle
         """
-        self.init_state = planning_problem.initial_state
+        if planning_problem:
+            self.init_state = planning_problem.initial_state
+        elif initial_state:
+            self.init_state = initial_state
+        else:
+            raise AttributeError("planning_problem and initial_state can not be None at the same time")
         self.trajectory = trajectory
         self.is_spawned = False
         self.carla_id = None
-        self.spawn_timestep = planning_problem.initial_state.time_step
+        if planning_problem:
+            self.spawn_timestep = planning_problem.initial_state.time_step
+        elif initial_state:
+            self.spawn_timestep = initial_state.time_step
         self.actor_list = []
 
     def spawn(self, world: carla.World, physics=True, create_gif=False, path=None) -> carla.Actor:
@@ -43,8 +54,10 @@ class CommonRoadEgoInterface():
         :param path: base path of the directory where the GIF should be stored
         :return: if spawn successful the according CARLA actor else None
         """
-        ego_transform = carla.Transform(carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5), carla.Rotation(yaw=(-(180*self.init_state.orientation)/np.pi)))
-        ego_blueprint = world.get_blueprint_library().filter('model3')[0] # Just for reference
+        ego_transform = carla.Transform(
+            carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
+            carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
+        ego_blueprint = world.get_blueprint_library().filter('model3')[0]  # Just for reference
 
         try:
             ego = world.try_spawn_actor(ego_blueprint, ego_transform)
@@ -54,9 +67,9 @@ class CommonRoadEgoInterface():
             self.is_spawned = True
 
             sensor = world.spawn_actor(
-            world.get_blueprint_library().find('sensor.camera.rgb'),
-            carla.Transform(carla.Location(x=-5.5, z=3.8), carla.Rotation(pitch=-15)),
-            attach_to=ego)
+                world.get_blueprint_library().find('sensor.camera.rgb'),
+                carla.Transform(carla.Location(x=-5.5, z=3.8), carla.Rotation(pitch=-15)),
+                attach_to=ego)
 
             self.actor_list.append(sensor)
             # sensor.listen(lambda image: self.process_image(image))
@@ -68,7 +81,7 @@ class CommonRoadEgoInterface():
 
         except Exception as e:
             print("Error while spawning:")
-            raise(e)
+            raise (e)
 
     def set_trajectory(self, trajectory: Trajectory):
         """
@@ -99,13 +112,14 @@ class CommonRoadEgoInterface():
                     new_orientation = state.orientation
                     new_position = state.position
                     transform = carla.Transform(carla.Location(
-                        x=new_position[0], y=-new_position[1], z=0), carla.Rotation(yaw=(-(180*new_orientation)/np.pi)))
+                        x=new_position[0], y=-new_position[1], z=0),
+                        carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                     actor.set_transform(transform)
             else:
                 print("Could not fing actor")
         except Exception as e:
             print("Error while updating position")
-            raise(e)
+            raise (e)
 
     def process_image(self, path: str, image: carla.Image):
         """
