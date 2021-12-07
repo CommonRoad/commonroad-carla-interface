@@ -1,6 +1,7 @@
 import sys
 import time
 from datetime import datetime, date
+from typing import List
 
 import carla
 import pygame
@@ -27,7 +28,6 @@ class CarlaReplayMode:
 
         :param scenario_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
-
         """
         self.carla_client = carla.Client("localhost", 2000)
         self.ci = CarlaInterface(cr_scenario_file_path=scenario_path,
@@ -41,7 +41,7 @@ class CarlaReplayMode:
         """
         set up carla client view
 
-        :param host : host adresse
+        :param host: host adresse
         :param port: port number
         """
         self.carla_client = carla.Client(host, port)
@@ -76,7 +76,7 @@ class CarlaReplayMode:
                 return vehicle
         return None
 
-    def create_static_obstacles_ego(self, position: [float], orientation: float):
+    def create_static_obstacles_ego(self, position: List[float], orientation: float):
         """
         create commonroad obstacle
 
