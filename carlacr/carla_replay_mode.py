@@ -51,7 +51,7 @@ class CarlaReplayMode:
         """
         set up ego_vehicle view
 
-        :param ego_vehicle: commonroad vehicle
+        :param ego_vehicle: commonroad vehicle if ego_vehicle=None then it will set self.ego_vehicle to  the first one the list
         """
         if not ego_vehicle:
             if self.ci.scenario.dynamic_obstacles:
