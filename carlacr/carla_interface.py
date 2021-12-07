@@ -417,15 +417,17 @@ class CarlaInterface:
         dynamic_obstacles = self.scenario.dynamic_obstacles
         dynamic_obstacles += self.scenario.static_obstacles
 
-        # delete ego_vehicle from list
-        if ego_vehicle in dynamic_obstacles:
-            dynamic_obstacles.remove(ego_vehicle)
         # real world time step delta
         if time_step_delta_real:
             time_between_ticks = time_step_delta_real
         else:
             time_between_ticks = self.scenario.dt
 
+        ego_in_scenario = True
+        if ego_vehicle in dynamic_obstacles:
+            dynamic_obstacles.remove(ego_vehicle)
+        else:
+            ego_in_scenario = False
         # Create Interface
         for obstacle in dynamic_obstacles:
             obs = CommonRoadObstacleInterface(obstacle)
@@ -435,8 +437,15 @@ class CarlaInterface:
         max_timesteps = self._calc_max_timestep()
         print(max_timesteps)
         # create ego
-        if ego_vehicle.obstacle_role == ObstacleRole.DYNAMIC:
+
+        if ego_in_scenario and ego_vehicle.obstacle_role == ObstacleRole.DYNAMIC:
+            # delete ego_vehicle from list
             ego = CommonRoadEgoInterface(trajectory=ego_vehicle.prediction.trajectory,
+                                         initial_state=ego_vehicle.initial_state)
+        elif ego_in_scenario:
+            ego_trajectory = Trajectory(initial_time_step=1,
+                                        state_list=[ego_vehicle.initial_state] * max_timesteps)
+            ego = CommonRoadEgoInterface(trajectory=ego_trajectory,
                                          initial_state=ego_vehicle.initial_state)
         else:
             ego_trajectory = Trajectory(initial_time_step=1,

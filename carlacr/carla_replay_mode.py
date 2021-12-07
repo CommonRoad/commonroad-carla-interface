@@ -4,8 +4,10 @@ from datetime import datetime, date
 
 import carla
 import pygame
+from commonroad.geometry.shape import Rectangle
 from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.obstacle import Obstacle, ObstacleRole
+from commonroad.scenario.obstacle import Obstacle, ObstacleRole, StaticObstacle, ObstacleType
+from commonroad.scenario.trajectory import State
 
 from carlacr.carla_interface import CarlaInterface
 from carlacr.commonroad_ego_interface import CommonRoadEgoInterface
@@ -49,7 +51,7 @@ class CarlaReplayMode:
         """
         set up ego_vehicle view
 
-        :param veh_id: commonroad id of the vehicle
+        :param ego_vehicle: commonroad vehicle
         """
         if not ego_vehicle:
             if self.ci.scenario.dynamic_obstacles:
@@ -74,8 +76,25 @@ class CarlaReplayMode:
                 return vehicle
         return None
 
-    def create_static_obstacles_ego(self):
-        pass
+    def create_static_obstacles_ego(self, position: [float], orientation: float):
+        """
+        create commonroad obstacle
+
+        :param position: position of the static obstacle
+        :param  orientation: orientation of the vehicle
+        :return: static obstacle object
+        """
+        state = State(**{'time_step': 0, 'position': position, 'orientation': orientation})
+        self.carla_client.get_world()
+        max_id = 0
+        for vehicle in self.ci.scenario.dynamic_obstacles:
+            if max_id <= vehicle.obstacle_id:
+                max_id = vehicle.obstacle_id + 1
+        obj = StaticObstacle(obstacle_id=max_id,
+                             obstacle_type=ObstacleType.PARKED_VEHICLE,
+                             obstacle_shape=Rectangle(2, 4.5),
+                             initial_state=state)
+        return obj
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None,
                   saving_video: bool = False,
@@ -86,6 +105,7 @@ class CarlaReplayMode:
 
         visualize scenario with ego vehicle view if ego vehicle != None else run scenario without ego vehicle
 
+        :param sleep_time: time to move your view in carla-window
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         :param saving_video: if True a gif will be created (only when a MotionPlanner is provided)
         :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be created in to save the images used for the gif
@@ -93,7 +113,7 @@ class CarlaReplayMode:
         :param asMP4: flag to save as mp4 or gif
         """
         self.ci.load_map()
-        time.sleep(sleep_time)  # time to move your view in carla-window
+        time.sleep(sleep_time)
         self.ci.setup_carla(self.time_step_delta)
         self._run_scenario(time_step_delta_real,
                            saving_video,

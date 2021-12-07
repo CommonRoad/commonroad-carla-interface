@@ -81,7 +81,7 @@ class CommonRoadEgoInterface:
 
         except Exception as e:
             print("Error while spawning:")
-            raise (e)
+            raise e
 
     def set_trajectory(self, trajectory: Trajectory):
         """
