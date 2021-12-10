@@ -1,20 +1,16 @@
-import sys
+import os.path
 import time
 from datetime import datetime, date
 from typing import List
 
 import carla
-import commonroad
-import pygame
+
 from commonroad.geometry.shape import Rectangle
-from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.obstacle import Obstacle, ObstacleRole, StaticObstacle, ObstacleType
-from commonroad.scenario.trajectory import State
+from commonroad.prediction.prediction import TrajectoryPrediction
+from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
+from commonroad.scenario.trajectory import State, Trajectory
 
 from carlacr.carla_interface import CarlaInterface
-from carlacr.commonroad_ego_interface import CommonRoadEgoInterface
-from carlacr.commonroad_obstacle_interface import CommonRoadObstacleInterface
-from carlacr.synchronous_mode import get_font
 
 
 class CarlaReplayMode:
@@ -26,6 +22,7 @@ class CarlaReplayMode:
                  scenario_path: str,
                  open_drive_map_path: str):
         """
+        Create Replay mode Interface
 
         :param scenario_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
@@ -35,6 +32,8 @@ class CarlaReplayMode:
                                               open_drive_map=open_drive_map_path,
                                               carla_client=self.carla_client
                                               )
+        if not os.path.isfile(scenario_path) and not os.path.isfile(open_drive_map_path):
+            raise AttributeError("Can not find scenario file or map file")
         self.time_step_delta = 240
         self.ego_vehicle = None
 
@@ -48,7 +47,7 @@ class CarlaReplayMode:
         self.carla_client = carla.Client(host, port)
         self.carla_interface.client = self.carla_client
 
-    def set_ego_vehicle(self, ego_vehicle: Obstacle = None):
+    def set_ego_vehicle(self, ego_vehicle: DynamicObstacle = None):
         """
         set up ego_vehicle view
 
@@ -57,9 +56,10 @@ class CarlaReplayMode:
         if not ego_vehicle:
             if self.carla_interface.scenario.dynamic_obstacles:
                 self.ego_vehicle = self.carla_interface.scenario.dynamic_obstacles.pop()
-            elif self.carla_interface.scenario.static_obstacles:
-                self.ego_vehicle = self.carla_interface.scenario.static_obstacles.pop()
+
         else:
+            if ego_vehicle.obstacle_role != ObstacleRole.DYNAMIC:
+                raise AttributeError("ego vehicle muss be dynamic")
             self.ego_vehicle = ego_vehicle
 
     def obstacle_by_id(self, veh_id: int = 0):
@@ -72,24 +72,26 @@ class CarlaReplayMode:
 
         return self.carla_interface.scenario.obstacle_by_id(veh_id)
 
-    def create_static_obstacles_ego(self, position: List[float], orientation: float):
+    def create_dynamic_obstacles_ego(self, initial_state: State,
+                                     trajectory: Trajectory = None) -> DynamicObstacle:
         """
-        create commonroad obstacle
+        create commonroad moving dynamic obstacle
 
-        :param position: position of the static obstacle
-        :param  orientation: orientation of the vehicle
+        :param initial_state: initial state of the dynamic obstacle
+        :param trajectory: trajectory of the dynamic obstacle
         :return: static obstacle object
         """
-        state = State(**{'time_step': 0, 'position': position, 'orientation': orientation})
-        self.carla_client.get_world()
-        max_id = 0
-        for vehicle in self.carla_interface.scenario.dynamic_obstacles:
-            if max_id <= vehicle.obstacle_id:
-                max_id = vehicle.obstacle_id + 1
-        obj = StaticObstacle(obstacle_id=max_id,
-                             obstacle_type=ObstacleType.PARKED_VEHICLE,
-                             obstacle_shape=Rectangle(2, 4.5),
-                             initial_state=state)
+        new_id = self.carla_interface.scenario.generate_object_id()
+        shape = Rectangle(2, 4.5)
+        initial_state.time_step=int(self.carla_interface._calc_max_timestep())
+        if not trajectory:
+            trajectory = Trajectory(initial_time_step=1, state_list=[initial_state])
+        prediction = TrajectoryPrediction(trajectory=trajectory, shape=shape)
+        obj = DynamicObstacle(obstacle_id=new_id,
+                              obstacle_type=ObstacleType.PARKED_VEHICLE,
+                              obstacle_shape=Rectangle(2, 4.5),
+                              initial_state=initial_state,
+                              prediction=prediction)
         return obj
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None,
@@ -141,5 +143,6 @@ class CarlaReplayMode:
             self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real)
         else:
             # run scenario with custom setting
-            self.carla_interface.run_scenario_with_ego_vehicle(time_step_delta_real, self.ego_vehicle, create_gif=saving_video,
+            self.carla_interface.run_scenario_with_ego_vehicle(time_step_delta_real, self.ego_vehicle,
+                                                               create_gif=saving_video,
                                                                gif_path=video_path, asMP4=asMP4)
