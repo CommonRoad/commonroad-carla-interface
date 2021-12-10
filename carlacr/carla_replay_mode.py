@@ -4,6 +4,7 @@ from datetime import datetime, date
 from typing import List
 
 import carla
+import commonroad
 import pygame
 from commonroad.geometry.shape import Rectangle
 from commonroad.planning.planning_problem import PlanningProblem
@@ -61,20 +62,15 @@ class CarlaReplayMode:
         else:
             self.ego_vehicle = ego_vehicle
 
-    def find_car_with_CR_ID(self, veh_id: int = 0):
+    def obstacle_by_id(self, veh_id: int = 0):
         """
 
         find vehicle in scenario with commonroad ID
         :param veh_id: commonroad id of the vehicle
         :return: the vehicle if found else return None
         """
-        for vehicle in self.carla_interface.scenario.dynamic_obstacles:
-            if vehicle.obstacle_id == veh_id:
-                return vehicle
-        for vehicle in self.carla_interface.scenario.static_obstacles:
-            if vehicle.obstacle_id == veh_id:
-                return vehicle
-        return None
+
+        return self.carla_interface.scenario.obstacle_by_id(veh_id)
 
     def create_static_obstacles_ego(self, position: List[float], orientation: float):
         """
