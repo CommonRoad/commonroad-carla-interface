@@ -30,10 +30,10 @@ class CarlaReplayMode:
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
         """
         self.carla_client = carla.Client("localhost", 2000)
-        self.ci = CarlaInterface(cr_scenario_file_path=scenario_path,
-                                 open_drive_map=open_drive_map_path,
-                                 carla_client=self.carla_client
-                                 )
+        self.carla_interface = CarlaInterface(cr_scenario_file_path=scenario_path,
+                                              open_drive_map=open_drive_map_path,
+                                              carla_client=self.carla_client
+                                              )
         self.time_step_delta = 240
         self.ego_vehicle = None
 
@@ -45,7 +45,7 @@ class CarlaReplayMode:
         :param port: port number
         """
         self.carla_client = carla.Client(host, port)
-        self.ci.client = self.carla_client
+        self.carla_interface.client = self.carla_client
 
     def set_ego_vehicle(self, ego_vehicle: Obstacle = None):
         """
@@ -54,10 +54,10 @@ class CarlaReplayMode:
         :param ego_vehicle: commonroad vehicle if ego_vehicle=None then it will set self.ego_vehicle to  the first one the list
         """
         if not ego_vehicle:
-            if self.ci.scenario.dynamic_obstacles:
-                self.ego_vehicle = self.ci.scenario.dynamic_obstacles.pop()
-            elif self.ci.scenario.static_obstacles:
-                self.ego_vehicle = self.ci.scenario.static_obstacles.pop()
+            if self.carla_interface.scenario.dynamic_obstacles:
+                self.ego_vehicle = self.carla_interface.scenario.dynamic_obstacles.pop()
+            elif self.carla_interface.scenario.static_obstacles:
+                self.ego_vehicle = self.carla_interface.scenario.static_obstacles.pop()
         else:
             self.ego_vehicle = ego_vehicle
 
@@ -68,10 +68,10 @@ class CarlaReplayMode:
         :param veh_id: commonroad id of the vehicle
         :return: the vehicle if found else return None
         """
-        for vehicle in self.ci.scenario.dynamic_obstacles:
+        for vehicle in self.carla_interface.scenario.dynamic_obstacles:
             if vehicle.obstacle_id == veh_id:
                 return vehicle
-        for vehicle in self.ci.scenario.static_obstacles:
+        for vehicle in self.carla_interface.scenario.static_obstacles:
             if vehicle.obstacle_id == veh_id:
                 return vehicle
         return None
@@ -87,7 +87,7 @@ class CarlaReplayMode:
         state = State(**{'time_step': 0, 'position': position, 'orientation': orientation})
         self.carla_client.get_world()
         max_id = 0
-        for vehicle in self.ci.scenario.dynamic_obstacles:
+        for vehicle in self.carla_interface.scenario.dynamic_obstacles:
             if max_id <= vehicle.obstacle_id:
                 max_id = vehicle.obstacle_id + 1
         obj = StaticObstacle(obstacle_id=max_id,
@@ -112,9 +112,9 @@ class CarlaReplayMode:
         :param file_name: filename for the gif
         :param asMP4: flag to save as mp4 or gif
         """
-        self.ci.load_map()
+        self.carla_interface.load_map()
         time.sleep(sleep_time)
-        self.ci.setup_carla(self.time_step_delta)
+        self.carla_interface.setup_carla(self.time_step_delta)
         self._run_scenario(time_step_delta_real,
                            saving_video,
                            asMP4,
@@ -140,10 +140,10 @@ class CarlaReplayMode:
             today = date.today()
             current_time = now.strftime("%H_%M_%S")
             current_date = today.strftime("%d_%m_%Y")
-            video_path += f"/{self.ci.scenario.scenario_id}_{current_date}_{current_time}"
+            video_path += f"/{self.carla_interface.scenario.scenario_id}_{current_date}_{current_time}"
         if not self.ego_vehicle:
-            self.ci.run_scenario(time_step_delta_real=time_step_delta_real)
+            self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real)
         else:
             # run scenario with custom setting
-            self.ci.run_scenario_with_ego_vehicle(time_step_delta_real, self.ego_vehicle, create_gif=saving_video,
-                                                  gif_path=video_path, asMP4=asMP4)
+            self.carla_interface.run_scenario_with_ego_vehicle(time_step_delta_real, self.ego_vehicle, create_gif=saving_video,
+                                                               gif_path=video_path, asMP4=asMP4)
