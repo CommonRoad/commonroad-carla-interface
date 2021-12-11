@@ -26,6 +26,7 @@ class CarlaReplayMode:
 
         :param scenario_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
+        :param time_step_delta: time_step_delta within the simulation (how much time is between two timesteps for CARLA), if None using dt from CommonRoad scenario
         """
         self.carla_client = carla.Client("localhost", 2000)
         self.carla_interface = CarlaInterface(cr_scenario_file_path=scenario_path,
@@ -34,7 +35,7 @@ class CarlaReplayMode:
                                               )
         if not os.path.isfile(scenario_path) and not os.path.isfile(open_drive_map_path):
             raise AttributeError("Can not find scenario file or map file")
-        self.time_step_delta = 240
+        self.time_step_delta = None
         self.ego_vehicle = None
 
     def set_carla_client(self, host: str, port: int):
