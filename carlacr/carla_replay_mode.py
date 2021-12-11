@@ -47,22 +47,26 @@ class CarlaReplayMode:
         self.carla_client = carla.Client(host, port)
         self.carla_interface.client = self.carla_client
 
-    def set_ego_vehicle(self, ego_vehicle: DynamicObstacle = None):
+    def set_ego_vehicle_by_id(self, veh_id: int):
+        vehicle = self.obstacle_by_id(veh_id)
+        if not vehicle:
+            raise ValueError("There are no vehicle with the given id")
+        self.set_ego_vehicle(vehicle)
+
+    def set_ego_vehicle(self, ego_vehicle: DynamicObstacle):
         """
         set up ego_vehicle view
 
-        :param ego_vehicle: commonroad vehicle if ego_vehicle=None then it will set self.ego_vehicle to  the first one the list
+        :param ego_vehicle: commonroad vehicle
         """
         if not ego_vehicle:
-            if self.carla_interface.scenario.dynamic_obstacles:
-                self.ego_vehicle = self.carla_interface.scenario.dynamic_obstacles.pop()
-
+            raise ValueError("ego vehicle should not be null")
         else:
             if ego_vehicle.obstacle_role != ObstacleRole.DYNAMIC:
                 raise AttributeError("ego vehicle muss be dynamic")
             self.ego_vehicle = ego_vehicle
 
-    def obstacle_by_id(self, veh_id: int = 0):
+    def obstacle_by_id(self, veh_id: int):
         """
 
         find vehicle in scenario with commonroad ID
@@ -83,7 +87,7 @@ class CarlaReplayMode:
         """
         new_id = self.carla_interface.scenario.generate_object_id()
         shape = Rectangle(2, 4.5)
-        initial_state.time_step=int(self.carla_interface._calc_max_timestep())
+        initial_state.time_step = int(self.carla_interface._calc_max_timestep())
         if not trajectory:
             trajectory = Trajectory(initial_time_step=1, state_list=[initial_state])
         prediction = TrajectoryPrediction(trajectory=trajectory, shape=shape)
