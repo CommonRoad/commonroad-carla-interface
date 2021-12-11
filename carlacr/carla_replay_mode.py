@@ -9,7 +9,7 @@ from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
 from commonroad.scenario.trajectory import State, Trajectory
-
+from commonroad.scenario.scenario import Scenario
 from carlacr.carla_interface import CarlaInterface
 
 
@@ -18,25 +18,36 @@ class CarlaReplayMode:
     Replay Mode used to easily create visualization and video from scenerio and map
     """
 
-    def __init__(self,
-                 scenario_path: str,
-                 open_drive_map_path: str):
+    def __init__(self, open_drive_map_path: str, cr_scenario_path: str = None, cr_scenario: Scenario = None,
+                 vehicle_id: id = -1):
         """
         Create Replay mode Interface
 
-        :param scenario_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
+        :param cr_scenario_path: full path & filename to a CommonRoad XML-file
+        :param cr_scenario: Scenario object
         :param time_step_delta: time_step_delta within the simulation (how much time is between two timesteps for CARLA), if None using dt from CommonRoad scenario
+        :param vehicle_id: id of the vehicle
         """
         self.carla_client = carla.Client("localhost", 2000)
-        self.carla_interface = CarlaInterface(cr_scenario_file_path=scenario_path,
-                                              open_drive_map=open_drive_map_path,
-                                              carla_client=self.carla_client
-                                              )
-        if not os.path.isfile(scenario_path) and not os.path.isfile(open_drive_map_path):
+        if cr_scenario:
+            self.carla_interface = CarlaInterface(cr_scenario=cr_scenario,
+                                                  open_drive_map=open_drive_map_path,
+                                                  carla_client=self.carla_client
+                                                  )
+        elif cr_scenario_path:
+            self.carla_interface = CarlaInterface(cr_scenario_file_path=cr_scenario_path,
+                                                  open_drive_map=open_drive_map_path,
+                                                  carla_client=self.carla_client
+                                                  )
+        else:
+            raise AttributeError("Missing scenario and scenario path, one of them muss be provided")
+        if not os.path.isfile(cr_scenario_path) and not os.path.isfile(open_drive_map_path):
             raise AttributeError("Can not find scenario file or map file")
         self.time_step_delta = None
         self.ego_vehicle = None
+        if vehicle_id!=-1 :
+            self.set_ego_vehicle_by_id(vehicle_id)
 
     def set_carla_client(self, host: str, port: int):
         """
@@ -101,7 +112,7 @@ class CarlaReplayMode:
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None,
                   saving_video: bool = False,
-                  asMP4: bool = True,
+                  asMP4: bool = False,
                   video_path: str = None,
                   file_name: str = "replay_mode"):
         """

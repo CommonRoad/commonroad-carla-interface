@@ -16,6 +16,7 @@ from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
+from commonroad.scenario.scenario import Scenario
 
 try:
     from motion_planner.motion_planner import MotionPlanner
@@ -46,7 +47,8 @@ class CarlaInterface:
             open_drive_map: str,
             carla_client: carla.Client,
             motion_planner: MotionPlanner = None,
-            mpl_update_n: int = -1
+            mpl_update_n: int = -1,
+            cr_scenario: Scenario = None
     ):
         """
 
@@ -55,9 +57,13 @@ class CarlaInterface:
         :param carla_client: carla.Client() object connected to the simulation
         :param motion_planner: a MotionPlanner object from the commonroad-motion-planning-library
         :param mpl_update_n: (in DEV) update interval at which rate the motion planner receives updated CommonRoad dynamic obstacles of the CARLA generated vehicles & pedestrians
+        :param cr_scenario: Scenario obj
         """
         self.map = open_drive_map
-        self.scenario, self.planning_problem_set = CommonRoadFileReader(cr_scenario_file_path).open()
+        if not cr_scenario:
+            self.scenario, self.planning_problem_set = CommonRoadFileReader(cr_scenario_file_path).open()
+        else:
+            self.scenario = cr_scenario
         self.motion_planner = motion_planner
         self.client = carla_client
         self.mpl_update_n = mpl_update_n
