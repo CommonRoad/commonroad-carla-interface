@@ -46,7 +46,7 @@ class CarlaReplayMode:
             raise AttributeError("Can not find scenario file or map file")
         self.time_step_delta = None
         self.ego_vehicle = None
-        if vehicle_id!=-1 :
+        if vehicle_id != -1:
             self.set_ego_vehicle_by_id(vehicle_id)
 
     def set_carla_client(self, host: str, port: int):
@@ -129,6 +129,11 @@ class CarlaReplayMode:
         self.carla_interface.load_map()
         time.sleep(sleep_time)
         self.carla_interface.setup_carla(self.time_step_delta)
+        if saving_video:
+            if not os.path.exists(video_path):
+                raise AttributeError("video path not found")
+            else:
+                video_path = os.path.basename(video_path)
         self._run_scenario(time_step_delta_real,
                            saving_video,
                            asMP4,

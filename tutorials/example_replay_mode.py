@@ -20,7 +20,7 @@ replay.set_ego_vehicle(replay.obstacle_by_id(6))
 #               time_step=1)
 # replay.set_ego_vehicle(replay.create_dynamic_obstacles_ego(initial_state=state))
 
-replay.visualize(sleep_time=5, saving_video=False, video_path="/home/hoaquin/Desktop/test_image")
+replay.visualize(sleep_time=5, saving_video=False, video_path="video")
 executionTime = (time.time() - startTime)
 
 print('Execution time in seconds: ' + str(executionTime))
