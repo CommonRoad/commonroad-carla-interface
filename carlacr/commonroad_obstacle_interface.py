@@ -12,7 +12,7 @@ from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                          similar_by_width)
+                                  similar_by_width)
 
 
 class ApproximationType(Enum):
@@ -21,11 +21,12 @@ class ApproximationType(Enum):
     AREA = 2
 
 
-class CommonRoadObstacleInterface():
+class CommonRoadObstacleInterface:
     """
     One to one representation of a CommonRoad obstacle to be worked with in CARLA
     (Caution: only vehicles are currently supported, basic setup for pedestrians in comments) 
     """
+
     def __init__(self, cr_obstacle: Obstacle):
         """
 
@@ -45,7 +46,6 @@ class CommonRoadObstacleInterface():
         self.type = cr_obstacle.obstacle_type
         self.cr_base = cr_obstacle
 
-
     def spawn(self, world: carla.World, approx_type=ApproximationType.LENGTH, physics=True) -> carla.Actor:
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
@@ -55,7 +55,8 @@ class CommonRoadObstacleInterface():
         :param physics: if physics should be enabled for the vehicle
         :return: if spawn successful the according CARLA actor else None
         """
-        if self.type in [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE, ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
+        if self.type in [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
+                         ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
             if approx_type == ApproximationType.LENGTH:
                 nearest_vehicle_type = similar_by_length(self.size[0], self.size[1], 0)
             if approx_type == ApproximationType.WIDTH:
@@ -63,12 +64,14 @@ class CommonRoadObstacleInterface():
             if approx_type == ApproximationType.AREA:
                 nearest_vehicle_type = similar_by_area(self.size[0], self.size[1], 0)
             obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
-        # TODO: Control Walker
-        # if self.role == ObstacleRole.PEDESTRIAN:
-        #     walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-        #     world.SpawnActor(walker_controller_bp, carla.Transform(), parent_walker)
-            transform = carla.Transform(carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5), carla.Rotation(yaw=(-(180*self.init_state.orientation)/np.pi)))
-            
+            # TODO: Control Walker
+            # if self.role == ObstacleRole.PEDESTRIAN:
+            #     walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
+            #     world.SpawnActor(walker_controller_bp, carla.Transform(), parent_walker)
+            transform = carla.Transform(
+                carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
+                carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
+
             try:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
                 if obstacle:
@@ -97,8 +100,7 @@ class CommonRoadObstacleInterface():
                     return None
             except Exception as e:
                 print("Error while spawning:")
-                raise(e)
-
+                raise (e)
 
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
@@ -116,7 +118,8 @@ class CommonRoadObstacleInterface():
                         new_orientation = state.orientation
                         new_position = state.position
                         transform = carla.Transform(carla.Location(
-                            x=new_position[0], y=-new_position[1], z=0), carla.Rotation(yaw=(-(180*new_orientation)/np.pi)))
+                            x=new_position[0], y=-new_position[1], z=0),
+                            carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                         actor.set_transform(transform)
                         # do lights:
                         vehicle = world.get_actor(self.carla_id)
@@ -138,8 +141,7 @@ class CommonRoadObstacleInterface():
                     print("Could not find actor")
         except Exception as e:
             print("Error while updating position")
-            raise(e)
-
+            raise (e)
 
     def destroy_carla_obstacle(self, world):
         """
@@ -151,7 +153,6 @@ class CommonRoadObstacleInterface():
             actor = world.get_actor(self.carla_id)
             if actor:
                 actor.destroy()
-
 
     def __str__(self):
         resp = "commonroad_id: {}\n".format(self.commonroad_id)

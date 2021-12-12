@@ -8,6 +8,9 @@ Interface for using CommonRoad together with CARLA
 Entrypoint is CarlaInterface.py
 - pygame
 - imageio 
+- moviepy
+- setuptools
+- numpy
 - (Optional) commonroad-motion-planning-library
 
 ## Installation
@@ -42,6 +45,23 @@ To simulate only a CommonRoad scenario in CARLA:
 `ci.setup_carla()`
 6. Run the scenario<br/>
 `ci.run_scenario()`
+
+## Replay Mode
+Watching a scenario in vehicles view with Replay Mode
+    
+    replaymode=CarlaReplayMode(commonroad_scenario,open_drive_map)
+    replaymode.set_ego_vehicle()
+    replaymode.visualize()
+
+see in example_replay_mode
+## Using Replay Mode in command line
+Example command
+
+    python3 ./main.py ../scenarios/DEU_Test-1_1_T-1.xml ../maps/DEU_Test-1_1_T-1.xodr --veh-id 6
+
+For further Information
+
+    python3 ./main.py --help
 
 ## Documentation
 to generate the documentation from the source, first install the dependencies with pip:
