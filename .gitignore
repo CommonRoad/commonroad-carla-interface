@@ -1,5 +1,5 @@
 # Ignore the maps and scenarios for local testing - So that the redundant files are not pushed
-
+/scenarios/*
 # ignore converted maps to not clutter the repo
 /maps/converted/*
 
