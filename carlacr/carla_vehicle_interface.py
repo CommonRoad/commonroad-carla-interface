@@ -21,6 +21,8 @@ from commonroad.visualization.mp_renderer import MPRenderer
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
 
+logger = logging.getLogger(__name__)
+
 
 class CarlaVehicleInterface():
     """ 
@@ -77,7 +79,7 @@ class CarlaVehicleInterface():
             except Exception as e:
                 print("Following error occured while retrieving current position for:")
                 print(self)
-                print(e)
+                logger.error(e, exc_info=sys.exc_info())
                 return None
         else:
             return None
@@ -133,8 +135,7 @@ class CarlaVehicleInterface():
         if random_vehicle & (spawn_point is None):
             possible_spawn_points = world.get_map().get_spawn_points()
             if not possible_spawn_points:
-                logging.warning(f"There are no spawnable points for vehicle")
-                return None
+                logger.warning("There are no spawnable points for carla vehicle")
             transform = random.choice(possible_spawn_points)
         elif spawn_point:
             transform = spawn_point

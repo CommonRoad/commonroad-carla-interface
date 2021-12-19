@@ -7,6 +7,7 @@ from enum import Enum
 
 import carla
 import numpy as np
+import logging
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, Obstacle
@@ -15,6 +16,7 @@ from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
+logger = logging.getLogger(__name__)
 
 
 class CommonRoadEgoInterface:
@@ -80,7 +82,7 @@ class CommonRoadEgoInterface:
             return ego
 
         except Exception as e:
-            print("Error while spawning:")
+            logger.error("Error while spawning:")
             raise e
 
     def set_trajectory(self, trajectory: Trajectory):
@@ -93,7 +95,7 @@ class CommonRoadEgoInterface:
             self.trajectory = trajectory
             print("Ego-Vehicle Trajectory is set")
         else:
-            print("Invalid Trajectory")
+            logger.error("Invalid Trajectory")
 
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
@@ -118,8 +120,8 @@ class CommonRoadEgoInterface:
             else:
                 print("Could not fing actor")
         except Exception as e:
-            print("Error while updating position")
-            raise (e)
+            logger.error("Error while updating position")
+            raise e
 
     def process_image(self, path: str, image: carla.Image):
         """

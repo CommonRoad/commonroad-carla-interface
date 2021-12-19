@@ -113,7 +113,7 @@ class CarlaInterface:
                 try:
                     data = od_file.read()
                 except OSError:
-                    print('file could not be readed.')
+                    logger.error('file could not be readed.')
                     sys.exit()
             print('load opendrive map %r.' % os.path.basename(self.map))
             vertex_distance = 2.0  # in meters

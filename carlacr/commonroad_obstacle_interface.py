@@ -7,13 +7,14 @@ from enum import Enum
 
 import carla
 import numpy as np
+import logging
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
-
+logger = logging.getLogger(__name__)
 
 class ApproximationType(Enum):
     LENGTH = 0
@@ -99,8 +100,8 @@ class CommonRoadObstacleInterface:
                 else:
                     return None
             except Exception as e:
-                print("Error while spawning:")
-                raise (e)
+                logger.error("Error while spawning:")
+                raise e
 
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
@@ -140,8 +141,8 @@ class CommonRoadObstacleInterface:
                 else:
                     print("Could not find actor")
         except Exception as e:
-            print("Error while updating position")
-            raise (e)
+            logger.error("Error while updating position")
+            raise e
 
     def destroy_carla_obstacle(self, world):
         """
