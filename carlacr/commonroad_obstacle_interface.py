@@ -77,7 +77,7 @@ class CommonRoadObstacleInterface:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
                 if obstacle:
                     obstacle.set_simulate_physics(physics)
-                    print("Spawn successful: CR-ID {} CARLA-ID {}".format(self.commonroad_id, obstacle.id))
+                    logger.debug("Spawn successful: CR-ID {} CARLA-ID {}".format(self.commonroad_id, obstacle.id))
                     # do lights:
                     if self.init_signal_state:
                         vehicle = world.get_actor(obstacle.id)
@@ -139,7 +139,7 @@ class CommonRoadObstacleInterface:
                                 z = z | carla.VehicleLightState.LeftBlinker
                             vehicle.set_light_state(carla.VehicleLightState(z))
                 else:
-                    print("Could not find actor")
+                    logger.debug("Could not find actor")
         except Exception as e:
             logger.error("Error while updating position")
             raise e
