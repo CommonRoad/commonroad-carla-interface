@@ -2,7 +2,8 @@ import os
 
 import imageio
 import moviepy.editor as moviepy_edit
-
+import logging
+logger = logging.getLogger(__name__)
 
 class Gif_Creator:
     """
@@ -39,7 +40,7 @@ class Gif_Creator:
                 image = imageio.imread(os.path.join(path, filename))
                 writer.append_data(image)
 
-        print("GIF created!")
+        logger.debug("GIF created!")
         f"{self.path}/{self.gif_name}.gif"
 
     def make_video(self):
@@ -63,7 +64,7 @@ class Gif_Creator:
 
         video = moviepy_edit.ImageSequenceClip(images, fps=5)
         video.write_videofile(f"{self.path}/{self.gif_name}.mp4")
-        print("mp4 created!")
+        logger.debug("mp4 created!")
 
     def make_video_from_gif(self):
         """

@@ -10,6 +10,8 @@ import glob
 import os
 import random
 import sys
+import logging
+logger = logging.getLogger(__name__)
 
 import carla
 
@@ -177,16 +179,16 @@ def main():
 
     finally:
 
-        print('destroying actors.')
+        logger.debug('destroying actors.')
         for actor in actor_list:
             actor.destroy()
 
         pygame.quit()
-        print('done.')
+        logger.debug('done.')
 
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('\nCancelled by user. Bye!')
+        logger.error('\nCancelled by user. Bye!')

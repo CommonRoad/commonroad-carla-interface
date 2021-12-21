@@ -115,7 +115,7 @@ class CarlaInterface:
                 except OSError:
                     logger.error('file could not be readed.')
                     sys.exit()
-            print('load opendrive map %r.' % os.path.basename(self.map))
+            logger.debug('load opendrive map %r.' % os.path.basename(self.map))
             vertex_distance = 2.0  # in meters
             max_road_length = 500.0  # in meters
             wall_height = 1.0  # in meters
@@ -212,7 +212,7 @@ class CarlaInterface:
 
         i = 0  # time-step counter
         max_timesteps = self._calc_max_timestep()
-        print(max_timesteps)
+        logger.debug(max_timesteps)
         with CarlaSyncMode(world, ego.actor_list[0], fps=30) as sync_mode:
             while i <= max_timesteps:
                 if should_quit():
@@ -256,8 +256,8 @@ class CarlaInterface:
                         self._wait_for_carla_vehicle(time_between_ticks)
                     # Following comments print current cr-state of carla generated obstacles
                     # for obs in carla_contr_obs_classes:
-                    #     print(obs.get_cr_state())
-                    # print(pedestrian_handler.get_cr_state_list())
+                    #     logger.debug(obs.get_cr_state())
+                    # logger.debug(pedestrian_handler.get_cr_state_list())
 
                     # If n-th timestep update obstacles for mpl
                     if (self.mpl_update_n > -1) & (i % self.mpl_update_n == 0):
@@ -269,7 +269,7 @@ class CarlaInterface:
                         # update_scenario_objects(carlaCRobsListToUpdate)
 
                     # advance time:
-                    print("Timestep: " + str(i))
+                    logger.debug("Timestep: " + str(i))
                     world.tick()
                     time.sleep(time_between_ticks)
                     i += 1
@@ -366,7 +366,7 @@ class CarlaInterface:
                     self._wait_for_carla_vehicle(time_between_ticks)
 
                 # advance time:
-                print("Timestep: " + str(i))
+                logger.debug("Timestep: " + str(i))
                 world.tick()
                 time.sleep(time_between_ticks)
                 i += 1
@@ -442,7 +442,7 @@ class CarlaInterface:
 
         i = 0  # time-step counter
         max_timesteps = self._calc_max_timestep()
-        print(max_timesteps)
+        logger.debug(max_timesteps)
         # create ego
 
         ego = CommonRoadEgoInterface(trajectory=ego_vehicle.prediction.trajectory,
@@ -500,7 +500,7 @@ class CarlaInterface:
                         self._wait_for_carla_vehicle(time_between_ticks)
 
                     # advance time:
-                    print("Timestep: " + str(i))
+                    logger.debug("Timestep: " + str(i))
                     world.tick()
                     time.sleep(time_between_ticks)
                     i += 1
@@ -564,7 +564,7 @@ class CarlaInterface:
                                         gif_path, gif_name, asMP4)
         else:
             if create_gif:
-                print("GIFs can only be created when a Motion Planner is provided!")
+                logger.debug("GIFs can only be created when a Motion Planner is provided!")
             self._run_scenario_without_mpl(clean_up, time_step_delta_real, carla_vehicles, carla_pedestrians)
 
     def _clean_up_carla(self, ego_interface_list: List[CommonRoadEgoInterface],
@@ -612,7 +612,7 @@ class CarlaInterface:
         x = 0
         for response in self.client.apply_batch_sync(batch):
             if response.error:
-                print(response.error)
+                logger.debug(response.error)
             else:
                 carla_controlled_obstacles.append(response.actor_id)
                 carla_obs = carla_contr_obs_classes[x]
@@ -621,7 +621,7 @@ class CarlaInterface:
                 x += 1
         pedestrian_handler = CarlaPedestrianHandler(self.scenario, self.client, carla_pedestrians)
         pedestrian_handler.spawn()
-        print(pedestrian_handler)
+        logger.debug(pedestrian_handler)
         return pedestrian_handler
 
     def _wait_for_carla_vehicle(self, time_between_ticks):
