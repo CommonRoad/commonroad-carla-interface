@@ -7,6 +7,9 @@ import time
 from datetime import date, datetime
 from enum import Enum
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 import carla
 import commonroad.scenario.obstacle
@@ -110,7 +113,7 @@ class CarlaInterface:
                 try:
                     data = od_file.read()
                 except OSError:
-                    print('file could not be readed.')
+                    logger.error('file could not be readed.')
                     sys.exit()
             print('load opendrive map %r.' % os.path.basename(self.map))
             vertex_distance = 2.0  # in meters
@@ -127,7 +130,7 @@ class CarlaInterface:
                     enable_mesh_visibility=True))
 
         else:
-            print('file not found.')
+            logging.error('file not found.')
 
     def _calc_max_timestep(self) -> int:
         """
@@ -205,7 +208,7 @@ class CarlaInterface:
                 if actor:
                     carla_interface_obstacles.append((ego, actor))
             except Exception as e:
-                print(e)
+                logger.error(e, exc_info=sys.exc_info())
 
         i = 0  # time-step counter
         max_timesteps = self._calc_max_timestep()
@@ -224,7 +227,7 @@ class CarlaInterface:
                         try:
                             ego.update_position_by_time(world, i)
                         except Exception as e:
-                            print(e)
+                            logger.error(e, exc_info=sys.exc_info())
 
                     fps = round(1.0 / snapshot.timestamp.delta_seconds)
                     draw_image(display, image_rgb)
@@ -288,7 +291,7 @@ class CarlaInterface:
                                              carla_controlled_obstacles, pedestrian_handler)
                     sys.exit(0)
                 except Exception as e:
-                    print(e)
+                    logger.error(e, exc_info=sys.exc_info())
         # Create GIF
         if create_gif:
             gc = Gif_Creator(gif_path, gif_name)
@@ -379,7 +382,7 @@ class CarlaInterface:
                                          carla_controlled_obstacles, pedestrian_handler)
                 sys.exit(0)
             except Exception as e:
-                print(e)
+                logger.error(e, exc_info=sys.exc_info())
 
         settings = world.get_settings()
         # Stop synchronous mode to be able to investigate CARLA without a Script running
@@ -451,7 +454,7 @@ class CarlaInterface:
             if actor:
                 carla_interface_obstacles.append((ego, actor))
         except Exception as e:
-            print(e)
+            logger.error(e, exc_info=sys.exc_info())
 
         with CarlaSyncMode(world, ego.actor_list[0], fps=30) as sync_mode:
             while i <= max_timesteps:
@@ -468,7 +471,7 @@ class CarlaInterface:
                         try:
                             ego.update_position_by_time(world, i)
                         except Exception as e:
-                            print(e)
+                            logger.error(e, exc_info=sys.exc_info())
 
                     fps = round(1.0 / snapshot.timestamp.delta_seconds)
                     draw_image(display, image_rgb)
@@ -518,7 +521,7 @@ class CarlaInterface:
                                          carla_controlled_obstacles, pedestrian_handler)
                     sys.exit(0)
                 except Exception as e:
-                    print(e)
+                    logger.error(e, exc_info=sys.exc_info())
         # Create GIF
         if create_gif:
             gc = Gif_Creator(gif_path, gif_name)
@@ -588,12 +591,12 @@ class CarlaInterface:
                     if actor:
                         carla_interface_obstacles.append((obs, actor))
                 except Exception as e:
-                    print(e)
+                    logger.error(e, exc_info=sys.exc_info())
             else:
                 try:
                     obs.update_position_by_time(world, curr_time_step)
                 except Exception as e:
-                    print(e)
+                    logger.error(e, exc_info=sys.exc_info())
 
     def _control_carla_obstacles(self, carla_vehicles,
                                  carla_contr_obs_classes: List[CarlaVehicleInterface],
@@ -602,9 +605,10 @@ class CarlaInterface:
                                  carla_pedestrians: int):
         for numb_veh in range(0, carla_vehicles):
             q = CarlaVehicleInterface(self.scenario, self.client)
-            carla_contr_obs_classes.append(q)
             actor = q.get_spawnable()
-            batch.append(actor)
+            if actor:
+                carla_contr_obs_classes.append(q)
+                batch.append(actor)
         x = 0
         for response in self.client.apply_batch_sync(batch):
             if response.error:

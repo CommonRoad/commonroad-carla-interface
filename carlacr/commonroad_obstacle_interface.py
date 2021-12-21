@@ -7,13 +7,14 @@ from enum import Enum
 
 import carla
 import numpy as np
+import logging
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
-
+logger = logging.getLogger(__name__)
 
 class ApproximationType(Enum):
     LENGTH = 0
@@ -76,7 +77,7 @@ class CommonRoadObstacleInterface:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
                 if obstacle:
                     obstacle.set_simulate_physics(physics)
-                    print("Spawn successful: CR-ID {} CARLA-ID {}".format(self.commonroad_id, obstacle.id))
+                    logger.debug("Spawn successful: CR-ID {} CARLA-ID {}".format(self.commonroad_id, obstacle.id))
                     # do lights:
                     if self.init_signal_state:
                         vehicle = world.get_actor(obstacle.id)
@@ -99,8 +100,8 @@ class CommonRoadObstacleInterface:
                 else:
                     return None
             except Exception as e:
-                print("Error while spawning:")
-                raise (e)
+                logger.error("Error while spawning:")
+                raise e
 
     def update_position_by_time(self, world: carla.World, timestep: int):
         """
@@ -138,10 +139,10 @@ class CommonRoadObstacleInterface:
                                 z = z | carla.VehicleLightState.LeftBlinker
                             vehicle.set_light_state(carla.VehicleLightState(z))
                 else:
-                    print("Could not find actor")
+                    logger.debug("Could not find actor")
         except Exception as e:
-            print("Error while updating position")
-            raise (e)
+            logger.error("Error while updating position")
+            raise e
 
     def destroy_carla_obstacle(self, world):
         """

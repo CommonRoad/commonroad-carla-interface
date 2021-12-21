@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob
+import logging
 import os
 import sys
 from enum import Enum
@@ -18,7 +19,9 @@ from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                          similar_by_width)
+                                  similar_by_width)
+
+logger = logging.getLogger(__name__)
 
 
 class CarlaVehicleInterface():
@@ -48,14 +51,12 @@ class CarlaVehicleInterface():
         self.carla_id = None
         self.has_controler = None
 
-
     def __str__(self):
         resp = "commonroad_id: {}\n".format(self.commonroad_id)
         resp += "carla_id: {}\n".format(self.carla_id)
         resp += "is_spawned: {}\n".format(self.is_spawned)
         resp += "traffic manager port: {}\n".format(self.tm_port)
         return resp
-
 
     def get_cr_state(self) -> State:
         """
@@ -73,15 +74,15 @@ class CarlaVehicleInterface():
                 transform = actor.get_transform()
                 location = transform.location
                 rotation = transform.rotation
-                return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw*pi)/180), velocity=vel)
+                return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw * pi) / 180),
+                             velocity=vel)
             except Exception as e:
                 print("Following error occured while retrieving current position for:")
                 print(self)
-                print(e)
+                logger.error(e, exc_info=sys.exc_info())
                 return None
         else:
             return None
-
 
     def get_cr_dynamic_obstacle(self) -> DynamicObstacle:
         """
@@ -97,14 +98,13 @@ class CarlaVehicleInterface():
             dynamic_obstacle_shape = Rectangle(width=width, length=length)
             dynamic_obstacle_init_state = self.get_cr_state()
             # TODO: get Vehicle Light State -> Problem: not all vehicles have a light state yet!
-            obs = DynamicObstacle(self.commonroad_id, 
+            obs = DynamicObstacle(self.commonroad_id,
                                   dynamic_obstacle_type,
                                   dynamic_obstacle_shape,
                                   dynamic_obstacle_init_state)
             return obs
         else:
             return None
-
 
     def update_after_spawn(self, spawned=True, cr_id=None, actor_id=None):
         """
@@ -118,11 +118,10 @@ class CarlaVehicleInterface():
         self.commonroad_id = cr_id
         self.carla_id = actor_id
 
-
     def get_spawnable(self, random_vehicle=True, blue_print=None, spawn_point=None) -> carla.command.SpawnActor:
         """
 
-        :param random_obs: if true a random blue print & random spawn point will be used to create a spawnable
+        :param random_vehicle: if true a random blue print & random spawn point will be used to create a spawnable
         :param blue_print: blue print to be used to create the vehicle
         :param spawn_point: spawn point to be used to spawn the vehicle
         :return: a spawnable actor to be spawned in bulk
@@ -133,16 +132,18 @@ class CarlaVehicleInterface():
         traffic_manager.set_global_distance_to_leading_vehicle(1.0)
 
         # Get spawn-point:
-        if random_vehicle & (spawn_point == None):
+        if random_vehicle & (spawn_point is None):
             possible_spawn_points = world.get_map().get_spawn_points()
+            if not possible_spawn_points:
+                logger.warning("There are no spawnable points for carla vehicle")
             transform = random.choice(possible_spawn_points)
         elif spawn_point:
             transform = spawn_point
         else:
-            print("Set random=True or provide a spawn_point")
+            logging.warning("Set random=True or provide a spawn_point")
             return None
         # Select blue-print:
-        if random_vehicle & (blue_print == None):
+        if random_vehicle & (blue_print is None):
             blueprints = world.get_blueprint_library().filter('vehicle.*')
             bp = random.choice(blueprints)
         elif blue_print:
@@ -167,8 +168,8 @@ class CarlaVehicleInterface():
         SetAutopilot = carla.command.SetAutopilot
         SetVehicleLightState = carla.command.SetVehicleLightState
         FutureActor = carla.command.FutureActor
-        
+
         # spawn the cars and set their autopilot and light state all together
         return (SpawnActor(bp, transform)
-                    .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
-                    .then(SetVehicleLightState(FutureActor, light_state)))
+                .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
+                .then(SetVehicleLightState(FutureActor, light_state)))
