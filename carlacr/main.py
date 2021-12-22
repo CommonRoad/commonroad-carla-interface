@@ -3,6 +3,8 @@ import time
 import typer
 import time
 from carlacr.carla_replay_mode import CarlaReplayMode
+import logging
+logger = logging.getLogger(__name__)
 
 cli = typer.Typer(
     help="Generates visualization in Carla for Commonroad scenario and map"
@@ -46,7 +48,7 @@ def visualize(scenario_file: str = typer.Argument(
         replay.visualize(leep_time=5, saving_video=False, video_path="/home/")
     executionTime = (time.time() - startTime)
 
-    print('Execution time in seconds: ' + str(executionTime))
+    logger.debug('Execution time in seconds: ' + str(executionTime))
 
 
 if __name__ == "__main__":

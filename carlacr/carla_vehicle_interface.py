@@ -77,8 +77,8 @@ class CarlaVehicleInterface():
                 return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw * pi) / 180),
                              velocity=vel)
             except Exception as e:
-                print("Following error occured while retrieving current position for:")
-                print(self)
+                logger.debug("Following error occured while retrieving current position for:")
+                logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())
                 return None
         else:
@@ -149,7 +149,7 @@ class CarlaVehicleInterface():
         elif blue_print:
             bp = blue_print
         else:
-            print("Set random=True or provide a blue_print")
+            logger.debug("Set random=True or provide a blue_print")
             return None
         # Configure Blueprint
         if bp.has_attribute('color'):
