@@ -4,6 +4,7 @@ import glob
 import os
 import sys
 from enum import Enum
+from typing import List, Tuple
 
 import carla
 import numpy as np
@@ -11,11 +12,13 @@ import logging
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, Obstacle
-from commonroad.scenario.trajectory import Trajectory
+from commonroad.scenario.trajectory import Trajectory, State
 from commonroad.visualization.mp_renderer import MPRenderer
 
+from carlacr.commonroad_obstacle_interface import ApproximationType
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +28,7 @@ class CommonRoadEgoInterface:
     """
 
     def __init__(self, planning_problem: PlanningProblem = None, trajectory: Trajectory = None,
-                 initial_state: Obstacle.initial_state = None):
+                 initial_state: Obstacle.initial_state = None, size: Tuple[float, float, float] = None):
         """
         :param planning_problem: CommonRoad planning problem object
         :param trajectory: CommonRoad trajectory for the ego-vehicle
@@ -45,8 +48,10 @@ class CommonRoadEgoInterface:
         elif initial_state:
             self.spawn_timestep = initial_state.time_step
         self.actor_list = []
+        self.size = size
 
-    def spawn(self, world: carla.World, physics=True, create_gif=False, path=None) -> carla.Actor:
+    def spawn(self, world: carla.World, physics=True, create_gif=False, path=None,
+              approx_type=ApproximationType.LENGTH) -> carla.Actor:
         """
         Tries to spawn the ego-vehicle and a camera for it in the given CARLA world and returns the spawned vehicle.
 
@@ -54,12 +59,22 @@ class CommonRoadEgoInterface:
         :param physics: if physics should be enabled for the ego-vehicle
         :param create_gif: True if a GIF should be created
         :param path: base path of the directory where the GIF should be stored
+        :param approx_type:based on what approximation of the vehicle size the blue print should be selected
         :return: if spawn successful the according CARLA actor else None
         """
         ego_transform = carla.Transform(
             carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
             carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
-        ego_blueprint = world.get_blueprint_library().filter('model3')[0]  # Just for reference
+        if self.size:
+            if approx_type == ApproximationType.LENGTH:
+                nearest_vehicle_type = similar_by_length(self.size[0], self.size[1], 0)
+            if approx_type == ApproximationType.WIDTH:
+                nearest_vehicle_type = similar_by_width(self.size[0], self.size[1], 0)
+            if approx_type == ApproximationType.AREA:
+                nearest_vehicle_type = similar_by_area(self.size[0], self.size[1], 0)
+            ego_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]  # Just for reference
+        else:
+            ego_blueprint = world.get_blueprint_library().filter('model3')[0]  # Just for reference
 
         try:
             ego = world.try_spawn_actor(ego_blueprint, ego_transform)
@@ -97,26 +112,24 @@ class CommonRoadEgoInterface:
         else:
             logger.error("Invalid Trajectory")
 
-    def update_position_by_time(self, world: carla.World, timestep: int):
+    def update_position_by_time(self, world: carla.World, state: State):
         """
         Tries to update the position of the ego-vehicle
 
         :param world: the CARLA world object
-        :param timestep: timestep that should be used to update
+        :param state:state at the time step
         """
         try:
             if self.is_spawned and (self.trajectory is not None):
                 actor = world.get_actor(self.carla_id)
 
             if actor:
-                state = self.trajectory.state_at_time_step(timestep)
-                if state:
-                    new_orientation = state.orientation
-                    new_position = state.position
-                    transform = carla.Transform(carla.Location(
-                        x=new_position[0], y=-new_position[1], z=0),
-                        carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
-                    actor.set_transform(transform)
+                new_orientation = state.orientation
+                new_position = state.position
+                transform = carla.Transform(carla.Location(
+                    x=new_position[0], y=-new_position[1], z=0),
+                    carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
+                actor.set_transform(transform)
             else:
                 logger.debug("Could not find actor")
         except Exception as e:

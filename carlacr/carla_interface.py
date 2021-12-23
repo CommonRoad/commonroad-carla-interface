@@ -446,7 +446,8 @@ class CarlaInterface:
         # create ego
 
         ego = CommonRoadEgoInterface(trajectory=ego_vehicle.prediction.trajectory,
-                                     initial_state=ego_vehicle.initial_state)
+                                     initial_state=ego_vehicle.initial_state,
+                                     size=(ego_vehicle.obstacle_shape.length, ego_vehicle.obstacle_shape.width, 0))
 
         ego_interface_list.append(ego)
         try:
@@ -469,7 +470,9 @@ class CarlaInterface:
                     # Ego Vehicle
                     if ego.is_spawned:
                         try:
-                            ego.update_position_by_time(world, i)
+                            state = ego.trajectory.state_at_time_step(i)
+                            if state:
+                                ego.update_position_by_time(world, state)
                         except Exception as e:
                             logger.error(e, exc_info=sys.exc_info())
 
@@ -584,6 +587,7 @@ class CarlaInterface:
                                       carla_interface_obstacles: List,
                                       world: carla.World,
                                       curr_time_step: int):
+        deleted_obs = []
         for obs in interface_obstacles:
             if not obs.is_spawned:
                 try:
@@ -594,9 +598,15 @@ class CarlaInterface:
                     logger.error(e, exc_info=sys.exc_info())
             else:
                 try:
-                    obs.update_position_by_time(world, curr_time_step)
+                    if obs.trajectory.state_at_time_step(curr_time_step):
+                        obs.update_position_by_time(world, obs.trajectory.state_at_time_step(curr_time_step))
+                    else:
+                        deleted_obs.append(obs)
+                        obs.destroy_carla_obstacle(world)
                 except Exception as e:
                     logger.error(e, exc_info=sys.exc_info())
+        for obs in deleted_obs:
+            interface_obstacles.remove(obs)
 
     def _control_carla_obstacles(self, carla_vehicles,
                                  carla_contr_obs_classes: List[CarlaVehicleInterface],
