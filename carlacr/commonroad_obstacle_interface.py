@@ -10,11 +10,14 @@ import numpy as np
 import logging
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
+from commonroad.scenario.trajectory import State
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
                                   similar_by_width)
+
 logger = logging.getLogger(__name__)
+
 
 class ApproximationType(Enum):
     LENGTH = 0
@@ -103,41 +106,40 @@ class CommonRoadObstacleInterface:
                 logger.error("Error while spawning:")
                 raise e
 
-    def update_position_by_time(self, world: carla.World, timestep: int):
+    def update_position_by_time(self, world: carla.World, state: State):
         """
         Tries to update the position of the obstacle and sets lights
 
         :param world: the CARLA world object
-        :param timestep: timestep that should be used to update
+        :param state: state at the time step
         """
         try:
             if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
                 actor = world.get_actor(self.carla_id)
                 if actor:
-                    state = self.trajectory.state_at_time_step(timestep)
-                    if state:
-                        new_orientation = state.orientation
-                        new_position = state.position
-                        transform = carla.Transform(carla.Location(
-                            x=new_position[0], y=-new_position[1], z=0),
-                            carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
-                        actor.set_transform(transform)
-                        # do lights:
-                        vehicle = world.get_actor(self.carla_id)
-                        z = carla.VehicleLightState.NONE
-                        vehicle.set_light_state(z)
-                        sig = self.cr_base.signal_state_at_time_step(timestep)
-                        if sig:
-                            if sig.braking_lights:
-                                z = z | carla.VehicleLightState.Brake
-                            if sig.indicator_left and not sig.hazard_warning_lights:
-                                z = z | carla.VehicleLightState.LeftBlinker
-                            if sig.indicator_right and not sig.hazard_warning_lights:
-                                z = z | carla.VehicleLightState.RightBlinker
-                            if sig.hazard_warning_lights:
-                                z = z | carla.VehicleLightState.RightBlinker
-                                z = z | carla.VehicleLightState.LeftBlinker
-                            vehicle.set_light_state(carla.VehicleLightState(z))
+                    new_orientation = state.orientation
+                    new_position = state.position
+                    transform = carla.Transform(carla.Location(
+                        x=new_position[0], y=-new_position[1], z=0),
+                        carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
+                    actor.set_transform(transform)
+                    # do lights:
+                    vehicle = world.get_actor(self.carla_id)
+                    z = carla.VehicleLightState.NONE
+                    vehicle.set_light_state(z)
+                    sig = self.cr_base.signal_state_at_time_step(state.time_step)
+                    if sig:
+                        if sig.braking_lights:
+                            z = z | carla.VehicleLightState.Brake
+                        if sig.indicator_left and not sig.hazard_warning_lights:
+                            z = z | carla.VehicleLightState.LeftBlinker
+                        if sig.indicator_right and not sig.hazard_warning_lights:
+                            z = z | carla.VehicleLightState.RightBlinker
+                        if sig.hazard_warning_lights:
+                            z = z | carla.VehicleLightState.RightBlinker
+                            z = z | carla.VehicleLightState.LeftBlinker
+                        vehicle.set_light_state(carla.VehicleLightState(z))
+
                 else:
                     logger.debug("Could not find actor")
         except Exception as e:
