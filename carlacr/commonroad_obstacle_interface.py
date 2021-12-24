@@ -111,7 +111,7 @@ class CommonRoadObstacleInterface:
         Tries to update the position of the obstacle and sets lights
 
         :param world: the CARLA world object
-        :param state:state at the time step
+        :param state: state at the time step
         """
         try:
             if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
