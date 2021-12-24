@@ -117,7 +117,7 @@ class CommonRoadEgoInterface:
         Tries to update the position of the ego-vehicle
 
         :param world: the CARLA world object
-        :param state:state at the time step
+        :param state: state at the time step
         """
         try:
             if self.is_spawned and (self.trajectory is not None):
