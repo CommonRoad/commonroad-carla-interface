@@ -10,35 +10,36 @@ from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
 from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.scenario.scenario import Scenario
-from carlacr.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface, MotionPlanner
 
 
-class CarlaReplayMode:
-    """
-    Replay Mode used to easily create visualization and video from scenerio and map
-    """
-
+class CarlaMotionPlannerMode:
     def __init__(self, open_drive_map_path: str, cr_scenario_path: str = None, cr_scenario: Scenario = None,
-                 vehicle_id: id = -1):
+                 motion_planner: MotionPlanner = None, vehicle_id: id = -1):
         """
-        Create Replay mode Interface
+            Create Replay mode Interface
 
-        :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
-        :param cr_scenario_path: full path & filename to a CommonRoad XML-file
-        :param cr_scenario: Scenario object
-        :param time_step_delta: time_step_delta within the simulation (how much time is between two timesteps for CARLA), if None using dt from CommonRoad scenario
-        :param vehicle_id: id of the vehicle
-        """
+            :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
+            :param cr_scenario_path: full path & filename to a CommonRoad XML-file
+            :param cr_scenario: Scenario object
+            :param motion_planner: motion planner library
+            :param time_step_delta: time_step_delta within the simulation (how much time is between two timesteps for CARLA), if None using dt from CommonRoad scenario
+            :param vehicle_id: id of the vehicle
+            """
         self.carla_client = carla.Client("localhost", 2000)
+        if motion_planner is None:
+            raise AttributeError(
+                "Missing motion planner , motion planner muss be provided for this mode muss be provided")
         if cr_scenario:
             self.carla_interface = CarlaInterface(cr_scenario=cr_scenario,
                                                   open_drive_map=open_drive_map_path,
-                                                  carla_client=self.carla_client
-                                                  )
+                                                  carla_client=self.carla_client,
+                                                  motion_planner=motion_planner)
         elif cr_scenario_path:
             self.carla_interface = CarlaInterface(cr_scenario_file_path=cr_scenario_path,
                                                   open_drive_map=open_drive_map_path,
-                                                  carla_client=self.carla_client
+                                                  carla_client=self.carla_client,
+                                                  motion_planner=motion_planner
                                                   )
         else:
             raise AttributeError("Missing scenario and scenario path, one of them muss be provided")
@@ -48,6 +49,7 @@ class CarlaReplayMode:
         self.ego_vehicle = None
         if vehicle_id != -1:
             self.set_ego_vehicle_by_id(vehicle_id)
+
 
     def saving_video(self, create_video: bool = True, video_path: str = None, video_name: str = None,
                      video_asMP4: bool = False):
@@ -130,10 +132,6 @@ class CarlaReplayMode:
 
         :param sleep_time: time to move your view in carla-window
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
-        :param saving_video: if True a gif will be created (only when a MotionPlanner is provided)
-        :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be created in to save the images used for the gif
-        :param file_name: filename for the gif
-        :param asMP4: flag to save as mp4 or gif
         """
         self.carla_interface.load_map()
         time.sleep(sleep_time)
@@ -146,9 +144,5 @@ class CarlaReplayMode:
 
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         """
-        if not self.ego_vehicle:
-            self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real)
-        else:
-            # run scenario with custom setting
-            self.carla_interface.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real,
-                                                               ego_vehicle=self.ego_vehicle)
+        self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real,
+                                          ego_vehicle=self.ego_vehicle, clean_up=True)
