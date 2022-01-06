@@ -18,5 +18,6 @@ Modules
     commonroad_obstacle_interface.rst
     carla_interface.rst
     carla_replay_mode.rst
+    carla_motion_planner_mode.rst
     additional_modules.rst
 
