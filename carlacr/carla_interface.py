@@ -47,7 +47,7 @@ class CarlaInterface:
     def __init__(
             self,
             cr_scenario_file_path: str,
-            open_drive_map: str,
+            open_drive_map_path: str,
             carla_client: carla.Client,
             motion_planner: MotionPlanner = None,
             mpl_update_n: int = -1,
@@ -62,7 +62,7 @@ class CarlaInterface:
         :param mpl_update_n: (in DEV) update interval at which rate the motion planner receives updated CommonRoad dynamic obstacles of the CARLA generated vehicles & pedestrians
         :param cr_scenario: Scenario obj
         """
-        self.map = open_drive_map
+        self.map = open_drive_map_path
         if not cr_scenario:
             self.scenario, self.planning_problem_set = CommonRoadFileReader(cr_scenario_file_path).open()
         else:
@@ -536,12 +536,16 @@ class CarlaInterface:
                                         carla_pedestrians=carla_pedestrians)
 
         else:
-            if self.create_video:
-                logger.debug("GIFs can only be created when a Motion Planner is provided!")
-            self._run_scenario_without_mpl(clean_up=clean_up, time_step_delta_real=time_step_delta_real,
+            if self.create_video and not ego_vehicle:
+                logger.debug("GIFs can only be created when a ego_vehicle or motion planner is provided!")
+            if ego_vehicle:
+                self.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real,
+                                                               ego_vehicle=ego_vehicle)
+            else:
+                self._run_scenario_without_mpl(clean_up=clean_up, time_step_delta_real=time_step_delta_real,
                                            carla_pedestrians=carla_vehicles, carla_vehicles=carla_pedestrians)
+
         self.video_path = self.video_path[:len(self.video_path) - len(video_folder)]
-        print(self.video_path)
 
     def _clean_up_carla(self, ego_interface_list: List[CommonRoadEgoInterface],
                         interface_obstacles: List[CommonRoadObstacleInterface],
