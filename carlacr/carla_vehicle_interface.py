@@ -17,9 +17,10 @@ from commonroad.scenario.obstacle import (DynamicObstacle, ObstacleRole,
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.visualization.mp_renderer import MPRenderer
+from commonroad.prediction.prediction import Prediction, TrajectoryPrediction
 
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                  similar_by_width)
+                                  similar_by_width, vehicle_dict)
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class CarlaVehicleInterface():
         self.commonroad_id = None
         self.carla_id = None
         self.has_controler = None
+        self.dynamic_obstacle: DynamicObstacle = None
 
     def __str__(self):
         resp = "commonroad_id: {}\n".format(self.commonroad_id)
@@ -58,7 +60,7 @@ class CarlaVehicleInterface():
         resp += "traffic manager port: {}\n".format(self.tm_port)
         return resp
 
-    def get_cr_state(self) -> State:
+    def get_cr_state(self, time_step=0) -> State:
         """
         Get current CommonRoad state if spawned, else None
 
@@ -75,7 +77,7 @@ class CarlaVehicleInterface():
                 location = transform.location
                 rotation = transform.rotation
                 return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw * pi) / 180),
-                             velocity=vel)
+                             velocity=vel, time_step=time_step)
             except Exception as e:
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
@@ -84,7 +86,10 @@ class CarlaVehicleInterface():
         else:
             return None
 
-    def get_cr_dynamic_obstacle(self) -> DynamicObstacle:
+    def get_cr_dynamic_obstacle(self):
+        return self.dynamic_obstacle
+
+    def create_cr_dynamic_obstacle(self) -> DynamicObstacle:
         """
         Returns a CommonRoad DynamicObstacle from this CARLA Vehicle
 
@@ -96,12 +101,16 @@ class CarlaVehicleInterface():
             width = actor.bounding_box.extent.y * 2
             dynamic_obstacle_type = ObstacleType.CAR  # TODO: check if maybe bike or truck etc.
             dynamic_obstacle_shape = Rectangle(width=width, length=length)
-            dynamic_obstacle_init_state = self.get_cr_state()
+            dynamic_obstacle_init_state = self.get_cr_state(time_step=0)
+            dynamic_obstacle_trajectory = Trajectory(initial_time_step=0, state_list=[dynamic_obstacle_init_state])
             # TODO: get Vehicle Light State -> Problem: not all vehicles have a light state yet!
             obs = DynamicObstacle(self.commonroad_id,
                                   dynamic_obstacle_type,
                                   dynamic_obstacle_shape,
-                                  dynamic_obstacle_init_state)
+                                  initial_state=dynamic_obstacle_init_state,
+                                  prediction=TrajectoryPrediction(trajectory=dynamic_obstacle_trajectory,
+                                                                  shape=dynamic_obstacle_shape))
+            self.dynamic_obstacle = obs
             return obs
         else:
             return None
@@ -136,6 +145,7 @@ class CarlaVehicleInterface():
             possible_spawn_points = world.get_map().get_spawn_points()
             if not possible_spawn_points:
                 logger.warning("There are no spawnable points for carla vehicle")
+                return None
             transform = random.choice(possible_spawn_points)
         elif spawn_point:
             transform = spawn_point
@@ -144,8 +154,14 @@ class CarlaVehicleInterface():
             return None
         # Select blue-print:
         if random_vehicle & (blue_print is None):
-            blueprints = world.get_blueprint_library().filter('vehicle.*')
-            bp = random.choice(blueprints)
+            choice = random.choice(list(vehicle_dict))
+            bps = world.get_blueprint_library().filter(choice)
+            if not bps:
+                # Carla can not find the vehicle in vehicle_dict. Require an update on the vehicle name
+                # https://carla.readthedocs.io/en/latest/bp_library/
+                raise AttributeError(choice)
+            else:
+                bp = bps[0]
         elif blue_print:
             bp = blue_print
         else:
