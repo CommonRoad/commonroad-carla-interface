@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.obstacle import DynamicObstacle
@@ -9,12 +11,14 @@ This module contains helper methods for carla_commondroad interface
 """
 
 
-def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> list(Scenario):
+def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[Scenario]:
     """
     This method divide a big scenario into smaller one
 
     :param scenario: scenario to divide
     :param length_child_scenario: length of chile scenario
+
+    :return: list of child scenario
     """
     assert length_child_scenario > 0
     scenario_child_list = []
@@ -82,6 +86,7 @@ def calc_max_timestep(scenario: Scenario) -> int:
     Calculates maximal time step of current scenario
 
     :param scenario: scenario to calculate max time step
+    :return: length of scenario
     """
     if scenario is None:
         return 0
