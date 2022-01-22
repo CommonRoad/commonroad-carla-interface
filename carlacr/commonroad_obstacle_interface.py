@@ -120,7 +120,7 @@ class CommonRoadObstacleInterface:
                     new_orientation = state.orientation
                     new_position = state.position
                     transform = carla.Transform(carla.Location(
-                        x=new_position[0], y=-new_position[1], z=0),
+                        x=new_position[0], y=-new_position[1], z=actor.get_location().z),
                         carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                     actor.set_transform(transform)
                     # do lights:
