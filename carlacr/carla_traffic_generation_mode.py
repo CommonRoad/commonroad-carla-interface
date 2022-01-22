@@ -12,6 +12,7 @@ from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.scenario.scenario import Scenario
 from carlacr.carla_interface import CarlaInterface
 from carlacr.carla_mode import CarlaMode
+from carlacr.carla_replay_mode import CarlaReplayMode
 
 from commonroad.scenario.scenario import Tag
 from commonroad.common.file_writer import CommonRoadFileWriter
@@ -68,3 +69,8 @@ class CarlaTrafficGenerationMode(CarlaMode):
                         source=None, tags={Tag.CRITICAL, Tag.INTERSTATE}):
         fw = CommonRoadFileWriter(self.scenario, planning_problem_set, author, affiliation, source, tags)
         fw.write_to_file(file_path, OverwriteExistingFile.ALWAYS)
+
+    def switch_to_replay_mode(self):
+        replay = CarlaReplayMode(open_drive_map_path=self.carla_interface.map,
+                                 cr_scenario=self.scenario)
+        return replay
