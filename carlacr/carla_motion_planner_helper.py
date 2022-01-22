@@ -4,7 +4,9 @@ from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, Obstacle
 from commonroad.prediction.prediction import Prediction, TrajectoryPrediction
 from commonroad.scenario.trajectory import State, Trajectory
 
-
+"""
+This module contains helper methods for carla_commondroad interface 
+"""
 def divide_scenario(scenario: Scenario, length_child_scenario: int = 5):
     assert length_child_scenario > 0
     scenario_child_list = []

@@ -17,8 +17,7 @@ import numpy as np
 import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
-from commonroad.scenario.trajectory import Trajectory
-from commonroad.visualization.mp_renderer import MPRenderer
+from carlacr.carla_motion_planner_helper import calc_max_timestep
 from commonroad.scenario.scenario import Scenario
 from commonroad.prediction.prediction import Prediction, TrajectoryPrediction
 
@@ -57,7 +56,7 @@ class CarlaInterface:
         """
 
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
-        :param open_drive_map: full path & filename to the according OpenDRIVE map for the scenario
+        :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
         :param carla_client: carla.Client() object connected to the simulation
         :param motion_planner: a MotionPlanner object from the commonroad-motion-planning-library
         :param mpl_update_n: (in DEV) update interval at which rate the motion planner receives updated CommonRoad dynamic obstacles of the CARLA generated vehicles & pedestrians
@@ -158,13 +157,7 @@ class CarlaInterface:
         """
         Calculates maximal time step of current scenario
         """
-        if self.scenario is None:
-            return 0
-        timesteps = [
-            obstacle.prediction.occupancy_set[-1].time_step
-            for obstacle in self.scenario.dynamic_obstacles
-        ]
-        self.max_timestep = np.max(timesteps) if timesteps else 0
+        self.max_timestep = calc_max_timestep(self.scenario)
         return self.max_timestep
 
     def _run_scenario_with_mpl(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0,
