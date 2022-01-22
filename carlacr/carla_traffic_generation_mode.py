@@ -1,14 +1,7 @@
-import os.path
 import time
-from datetime import datetime, date
-from typing import List
 
 import carla
 
-from commonroad.geometry.shape import Rectangle
-from commonroad.prediction.prediction import TrajectoryPrediction
-from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
-from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.scenario.scenario import Scenario
 from carlacr.carla_interface import CarlaInterface
 from carlacr.carla_mode import CarlaMode
@@ -17,7 +10,6 @@ from carlacr.carla_replay_mode import CarlaReplayMode
 from commonroad.scenario.scenario import Tag
 from commonroad.common.file_writer import CommonRoadFileWriter
 from commonroad.common.file_writer import OverwriteExistingFile
-from commonroad.scenario.scenario import Location
 from commonroad.planning.planning_problem import PlanningProblemSet
 
 
@@ -70,7 +62,7 @@ class CarlaTrafficGenerationMode(CarlaMode):
         fw = CommonRoadFileWriter(self.scenario, planning_problem_set, author, affiliation, source, tags)
         fw.write_to_file(file_path, OverwriteExistingFile.ALWAYS)
 
-    def switch_to_replay_mode(self):
+    def switch_to_replay_mode(self) -> CarlaReplayMode:
         replay = CarlaReplayMode(open_drive_map_path=self.carla_interface.map,
                                  cr_scenario=self.scenario)
         return replay

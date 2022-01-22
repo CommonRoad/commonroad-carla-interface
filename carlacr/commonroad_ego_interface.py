@@ -9,11 +9,9 @@ from typing import List, Tuple
 import carla
 import numpy as np
 import logging
-from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, Obstacle
+from commonroad.scenario.obstacle import Obstacle
 from commonroad.scenario.trajectory import Trajectory, State
-from commonroad.visualization.mp_renderer import MPRenderer
 
 from carlacr.commonroad_obstacle_interface import ApproximationType
 from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
@@ -127,7 +125,7 @@ class CommonRoadEgoInterface:
                 new_orientation = state.orientation
                 new_position = state.position
                 transform = carla.Transform(carla.Location(
-                    x=new_position[0], y=-new_position[1], z=0),
+                    x=new_position[0], y=-new_position[1], z=actor.get_location().z),
                     carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                 actor.set_transform(transform)
             else:

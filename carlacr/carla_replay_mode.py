@@ -1,14 +1,8 @@
 import os.path
 import time
-from datetime import datetime, date
-from typing import List
 
 import carla
 
-from commonroad.geometry.shape import Rectangle
-from commonroad.prediction.prediction import TrajectoryPrediction
-from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
-from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.scenario.scenario import Scenario
 from carlacr.carla_interface import CarlaInterface
 from carlacr.carla_mode import CarlaMode
@@ -45,7 +39,7 @@ class CarlaReplayMode(CarlaMode):
             raise AttributeError("Missing scenario and scenario path, one of them muss be provided")
         if not os.path.isfile(cr_scenario_path) and not os.path.isfile(open_drive_map_path):
             raise AttributeError("Can not find scenario file or map file")
-        super().__init__(open_drive_map_path=open_drive_map_path,vehicle_id=vehicle_id)
+        super().__init__(open_drive_map_path=open_drive_map_path, vehicle_id=vehicle_id)
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None):
         """
@@ -71,4 +65,4 @@ class CarlaReplayMode(CarlaMode):
         else:
             # run scenario with custom setting
             self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real,
-                                                               ego_vehicle=self.ego_vehicle)
+                                              ego_vehicle=self.ego_vehicle)

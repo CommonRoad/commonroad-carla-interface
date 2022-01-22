@@ -35,8 +35,6 @@ from carlacr.commonroad_obstacle_interface import (
 from carlacr.gif_creator import Gif_Creator
 from carlacr.synchronous_mode import (CarlaSyncMode, draw_image,
                                       get_font, should_quit)
-from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                  similar_by_width)
 
 
 class CarlaInterface:
