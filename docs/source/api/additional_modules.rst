@@ -25,6 +25,15 @@ Context manager to synchronize output from different sensors. Synchronous mode i
 .. autoclass:: CarlaSyncMode
   :members:
   :member-order: bysource
+  
+
+Carla Motion Planner Helper 
+--------------------------------
+This module contains helper methods for carla_commondroad interface 
+
+.. automodule:: carlacr.carla_motion_planner_helper
+  :members:
+
 
 
 
