@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-import glob
-import os
-import sys
-from enum import Enum
-from typing import List, Tuple
+from typing import Tuple
 
 import carla
 import numpy as np
@@ -13,9 +9,9 @@ from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import Obstacle
 from commonroad.scenario.trajectory import Trajectory, State
 
-from carlacr.commonroad_obstacle_interface import ApproximationType
-from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                  similar_by_width)
+from carlacr.interface.commonroad_obstacle_interface import ApproximationType
+from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
+                                         similar_by_width)
 
 logger = logging.getLogger(__name__)
 

@@ -3,14 +3,17 @@ import time
 import carla
 
 from commonroad.scenario.scenario import Scenario
-from carlacr.carla_interface import CarlaInterface
-from carlacr.carla_mode import CarlaMode
-from carlacr.carla_replay_mode import CarlaReplayMode
+from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.mode.carla_mode import CarlaMode
+from carlacr.mode.carla_replay_mode import CarlaReplayMode
 
 from commonroad.scenario.scenario import Tag
 from commonroad.common.file_writer import CommonRoadFileWriter
 from commonroad.common.file_writer import OverwriteExistingFile
 from commonroad.planning.planning_problem import PlanningProblemSet
+
+# to convert map to commonroad scenario
+# from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
 
 
 class CarlaTrafficGenerationMode(CarlaMode):
@@ -27,7 +30,11 @@ class CarlaTrafficGenerationMode(CarlaMode):
         self.carla_client = carla.Client("localhost", 2000)
         super().__init__(open_drive_map_path=open_drive_map_path)
         # load map to scenario
-        self.scenario = Scenario(dt=0.1)
+        self.scenario= Scenario(dt=0.1)
+
+        # load map to commonroad using cdesigner
+        # self.scenario = opendrive_to_commonroad(open_drive_map_path)
+
         self.carla_interface = CarlaInterface(cr_scenario=self.scenario,
                                               open_drive_map_path=open_drive_map_path,
                                               carla_client=self.carla_client

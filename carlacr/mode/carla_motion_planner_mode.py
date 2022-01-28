@@ -1,17 +1,11 @@
 import os.path
 import time
-from datetime import datetime, date
-from typing import List
 
 import carla
 
-from commonroad.geometry.shape import Rectangle
-from commonroad.prediction.prediction import TrajectoryPrediction
-from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
-from commonroad.scenario.trajectory import State, Trajectory
 from commonroad.scenario.scenario import Scenario
-from carlacr.carla_interface import CarlaInterface, MotionPlanner
-from carlacr.carla_mode import CarlaMode
+from carlacr.interface.carla_interface import CarlaInterface, MotionPlanner
+from carlacr.mode.carla_mode import CarlaMode
 
 
 class CarlaMotionPlannerMode(CarlaMode):

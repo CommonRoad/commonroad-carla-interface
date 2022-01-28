@@ -1,7 +1,9 @@
 import time
 import carla
-from carlacr.carla_interface import CarlaInterface
-
+from carlacr.interface.carla_interface import CarlaInterface
+import logging
+logger=logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 map_path = "../maps/"
 scenario_path = "../scenarios/"
 
@@ -17,7 +19,7 @@ time.sleep(5)  # time to move your view in carla-window
 ci.setup_carla(hybrid_physics_mode=False)
 
 startTime = time.time()
-ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=10)
+ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=0, create_gif=False, gif_path="/home/hoaquin/Desktop/test_image",gif_name="test")
 executionTime = (time.time() - startTime)
 
 print('Execution time in seconds: ' + str(executionTime))

@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import glob
 import os
 import sys
 import time
 from datetime import date, datetime
-from enum import Enum
 from typing import List
 import logging
 
@@ -13,13 +11,12 @@ logger = logging.getLogger(__name__)
 
 import carla
 import commonroad.scenario.obstacle
-import numpy as np
 import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
-from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
-from carlacr.carla_motion_planner_helper import calc_max_timestep
+from commonroad.scenario.obstacle import ObstacleRole, DynamicObstacle
+from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
 from commonroad.scenario.scenario import Scenario
-from commonroad.prediction.prediction import Prediction, TrajectoryPrediction
+from commonroad.prediction.prediction import TrajectoryPrediction
 
 try:
     from motion_planner.motion_planner import MotionPlanner
@@ -27,14 +24,14 @@ except ModuleNotFoundError:
     class MotionPlanner:
         pass
 
-from carlacr.carla_pedestrian_handler import CarlaPedestrianHandler
-from carlacr.carla_vehicle_interface import CarlaVehicleInterface
-from carlacr.commonroad_ego_interface import CommonRoadEgoInterface
-from carlacr.commonroad_obstacle_interface import (
+from carlacr.interface.carla_pedestrian_handler import CarlaPedestrianHandler
+from carlacr.interface.carla_vehicle_interface import CarlaVehicleInterface
+from carlacr.interface.commonroad_ego_interface import CommonRoadEgoInterface
+from carlacr.interface.commonroad_obstacle_interface import (
     ApproximationType, CommonRoadObstacleInterface)
-from carlacr.gif_creator import Gif_Creator
-from carlacr.synchronous_mode import (CarlaSyncMode, draw_image,
-                                      get_font, should_quit)
+from carlacr.helper.gif_creator import Gif_Creator
+from carlacr.helper.synchronous_mode import (CarlaSyncMode, draw_image,
+                                             get_font, should_quit)
 
 
 class CarlaInterface:

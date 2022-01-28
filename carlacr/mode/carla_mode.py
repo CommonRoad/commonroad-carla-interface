@@ -4,8 +4,7 @@ from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
 from commonroad.scenario.trajectory import State, Trajectory
-from commonroad.scenario.scenario import Scenario
-from carlacr.carla_interface import CarlaInterface, MotionPlanner
+
 
 class CarlaMode:
     def __init__(self, open_drive_map_path: str,

@@ -1,8 +1,6 @@
-import os
-import time
 import typer
 import time
-from carlacr.carla_replay_mode import CarlaReplayMode
+from carlacr.mode.carla_replay_mode import CarlaReplayMode
 import logging
 logger = logging.getLogger(__name__)
 
