@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 
-import glob
-import os
-import sys
 from enum import Enum
 
 import carla
 import numpy as np
 import logging
-from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import State
-from commonroad.visualization.mp_renderer import MPRenderer
 
-from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                  similar_by_width)
+from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
+                                         similar_by_width)
 
 logger = logging.getLogger(__name__)
 

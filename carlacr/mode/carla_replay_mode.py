@@ -4,8 +4,8 @@ import time
 import carla
 
 from commonroad.scenario.scenario import Scenario
-from carlacr.carla_interface import CarlaInterface
-from carlacr.carla_mode import CarlaMode
+from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.mode.carla_mode import CarlaMode
 
 
 class CarlaReplayMode(CarlaMode):

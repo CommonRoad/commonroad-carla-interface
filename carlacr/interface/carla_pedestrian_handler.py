@@ -1,27 +1,18 @@
 #!/usr/bin/env python
 
-import glob
-import logging
-import os
 import sys
 import time
-from enum import Enum
 from math import sqrt
 from typing import List
 
 import carla
 import numpy as np
-from carla import VehicleLightState as vls
 from commonroad.geometry.shape import Circle
-from commonroad.scenario.obstacle import (DynamicObstacle, ObstacleRole,
-                                          ObstacleType)
+from commonroad.scenario.obstacle import (DynamicObstacle, ObstacleType)
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State
-from commonroad.visualization.mp_renderer import MPRenderer
 from numpy import array, random
 
-from carlacr.vehicle_dict import (similar_by_area, similar_by_length,
-                                  similar_by_width)
 import logging
 logger = logging.getLogger(__name__)
 
