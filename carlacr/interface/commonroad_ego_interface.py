@@ -12,7 +12,7 @@ from commonroad.scenario.trajectory import Trajectory, State
 from carlacr.interface.commonroad_obstacle_interface import ApproximationType
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
                                          similar_by_width)
-
+from math import sqrt
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +21,7 @@ class CommonRoadEgoInterface:
     Creates and controles the ego-vehicle in CARLA
     """
 
-    def __init__(self, planning_problem: PlanningProblem = None, trajectory: Trajectory = None,
+    def __init__(self, client:carla.Client ,planning_problem: PlanningProblem = None, trajectory: Trajectory = None,
                  initial_state: Obstacle.initial_state = None, size: Tuple[float, float, float] = None):
         """
         :param planning_problem: CommonRoad planning problem object
@@ -37,6 +37,7 @@ class CommonRoadEgoInterface:
         self.trajectory = trajectory
         self.is_spawned = False
         self.carla_id = None
+        self.client=client
         if planning_problem:
             self.spawn_timestep = planning_problem.initial_state.time_step
         elif initial_state:
@@ -124,6 +125,8 @@ class CommonRoadEgoInterface:
                     x=new_position[0], y=-new_position[1], z=actor.get_location().z),
                     carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                 actor.set_transform(transform)
+                # set_target_velocity, set_target_angular_velocity
+
             else:
                 logger.debug("Could not find actor")
         except Exception as e:
@@ -151,3 +154,30 @@ class CommonRoadEgoInterface:
             actor = world.get_actor(self.carla_id)
             if actor:
                 actor.destroy()
+
+    def get_cr_state(self, time_step=0) -> State:
+        """
+        Get current CommonRoad state if spawned, else None
+
+        :return: CommonRoad state of the CARLA vehicle represented by this class
+        """
+        if self.carla_id:
+            try:
+                actor = self.client.get_world().get_actor(self.carla_id)
+                vel_vec = actor.get_velocity()
+                vel = sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)  # velocity
+                ang_vec = actor.get_angular_velocity()
+                ang = sqrt(ang_vec.x ** 2 + ang_vec.y ** 2)  # angular velocity
+                transform = actor.get_transform()
+                location = transform.location
+                rotation = transform.rotation
+                state=State(position=np.array([location.x, -location.y]), orientation=-((rotation.yaw * np.pi) / 180),
+                             velocity=vel, time_step=time_step)
+                return state
+            except Exception as e:
+                logger.debug("Following error occured while retrieving current position for:")
+                logger.debug(self)
+                logger.error(e, exc_info=sys.exc_info())
+                return None
+        else:
+            return None
