@@ -149,7 +149,7 @@ class CarlaInterface:
         return self.max_timestep
 
     def _run_scenario_with_mpl(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0,
-                               ego_vehicle=None):
+                               ego_vehicle=None, max_time_steps=0):
         """
         Runs the CommonRoad Scenario in CARLA (with MPL & PyGame)
 
@@ -163,7 +163,6 @@ class CarlaInterface:
         """
         interface_obstacles, carla_interface_obstacles, carla_controlled_obstacles, carla_contr_obs_classes, \
         ego_interface_list, batch = [], [], [], [], [], []
-
 
         carla_controlled_imported = False
 
@@ -203,7 +202,7 @@ class CarlaInterface:
                                                                        [self.motion_planner.trajectory_planner.planning_problem.initial_state]))
             self.motion_planner.initialize_plan()
             ego_interface_list.append(motion_planner_vehicle)
-
+            ego = motion_planner_vehicle
             try:
                 actor = motion_planner_vehicle.spawn(world)
                 if actor:
@@ -214,14 +213,12 @@ class CarlaInterface:
         if ego_vehicle:
             ego = self._create_ego_vehicle(ego_vehicle=ego_vehicle, ego_interface_list=ego_interface_list,
                                            carla_interface_obstacles=carla_interface_obstacles)
-        else:
-            raise RuntimeError("Can not create ego")
 
         i = 0  # time-step counter
-        max_timesteps = self._calc_max_timestep()
-        logger.debug(max_timesteps)
+        max_time_steps = max(self._calc_max_timestep(), max_time_steps)
+        logger.debug(max_time_steps)
         with CarlaSyncMode(world, ego.actor_list[0], fps=30) as sync_mode:
-            while i <= max_timesteps:
+            while i <= max_time_steps:
                 if should_quit():
                     return
                 clock.tick()
@@ -240,7 +237,6 @@ class CarlaInterface:
                             logger.debug(ego)
                             logger.error(e, exc_info=sys.exc_info())
 
-
                     # CommonRoad controlled:
                     self._control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
 
@@ -255,13 +251,14 @@ class CarlaInterface:
                     else:
                         self._control_carla_obstacles(carla_contr_obs_classes, i)
 
-
                     # Motion planner Vehicle
                     # If n-th timestep update obstacles for mpl
                     if i % self.motion_planner.trajectory_planner.replanning_frequency == 0:
-                        found_optimal_trajectory = self._update_scenario_motion_planner(carla_contr_obs_classes, motion_planner_vehicle)
+                        found_optimal_trajectory = self._update_scenario_motion_planner(carla_contr_obs_classes,
+                                                                                        motion_planner_vehicle)
                         if found_optimal_trajectory:
-                            motion_planner_vehicle.set_trajectory(Trajectory(0,self.motion_planner.trajectory_planner.record_state_list))
+                            motion_planner_vehicle.set_trajectory(
+                                    Trajectory(0, self.motion_planner.trajectory_planner.record_state_list))
                         else:
                             break
 
@@ -320,8 +317,9 @@ class CarlaInterface:
         :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
         additional to the objects defined in the scenario
         """
-        interface_obstacles, carla_interface_obstacles, carla_controlled_obstacles, carla_contr_obs_classes, \
-        ego_interface_list, batch = [], [], [], [], [], []
+        interface_obstacles, carla_interface_obstacles, carla_controlled_obstacles, carla_contr_obs_classes = [], [],\
+                                                                                                              [], []
+        ego_interface_list, batch = [], []
 
         carla_controlled_imported = False
 
@@ -356,6 +354,7 @@ class CarlaInterface:
                                                                       carla_controlled_obstacles, carla_pedestrians)
                     carla_controlled_imported = True
                     self._wait_for_carla_vehicle(time_between_ticks)
+                    self._control_carla_obstacles(carla_contr_obs_classes, i)
 
                 else:
                     self._control_carla_obstacles(carla_contr_obs_classes, i)
@@ -403,8 +402,9 @@ class CarlaInterface:
         :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
         additional to the objects defined in the scenario
         """
-        interface_obstacles, carla_interface_obstacles, carla_controlled_obstacles, carla_contr_obs_classes, \
-        ego_interface_list, batch = [], [], [], [], [], []
+        interface_obstacles, carla_interface_obstacles, carla_controlled_obstacles, carla_contr_obs_classes = [], [],\
+                                                                                                              [], []
+        ego_interface_list, batch = [], []
 
         carla_controlled_imported = False
 
@@ -603,8 +603,7 @@ class CarlaInterface:
 
     def _create_ego_vehicle(self, ego_vehicle: DynamicObstacle, ego_interface_list: List[DynamicObstacle],
                             carla_interface_obstacles: List):
-        ego = CommonRoadEgoInterface(client=self.client,
-                                     trajectory=ego_vehicle.prediction.trajectory,
+        ego = CommonRoadEgoInterface(client=self.client, trajectory=ego_vehicle.prediction.trajectory,
                                      initial_state=ego_vehicle.initial_state,
                                      size=(ego_vehicle.obstacle_shape.length, ego_vehicle.obstacle_shape.width, 0))
 
