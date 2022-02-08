@@ -43,7 +43,7 @@ class CarlaMotionPlannerMode(CarlaMode):
             raise AttributeError("Can not find scenario file or map file")
         super().__init__(open_drive_map_path=open_drive_map_path,vehicle_id=vehicle_id)
 
-    def visualize(self, sleep_time: int = 10, time_step_delta_real=None):
+    def visualize(self, sleep_time: int = 10, time_step_delta_real=None,carla_vehicles:int =0):
         """
 
         visualize scenario with ego vehicle view if ego vehicle != None else run scenario without ego vehicle
@@ -54,13 +54,14 @@ class CarlaMotionPlannerMode(CarlaMode):
         self.carla_interface.load_map()
         time.sleep(sleep_time)
         self.carla_interface.setup_carla(self.time_step_delta)
-        self._run_scenario(time_step_delta_real)
+        self._run_scenario(time_step_delta_real,carla_vehicles=carla_vehicles)
 
-    def _run_scenario(self, time_step_delta_real):
+    def _run_scenario(self, time_step_delta_real,carla_vehicles):
         """
         run scenario with current setting
 
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
         """
         self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real,
-                                          ego_vehicle=self.ego_vehicle, clean_up=True)
+                                          ego_vehicle=self.ego_vehicle, clean_up=True,
+                                          carla_vehicles=carla_vehicles)

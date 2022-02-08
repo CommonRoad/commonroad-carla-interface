@@ -5,7 +5,7 @@ Gif Creator
 ---------------------
 Handles the GIF creation
 
-.. automodule:: carlacr.gif_creator
+.. automodule:: carlacr.helper.gif_creator
 
 ``Gif_Creator`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -18,7 +18,7 @@ Synchronous Mode
 ----------------------
 Context manager to synchronize output from different sensors. Synchronous mode is enabled as long as we are inside this context
 
-.. automodule:: carlacr.synchronous_mode
+.. automodule:: carlacr.helper.synchronous_mode
 
 ``CarlaSyncMode`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ Carla Motion Planner Helper
 --------------------------------
 This module contains helper methods for carla_commondroad interface 
 
-.. automodule:: carlacr.carla_motion_planner_helper
+.. automodule:: carlacr.helper.carla_motion_planner_helper
   :members:
 
 
