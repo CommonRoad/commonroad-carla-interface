@@ -5,7 +5,7 @@ Carla Mode Interface
 --------------------
 API for all Mode in CommonRoad Carla
 
-.. automodule:: carlacr.carla_mode
+.. automodule:: carlacr.mode.carla_mode
 
 ``Carla_Mode`` class
 ^^^^^^^^^^^^^^^^^^^^^
@@ -18,7 +18,7 @@ Carla Replay Mode
 ------------------
 Replaying Mode can replay, saving video of a scenerio in carla
 
-.. automodule:: carlacr.carla_replay_mode
+.. automodule:: carlacr.mode.carla_replay_mode
 
 ``CarlaReplayMode`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ Carla Motion Planner Mode
 ---------------------------
 Motion Planner Mode can display, saving video of a scenerio with motion planner in carla
 
-.. automodule:: carlacr.carla_motion_planner_mode
+.. automodule:: carlacr.mode.carla_motion_planner_mode
 
 ``CarlaMotionPlannerMode`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -44,7 +44,7 @@ Carla Traffic Generation Mode
 ------------------------------
 Traffic Generation Mode can create scenerios from a map with auto generated-traffic by carla
 
-.. automodule:: carlacr.carla_traffic_generation_mode
+.. automodule:: carlacr.mode.carla_traffic_generation_mode
 
 ``CarlaTrafficGenerationMode`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

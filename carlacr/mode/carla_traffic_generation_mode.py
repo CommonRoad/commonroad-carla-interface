@@ -32,7 +32,7 @@ class CarlaTrafficGenerationMode(CarlaMode):
         # load map to scenario
         self.scenario= Scenario(dt=0.1)
 
-        # load map to commonroad using cdesigner
+        # # load map to commonroad using cdesigner
         # self.scenario = opendrive_to_commonroad(open_drive_map_path)
 
         self.carla_interface = CarlaInterface(cr_scenario=self.scenario,

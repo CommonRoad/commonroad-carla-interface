@@ -102,12 +102,12 @@ class CommonRoadObstacleInterface:
                 raise e
 
     def update_position_by_time(self, world: carla.World, state: State):
-        """
-        Tries to update the position of the obstacle and sets lights
-
+        """Tries to update the position of the obstacle and sets lights
         :param world: the CARLA world object
-        :param state: state at the time step
+        :param state:state at the time step
+
         """
+
         try:
             if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
                 actor = world.get_actor(self.carla_id)
