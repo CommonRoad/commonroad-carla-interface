@@ -2,7 +2,7 @@ Carla Interface
 =====================
 Main class of the CommonRoad-CARLA-Interface
 
-.. automodule:: carlacr.carla_interface
+.. automodule:: carlacr.interface.carla_interface
 
 ``CarlaInterface`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

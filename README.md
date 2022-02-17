@@ -50,10 +50,13 @@ To simulate only a CommonRoad scenario in CARLA:
 Watching a scenario in vehicles view with Replay Mode
     
     replaymode=CarlaReplayMode(commonroad_scenario,open_drive_map)
-    replaymode.set_ego_vehicle()
+    replaymode.set_ego_vehicle_by_id(id)
+    replaymode.saving_video(path,name,as mp4 or gif)
     replaymode.visualize()
 
-see in example_replay_mode
+![](../test_image/None.gif)
+
+See in example_replay_mode
 ## Using Replay Mode in command line
 Example command
 
@@ -63,9 +66,24 @@ For further Information
 
     python3 ./main.py --help
 
+## Motion Planning Mode
+Watching a scenario in vehicles view with Motion Planning Mode.This allow user to put in a motion planner, scenario and a map them have a visualization in carla.
+            This API can setup map, scenario. Trigger the motion planning at the beginning of the simulation.
+    
+    motionplanner_mode=CarlaMotionPlannerMode(commonroad_scenario,open_drive_map,mp)
+    motionplanner_mode.set_ego_vehicle_by_id(id)
+    motionplanner_mode.saving_video(path,name,as mp4 or gif)
+    motionplanner_mode.visualize()
+
+See in example_motion_planning_mode
+![](../test_image/DEU_Test-1_1_T-1_06_01_2022_18_53_21/None.gif)
+(The black vehicle is controled by motion planner)
+
+This mode is currently not working with command
+
+
 ## Documentation
 to generate the documentation from the source, first install the dependencies with pip:
-
 `pip install -r docs/doc_requirements.txt`
 
 Afterward run:

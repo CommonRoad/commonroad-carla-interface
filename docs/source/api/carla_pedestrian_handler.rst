@@ -1,7 +1,7 @@
 Carla Pedestrian Handler
 ===========================
 
-.. automodule:: carlacr.carla_pedestrian_handler
+.. automodule:: carlacr.interface.carla_pedestrian_handler
 
 ``CarlaPedestrianHandler`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
