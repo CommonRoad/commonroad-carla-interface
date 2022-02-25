@@ -90,7 +90,7 @@ Afterward run:
 
 `cd docs && make html`
 
-##Additionally installed packages for testing:
+## Additionally installed packages for testing:
 
 - pytest        6.2.4
 - pytest-cov    2.12.1
