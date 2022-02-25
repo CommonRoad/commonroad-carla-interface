@@ -11,6 +11,8 @@ Entrypoint is CarlaInterface.py
 - moviepy
 - setuptools
 - numpy
+- carla
+- typer
 - (Optional) commonroad-motion-planning-library
 
 ## Installation
@@ -30,7 +32,7 @@ To simulate only a CommonRoad scenario in CARLA:
 3. Initialize _CarlaInterface_<br/>
     A. without MPL:
 
-    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client,None)`
+    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client, None)`
 
     B. with MPL:
 
