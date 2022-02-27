@@ -7,7 +7,9 @@ import time
 import glob
 import os
 import sys
+import logging
 
+logger = logging.getLogger(__name__)
 try:
     sys.path.append(
         glob.glob(
@@ -20,15 +22,13 @@ try:
         )[0]
     )
 except Exception as e:
-    print(e)
+    logger.error(e, exc_info=sys.exc_info())
     pass
 
 import carla
 from src.carla_interface import CarlaInterface
 
-
 if __name__ == "__main__":
-
     ## Convert commonroad-scenario to OpenDRIVE map
 
     scenario_name = "DEU_Test-1_1_T-1"
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # load the xml file and preprocess it
     data = DataLoader(file_path_in)
-    print(data)
+    logger.debug(data)
 
     scenario, successors, ids = data.initialize()
     converter = Converter(file_path_in, scenario, successors, ids)
@@ -60,4 +60,5 @@ if __name__ == "__main__":
     startTime = time.time()
     ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=0)
     executionTime = time.time() - startTime
-    print("Execution time in seconds: " + str(executionTime))
+    logger.debug("Execution time in seconds: " + str(executionTime))
+

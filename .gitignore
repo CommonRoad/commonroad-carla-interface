@@ -43,3 +43,4 @@ env.bak/
 venv.bak/
 
 
+/docs/build/
