@@ -10,7 +10,7 @@ scenario_path = "../scenarios/"
 name = "DEU_Test-1_1_T-1"
 
 client = carla.Client('localhost', 2000)
-ci = CarlaInterface(scenario_path + name +".xml", map_path + name +".xodr", client, None)
+ci = CarlaInterface(scenario_path + name +".xodr", map_path + name +".xml", client, None)
 
 ci.load_map()
 
