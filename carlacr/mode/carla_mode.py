@@ -27,7 +27,7 @@ class CarlaMode:
         self.carla_interface.saving_video(create_video=create_video,
                                           video_path=video_path,
                                           video_name=video_name,
-                                          video_asMP4=video_asMP4)
+                                          video_as_mp4=video_asMP4)
 
     def set_carla_client(self, host: str, port: int):
         """

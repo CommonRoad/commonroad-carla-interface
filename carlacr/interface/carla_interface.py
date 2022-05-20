@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 import os
 import sys
 import time
 from datetime import date, datetime
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import logging
-from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +12,8 @@ import commonroad.scenario.obstacle
 import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, DynamicObstacle
-from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.trajectory import Trajectory, State
+from commonroad.scenario.trajectory import Trajectory
 from commonroad.prediction.prediction import TrajectoryPrediction
 
 try:
@@ -32,7 +28,7 @@ from carlacr.interface.commonroad_ego_interface import CommonRoadEgoInterface
 from carlacr.interface.commonroad_obstacle_interface import (ApproximationType, CommonRoadObstacleInterface)
 from carlacr.helper.gif_creator import Gif_Creator
 from carlacr.helper.synchronous_mode import (CarlaSyncMode, draw_image, get_font, should_quit)
-from carlacr.helper.carla_motion_planner_helper import calc_max_timestep, divide_scenario
+from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
 
 
 class CarlaInterface:
@@ -61,19 +57,19 @@ class CarlaInterface:
         self.client = carla_client
         self.mpl_update_n = mpl_update_n
         self.create_video: bool = False
-        self.video_path: str = None
-        self.video_name: str = None
+        self.video_path: Union[str, None] = None
+        self.video_name: Union[str, None] = None
         self.video_asMP4: bool = False
 
     def saving_video(self, create_video: bool = True, video_path: str = None, video_name: str = "test",
-                     video_asMP4: bool = False):
+                     video_as_mp4: bool = False):
         """
         Saving video of the visualization
         :param create_video: flag for creating video
         :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will
         be created in to save the images used for the gif
         :param video_name: filename for the gif
-        :param video_asMP4: flag to save as mp4 or gif
+        :param video_as_mp4: flag to save as mp4 or gif
         """
         # should add some checking
         if create_video:
@@ -82,7 +78,7 @@ class CarlaInterface:
         self.create_video = create_video
         self.video_path = video_path
         self.video_name = video_name
-        self.video_asMP4 = video_asMP4
+        self.video_asMP4 = video_as_mp4
 
     def setup_carla(self, time_step_delta: int = None, tm_port=8000, hybrid_physics_mode=False):
         """
@@ -285,10 +281,10 @@ class CarlaInterface:
                     time.sleep(time_between_ticks)
                     i += 1
                 except KeyboardInterrupt:
-                    self._end_simmulation_error(clean_up=clean_up, ego_interface_list=ego_interface_list,
-                                                interface_obstacles=interface_obstacles,
-                                                carla_controlled_obstacles=carla_controlled_obstacles,
-                                                pedestrian_handler=pedestrian_handler)
+                    self._end_simulation_error(clean_up=clean_up, ego_interface_list=ego_interface_list,
+                                               interface_obstacles=interface_obstacles,
+                                               carla_controlled_obstacles=carla_controlled_obstacles,
+                                               pedestrian_handler=pedestrian_handler)
                 except Exception as e:
                     logger.error(e, exc_info=sys.exc_info())
         # Create video
@@ -483,7 +479,7 @@ class CarlaInterface:
                     time.sleep(time_between_ticks)
                     i += 1
                 except KeyboardInterrupt:
-                    self._end_simmulation_error()
+                    self._end_simulation_error()
                 except Exception as e:
                     logger.error(e, exc_info=sys.exc_info())
         # Create video
@@ -659,9 +655,9 @@ class CarlaInterface:
             logger.error(e, exc_info=sys.exc_info())
         return ego
 
-    def _end_simmulation_error(self, clean_up, ego_interface_list: List[CommonRoadEgoInterface],
-                               interface_obstacles: List[CommonRoadObstacleInterface],
-                               carla_controlled_obstacles: List[int], pedestrian_handler: CarlaPedestrianHandler):
+    def _end_simulation_error(self, clean_up, ego_interface_list: List[CommonRoadEgoInterface],
+                              interface_obstacles: List[CommonRoadObstacleInterface],
+                              carla_controlled_obstacles: List[int], pedestrian_handler: CarlaPedestrianHandler):
         """
         Handle error ending simulation
 

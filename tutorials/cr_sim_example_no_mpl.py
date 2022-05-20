@@ -2,15 +2,17 @@ import time
 import carla
 from carlacr.interface.carla_interface import CarlaInterface
 import logging
-logger=logging.getLogger(__name__)
+import os
+
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
-map_path = "../maps/"
-scenario_path = "../scenarios/"
+map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
+scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
 
 name = "DEU_Test-1_1_T-1"
 
 client = carla.Client('localhost', 2000)
-ci = CarlaInterface(scenario_path + name + ".xodr", map_path + name + ".xml", client, None)
+ci = CarlaInterface(map_path + name + ".xodr", client, scenario_path + name + ".xml", None)
 
 ci.load_map()
 
