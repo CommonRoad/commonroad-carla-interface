@@ -5,7 +5,8 @@ import moviepy.editor as moviepy_edit
 import logging
 logger = logging.getLogger(__name__)
 
-class Gif_Creator:
+
+class GifCreator:
     """
     Handles the GIF creation
     """
@@ -13,7 +14,8 @@ class Gif_Creator:
     def __init__(self, path, gif_name):
         """
 
-        :param path: path of the root folder for the GIF, within this directory is a folder /img containing all images saved by the ego-vehicle camera
+        :param path: path of the root folder for the GIF, within this directory is a folder /img containing all
+        images saved by the ego-vehicle camera
         :param gif_name: filename of the GIF to be created
         """
         self.path = path
@@ -21,7 +23,8 @@ class Gif_Creator:
 
     def make_gif(self):
         """
-        Creates a GIF of the images provided in "path"/img - Based on https://stackoverflow.com/a/35943809 & https://pythonguides.com/python-get-all-files-in-directory/
+        Creates a GIF of the images provided in "path"/img
+        Based on https://stackoverflow.com/a/35943809 & https://pythonguides.com/python-get-all-files-in-directory/
         """
         filenames = []
         path = self.path + "/img"
@@ -68,7 +71,8 @@ class Gif_Creator:
 
     def make_video_from_gif(self):
         """
-        Creates a video of the images provided in "path"/img - Based on https://stackoverflow.com/a/35943809 & https://pythonguides.com/python-get-all-files-in-directory/
+        Creates a video of the images provided in "path"/img
+        Based on https://stackoverflow.com/a/35943809 & https://pythonguides.com/python-get-all-files-in-directory/
         """
         clip = moviepy_edit.VideoFileClip(f"{self.path}/{self.gif_name}.gif")
         clip.write_videofile(f"{self.path}/{self.gif_name}.mp4")

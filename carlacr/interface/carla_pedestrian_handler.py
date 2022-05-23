@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import time
 from math import sqrt
@@ -17,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CarlaPedestrianHandler():
+class CarlaPedestrianHandler:
     """
     Creates and controlls walker in CARLA
     """

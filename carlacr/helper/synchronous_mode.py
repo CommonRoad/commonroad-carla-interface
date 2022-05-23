@@ -148,7 +148,6 @@ def main():
             carla.Transform(carla.Location(x=-5.5, z=2.8), carla.Rotation(pitch=-15)),
             attach_to=vehicle)
 
-
         # Create a synchronous mode context.
         with CarlaSyncMode(world, camera_rgb, fps=30) as sync_mode:
             while True:

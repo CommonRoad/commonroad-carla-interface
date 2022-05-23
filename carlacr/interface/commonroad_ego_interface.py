@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 from typing import Tuple
+import sys
 
 import carla
 import numpy as np

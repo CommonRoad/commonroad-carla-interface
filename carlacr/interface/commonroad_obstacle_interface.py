@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from enum import Enum
 
 import carla
@@ -102,10 +100,10 @@ class CommonRoadObstacleInterface:
                 raise e
 
     def update_position_by_time(self, world: carla.World, state: State):
-        """Tries to update the position of the obstacle and sets lights
+        """
+        Tries to update the position of the obstacle and sets lights
         :param world: the CARLA world object
         :param state:state at the time step
-
         """
 
         try:

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import logging
 import sys
 from math import sqrt
@@ -18,7 +16,7 @@ from carlacr.helper.vehicle_dict import (vehicle_dict)
 logger = logging.getLogger(__name__)
 
 
-class CarlaVehicleInterface():
+class CarlaVehicleInterface:
     """ 
     A InterfaceObstacle is a intermediate obstacle representation to help translate between CR-Obstacles and CARLA-Obstacles
     

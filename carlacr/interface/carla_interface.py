@@ -26,7 +26,7 @@ from carlacr.interface.carla_pedestrian_handler import CarlaPedestrianHandler
 from carlacr.interface.carla_vehicle_interface import CarlaVehicleInterface
 from carlacr.interface.commonroad_ego_interface import CommonRoadEgoInterface
 from carlacr.interface.commonroad_obstacle_interface import (ApproximationType, CommonRoadObstacleInterface)
-from carlacr.helper.gif_creator import Gif_Creator
+from carlacr.helper.GifCreator import GifCreator
 from carlacr.helper.synchronous_mode import (CarlaSyncMode, draw_image, get_font, should_quit)
 from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
 
@@ -554,7 +554,7 @@ class CarlaInterface:
     def _control_commonroad_obstacles(self, interface_obstacles: List[CommonRoadObstacleInterface],
                                       carla_interface_obstacles: List[Tuple], curr_time_step: int):
         """
-        Control commonroad obstacles, try to spawn, update position and destroy regarding actor in carla if out of
+        Control CommonRoad obstacles, try to spawn, update position and destroy regarding actor in carla if out of
         scenario
 
         :param interface_obstacles: list of CommonRoadObstacleInterface object
@@ -685,7 +685,7 @@ class CarlaInterface:
         """
         # Create GIF
         if self.create_video:
-            gc = Gif_Creator(self.video_path, self.video_name)
+            gc = GifCreator(self.video_path, self.video_name)
             if self.video_asMP4:
                 gc.make_video()
             else:
