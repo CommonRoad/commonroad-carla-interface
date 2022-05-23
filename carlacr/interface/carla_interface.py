@@ -26,7 +26,7 @@ from carlacr.interface.carla_pedestrian_handler import CarlaPedestrianHandler
 from carlacr.interface.carla_vehicle_interface import CarlaVehicleInterface
 from carlacr.interface.commonroad_ego_interface import CommonRoadEgoInterface
 from carlacr.interface.commonroad_obstacle_interface import (ApproximationType, CommonRoadObstacleInterface)
-from carlacr.helper.GifCreator import GifCreator
+from carlacr.helper.gif_creator import GifCreator
 from carlacr.helper.synchronous_mode import (CarlaSyncMode, draw_image, get_font, should_quit)
 from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
 
