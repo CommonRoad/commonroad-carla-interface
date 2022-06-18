@@ -12,8 +12,8 @@ class CarlaMotionPlannerMode(CarlaMode):
     def __init__(self, open_drive_map_path: str, cr_scenario_path: str = None, cr_scenario: Scenario = None,
                  motion_planner: MotionPlanner = None, vehicle_id: id = -1):
         """
-            Create Carla Motion Planner mode Interface. This allow user to put in a motion planner, scenario and a mop them have a visualization in carla.
-            This API can setup map, scenario. Trigger the motion planning planning at the beginning of the simulation.
+            Create Carla Motion Planner mode Interface. This allows user to put in a motion planner, scenario and a map then have a visualization in carla.
+            This API can set up map, scenario. Trigger the motion planning at the beginning of the simulation.
 
             :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
             :param cr_scenario_path: full path & filename to a CommonRoad XML-file

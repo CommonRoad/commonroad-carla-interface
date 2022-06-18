@@ -43,13 +43,13 @@ class CarlaInterface:
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
         :param carla_client: carla.Client() object connected to the simulation
-        :param motion_planner: a MotionPlanner object from the commonroad-motion-planning-library
+        :param motion_planner: a MotionPlanner object from the CommonRoad-motion-planning-library
         :param mpl_update_n: (in DEV) update interval at which rate the motion planner receives updated CommonRoad
         dynamic obstacles of the CARLA generated vehicles & pedestrians
         :param cr_scenario: Scenario obj
         """
         self.map = open_drive_map_path
-        if not cr_scenario:
+        if not cr_scenario and cr_scenario_file_path is not None:
             self.scenario, self.planning_problem_set = CommonRoadFileReader(cr_scenario_file_path).open()
         else:
             self.scenario = cr_scenario
