@@ -1,5 +1,7 @@
 import time
 
+from commonroad.scenario.trajectory import State
+
 from carlacr.mode.carla_replay_mode import CarlaReplayMode
 
 map_path = "../maps/"
@@ -7,10 +9,10 @@ scenario_path = "../scenarios/"
 
 name = "DEU_Test-1_1_T-1"
 startTime = time.time()
-replay = CarlaReplayMode(open_drive_map_path= "/home/hoaquin/Desktop/test.xodr", cr_scenario_path="/home/hoaquin/Desktop/test_result.xml")
+replay = CarlaReplayMode(open_drive_map_path=map_path + "DEU_Test-1_1_T-1.xodr",
+                         cr_scenario_path=scenario_path+"DEU_Test-1_1_T-1.xml")
 
-replay.set_ego_vehicle_by_id(17)
-replay.saving_video(create_video=True,video_path="/home/hoaquin/Desktop",video_asMP4=True)
+# replay.saving_video(create_video=True, video_path="/home/hoaquin/Desktop", video_asMP4=True)
 # # pass obstacle in commonroad for viewing
 # state = State(position=[35.1, 2.1],
 #               velocity=0,

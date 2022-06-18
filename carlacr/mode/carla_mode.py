@@ -4,11 +4,11 @@ from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
 from commonroad.scenario.trajectory import State, Trajectory
+from carlacr.interface.carla_interface import CarlaInterface
 
 
 class CarlaMode:
-    def __init__(self, open_drive_map_path: str,
-                 vehicle_id: id = -1):
+    def __init__(self, open_drive_map_path: str, cr_scenario_file_path: str = None, vehicle_id: id = -1):
 
         self.carla_client = carla.Client("localhost", 2000)
         self.time_step_delta = None
@@ -16,11 +16,17 @@ class CarlaMode:
         if vehicle_id != -1:
             self.set_ego_vehicle_by_id(vehicle_id)
 
+        # super().__init__(open_drive_map_path=open_drive_map_path, carla_client=self.carla_client)
+        self.carla_interface = CarlaInterface(open_drive_map_path=open_drive_map_path,
+                                              cr_scenario_file_path=cr_scenario_file_path,
+                                              carla_client=carla.Client("localhost", 2000))
+
     def saving_video(self, create_video: bool = True, video_path: str = None, video_name: str = None,
                      video_asMP4: bool = False):
         """
         :param create_video: flag for creating video
-        :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be created in to save the images used for the gif
+        :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be
+        created in to save the images used for the gif
         :param video_name: filename for the gif
         :param video_asMP4: flag to save as mp4 or gif
         """
@@ -33,7 +39,7 @@ class CarlaMode:
         """
         set up carla client view
 
-        :param host: host adresse
+        :param host: host address
         :param port: port number
         """
         self.carla_client = carla.Client(host, port)
@@ -49,7 +55,7 @@ class CarlaMode:
         """
         set up ego_vehicle view
 
-        :param ego_vehicle: commonroad vehicle
+        :param ego_vehicle: CommonRoad vehicle
         """
         if not ego_vehicle:
             raise ValueError("ego vehicle should not be null")
@@ -71,7 +77,7 @@ class CarlaMode:
     def create_dynamic_obstacles_ego(self, initial_state: State,
                                      trajectory: Trajectory = None) -> DynamicObstacle:
         """
-        create commonroad moving dynamic obstacle
+        create CommonRoad moving dynamic obstacle
 
         :param initial_state: initial state of the dynamic obstacle
         :param trajectory: trajectory of the dynamic obstacle
@@ -79,7 +85,7 @@ class CarlaMode:
         """
         new_id = self.carla_interface.scenario.generate_object_id()
         shape = Rectangle(2, 4.5)
-        initial_state.time_step = int(self.carla_interface._calc_max_timestep())
+        initial_state.time_step = 1
         if not trajectory:
             trajectory = Trajectory(initial_time_step=1, state_list=[initial_state])
         prediction = TrajectoryPrediction(trajectory=trajectory, shape=shape)

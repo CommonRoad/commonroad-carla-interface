@@ -16,7 +16,7 @@ def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[
     This method divide a big scenario into smaller one
 
     :param scenario: scenario to divide
-    :param length_child_scenario: length of chile scenario
+    :param length_child_scenario: length of child scenario
 
     :return: list of child scenario
     """

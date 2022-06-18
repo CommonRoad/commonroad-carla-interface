@@ -30,9 +30,9 @@ class CarlaTrafficGenerationMode(CarlaMode):
         self.carla_client = carla.Client("localhost", 2000)
         super().__init__(open_drive_map_path=open_drive_map_path)
         # load map to scenario
-        self.scenario= Scenario(dt=0.1)
+        self.scenario = Scenario(dt=0.1)
 
-        # # load map to commonroad using cdesigner
+        # # load map to commonroad using CommonRoad Scenario Designer
         # self.scenario = opendrive_to_commonroad(open_drive_map_path)
 
         self.carla_interface = CarlaInterface(cr_scenario=self.scenario,
@@ -41,7 +41,7 @@ class CarlaTrafficGenerationMode(CarlaMode):
                                               )
 
     def saving_video(self, create_video: bool = True, video_path: str = None, video_name: str = None,
-                     video_asMP4: bool = False):
+                     video_as_mp4: bool = False):
         raise RuntimeError("this function is not available on this mode")
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None):
@@ -54,7 +54,8 @@ class CarlaTrafficGenerationMode(CarlaMode):
         """
         run scenario with current setting
 
-        :param time_step_delta_real: sets the time that will be waited in real time between the timesteps, if None the dt of the scenario will be used
+        :param time_step_delta_real: sets the time that will be waited in real time between the time steps,
+        if None the dt of the scenario will be used
         """
         self.carla_interface.run_scenario(time_step_delta_real=time_step_delta_real)
 
