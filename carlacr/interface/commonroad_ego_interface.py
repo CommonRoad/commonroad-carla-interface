@@ -1,51 +1,39 @@
+from typing import Tuple, List
 import sys
-from typing import Tuple
-import sys
-
+import logging
+from math import sqrt
 import carla
 import numpy as np
-import logging
-from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import Obstacle
 from commonroad.scenario.trajectory import Trajectory, State
-
 from carlacr.interface.commonroad_obstacle_interface import ApproximationType
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
                                          similar_by_width)
-from math import sqrt
 logger = logging.getLogger(__name__)
 
 
 class CommonRoadEgoInterface:
     """
-    Creates and controles the ego-vehicle in CARLA
+    Creates and controls the ego-vehicle in CARLA
     """
 
-    def __init__(self, client:carla.Client ,planning_problem: PlanningProblem = None, trajectory: Trajectory = None,
-                 initial_state: Obstacle.initial_state = None, size: Tuple[float, float, float] = None):
+    def __init__(self, client: carla.Client, trajectory: Trajectory,
+                 initial_state: Obstacle.initial_state, size: Tuple[float, float, float] = None):
         """
-        :param planning_problem: CommonRoad planning problem object
         :param trajectory: CommonRoad trajectory for the ego-vehicle
         :param initial_state: initial_state of commonroad obstacle when commonroad obstacle used as ego vehicle
         """
-        if planning_problem:
-            self.init_state = planning_problem.initial_state
-        elif initial_state:
-            self.init_state = initial_state
-        else:
-            raise AttributeError("planning_problem and initial_state can not be None at the same time")
+        self.init_state = initial_state
         self.trajectory = trajectory
         self.is_spawned = False
         self.carla_id = None
-        self.client=client
-        if planning_problem:
-            self.spawn_timestep = planning_problem.initial_state.time_step
-        elif initial_state:
-            self.spawn_timestep = initial_state.time_step
-        self.actor_list = []
+        self.client = client
+        self.spawn_timestep = initial_state.time_step
+        self.spawn_timestep = initial_state.time_step
+        self.actor_list: List[int] = []
         self.size = size
 
-    def spawn(self, world: carla.World, physics=True, create_gif=False, path=None,
+    def spawn(self, world: carla.World, physics=True,
               approx_type=ApproximationType.LENGTH) -> carla.Actor:
         """
         Tries to spawn the ego-vehicle and a camera for it in the given CARLA world and returns the spawned vehicle.
@@ -140,7 +128,7 @@ class CommonRoadEgoInterface:
         :param path: path to base folder, where in folder /img the images will be saved
         :param image: CARLA image to be saved
         """
-        image.save_to_disk('%s/img/%.6d.jpg' % (path, image.frame))
+        image.save_to_disk('%s/img/%.6d.jpg', (path, image.frame))
 
     def destroy_carla_actor(self, world):
         """
@@ -166,15 +154,13 @@ class CommonRoadEgoInterface:
                 actor = self.client.get_world().get_actor(self.carla_id)
                 vel_vec = actor.get_velocity()
                 vel = sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)  # velocity
-                ang_vec = actor.get_angular_velocity()
-                ang = sqrt(ang_vec.x ** 2 + ang_vec.y ** 2)  # angular velocity
                 transform = actor.get_transform()
                 location = transform.location
                 rotation = transform.rotation
-                state=State(position=np.array([location.x, -location.y]), orientation=-((rotation.yaw * np.pi) / 180),
-                             velocity=vel, time_step=time_step)
+                state = State(position=np.array([location.x, -location.y]), orientation=-((rotation.yaw * np.pi) / 180),
+                              velocity=vel, time_step=time_step)
                 return state
-            except Exception as e:
+            except Exception as e:  
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())

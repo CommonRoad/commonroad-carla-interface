@@ -1,3 +1,4 @@
+
 from typing import List
 
 import numpy as np
@@ -6,9 +7,7 @@ from commonroad.scenario.obstacle import DynamicObstacle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.trajectory import State, Trajectory
 
-"""
-This module contains helper methods for carla_commondroad interface 
-"""
+# This module contains helper methods for the Carla-CommonRoad Interface
 
 
 def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[Scenario]:
@@ -25,7 +24,8 @@ def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[
     dynamic_obstacle_time_step_state_dict = {}
     max_timestep = calc_max_timestep(scenario)
     for obj in scenario.dynamic_obstacles:
-        dynamic_obstacle_time_step_state_dict[(obj.obstacle_id, obj.initial_state.time_step)] = obj.initial_state
+        dynamic_obstacle_time_step_state_dict[(obj.obstacle_id, obj.initial_state.time_step)] = \
+            obj.initial_state
         for state in obj.prediction.trajectory.state_list:
             dynamic_obstacle_time_step_state_dict[(obj.obstacle_id, state.time_step)] = state
     if max_timestep % length_child_scenario == 0:
@@ -36,10 +36,10 @@ def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[
         # Create child scenario with map obstacle
         child_scenario = Scenario(dt=scenario.dt)
         for obj in scenario.environment_obstacle:
-            child_scenario.add_objects(scenario.environment_obstacle)
+            child_scenario.add_objects(obj)
         child_scenario.add_objects(scenario.lanelet_network)
         for obj in scenario.phantom_obstacle:
-            child_scenario.add_objects(scenario.phantom_obstacle)
+            child_scenario.add_objects(obj)
         # Add dynamic obstacle from parent scenario
         for obj in scenario.dynamic_obstacles:
             state_list = []
@@ -57,12 +57,15 @@ def divide_scenario(scenario: Scenario, length_child_scenario: int = 5) -> List[
                                       )
                     state_list.append(new_state)
             if state_list:
-                new_trajectory = Trajectory(initial_time_step=max(obj.initial_state.time_step - start_time, 0),
+                new_trajectory = Trajectory(initial_time_step=max(obj.initial_state.time_step -
+                                                                  start_time, 0),
                                             state_list=state_list)
                 new_prediction = TrajectoryPrediction(trajectory=new_trajectory,
                                                       shape=obj.obstacle_shape,
-                                                      center_lanelet_assignment=obj.prediction.center_lanelet_assignment,
-                                                      shape_lanelet_assignment=obj.prediction.shape_lanelet_assignment)
+                                                      center_lanelet_assignment=obj.prediction.
+                                                      center_lanelet_assignment,
+                                                      shape_lanelet_assignment=obj.prediction.
+                                                      shape_lanelet_assignment)
                 new_obj = DynamicObstacle(obstacle_id=obj.obstacle_id,
                                           obstacle_type=obj.obstacle_type,
                                           obstacle_shape=obj.obstacle_shape,

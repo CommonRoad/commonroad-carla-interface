@@ -2,7 +2,7 @@ import sys
 import time
 from math import sqrt
 from typing import List
-
+import logging
 import carla
 import numpy as np
 from commonroad.geometry.shape import Circle
@@ -11,13 +11,13 @@ from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State
 from numpy import array, random
 
-import logging
+
 logger = logging.getLogger(__name__)
 
 
 class CarlaPedestrianHandler:
     """
-    Creates and controlls walker in CARLA
+    Creates and controls walker in CARLA
     """
 
     def __init__(self, cr_scenario: Scenario, carla_client: carla.Client, pedestrian_number: int):
@@ -30,20 +30,20 @@ class CarlaPedestrianHandler:
         self.scenario = cr_scenario
         self.numb_ped = pedestrian_number
         self.spawned = False
-        self.walkers_list = []
-        self.actor_ids = []
+        self.walkers_list: List[dict] = []
+        self.actor_ids: List[int] = []
 
     def __str__(self):
-        resp = "numb of pedestrians: {}\n".format(self.numb_ped)
-        resp += "walkers_list: {}\n".format(self.walkers_list)
-        resp += "actor_ids: {}\n".format(self.actor_ids)
-        resp += "numb pedestrians spawned: {}\n".format(len(self.walkers_list))
+        resp = f"numb of pedestrians: {self.numb_ped}\n"
+        resp += f"walkers_list: {self.walkers_list}\n"
+        resp += f"actor_ids: {self.actor_ids}\n"
+        resp += f"numb pedestrians spawned: {len(self.walkers_list)}\n"
         return resp
 
     def get_cr_dyn_obs_list(self) -> List[DynamicObstacle]:
         """
         Returns list containing all spawned walkers as CommonRoad dynamic obstacles
-        :return: list of dynamic obstacles generated from spawned walkers 
+        :return: list of dynamic obstacles generated from spawned walkers
         """
         cr_dyn_obs_list = []
         for pedestrian in self.walkers_list:
@@ -56,8 +56,8 @@ class CarlaPedestrianHandler:
                 vel = sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)  # velocity
                 dynamic_obstacle_init_state = State(position=array([location.x, -location.y]),
                                                     orientation=-((rotation.yaw * np.pi) / 180), velocity=vel)
-                length = actor.bounding_box.extent.x * 2
-                width = actor.bounding_box.extent.y * 2
+                # length = actor.bounding_box.extent.x * 2
+                # width = actor.bounding_box.extent.y * 2
                 dynamic_obstacle_type = ObstacleType.PEDESTRIAN
                 dynamic_obstacle_shape = Circle(radius=0.4)
                 obs = DynamicObstacle(pedestrian["cr_id"],
@@ -65,21 +65,19 @@ class CarlaPedestrianHandler:
                                       dynamic_obstacle_shape,
                                       dynamic_obstacle_init_state)
                 cr_dyn_obs_list.append(obs)
-            except Exception as e:
+            except Exception as e:   
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())
-                return None
+                # return None
         return cr_dyn_obs_list
 
     def spawn(self):
         """
         Spawns self.numb_ped of pedestrians in CARLA (if not already spawned)
-        
         Based on CARLAs PythonAPI example: PythonAPI/examples/spawn_npc.py
         Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
         Barcelona (UAB).
-        
         This work is licensed under the terms of the MIT license.
         For a copy, see <https://opensource.org/licenses/MIT>.
         """
@@ -96,7 +94,7 @@ class CarlaPedestrianHandler:
         for i in range(self.numb_ped):
             spawn_point = carla.Transform()
             loc = world.get_random_location_from_navigation()
-            if (loc != None):
+            if loc is not None:
                 spawn_point.location = loc
                 spawn_points.append(spawn_point)
         # 2. we spawn the walker object
@@ -109,7 +107,7 @@ class CarlaPedestrianHandler:
                 walker_bp.set_attribute('is_invincible', 'false')
             # set the max speed
             if walker_bp.has_attribute('speed'):
-                if (random.random() > percentage_pedestrians_running):
+                if random.random() > percentage_pedestrians_running:
                     # walking
                     walker_speed.append(walker_bp.get_attribute(
                         'speed').recommended_values[1])
@@ -123,7 +121,7 @@ class CarlaPedestrianHandler:
             batch.append(spawn_actor(walker_bp, spawn_point))
         results = self.client.apply_batch_sync(batch, True)
         walker_speed2 = []
-        for i in range(len(results)):
+        for i in enumerate(results):
             if results[i].error:
                 logger.debug(results[i].error)
             else:
@@ -133,18 +131,18 @@ class CarlaPedestrianHandler:
         # 3. we spawn the walker controller
         batch = []
         walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-        for i in range(len(self.walkers_list)):
+        for i in enumerate(self.walkers_list):
             batch.append(spawn_actor(walker_controller_bp,
                                      carla.Transform(), self.walkers_list[i]["id"]))
         results = self.client.apply_batch_sync(batch, True)
-        for i in range(len(results)):
+        for i in enumerate(results):
             if results[i].error:
                 logging.debug(results[i].error)
             else:
                 self.walkers_list[i]["con"] = results[i].actor_id
                 self.walkers_list[i]["cr_id"] = self.scenario.generate_object_id()
         # 4. we put altogether the walkers and controllers id to get the objects from their id
-        for i in range(len(self.walkers_list)):
+        for i in enumerate(self.walkers_list):
             self.actor_ids.append(self.walkers_list[i]["con"])
             self.actor_ids.append(self.walkers_list[i]["id"])
         all_actors = world.get_actors(self.actor_ids)
@@ -175,6 +173,6 @@ class CarlaPedestrianHandler:
                 self.client.get_world().get_actor(self.actor_ids[i]).stop()
             except Exception as e:
                 logger.error(e)
-        logger.debug('\ndestroying %d walkers' % len(self.walkers_list))
+        logger.debug("\n destroying %i walkers", len(self.walkers_list))
         self.client.apply_batch([carla.command.DestroyActor(x) for x in self.actor_ids])
         time.sleep(0.5)

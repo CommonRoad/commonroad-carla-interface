@@ -17,13 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class CarlaVehicleInterface:
-    """ 
-    A InterfaceObstacle is a intermediate obstacle representation to help translate between CR-Obstacles and CARLA-Obstacles
-    
+    """
+    A InterfaceObstacle is a intermediate obstacle representation to
+    help translate between CR-Obstacles and CARLA-Obstacles
     Based on CARLAs PythonAPI example: PythonAPI/examples/spawn_npc.py
     Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
     Barcelona (UAB).
-    
     This work is licensed under the terms of the MIT license.
     For a copy, see <https://opensource.org/licenses/MIT>.
     """
@@ -45,10 +44,10 @@ class CarlaVehicleInterface:
         self.dynamic_obstacle: DynamicObstacle = None
 
     def __str__(self):
-        resp = "commonroad_id: {}\n".format(self.commonroad_id)
-        resp += "carla_id: {}\n".format(self.carla_id)
-        resp += "is_spawned: {}\n".format(self.is_spawned)
-        resp += "traffic manager port: {}\n".format(self.tm_port)
+        resp = f"commonroad_id: {self.commonroad_id}\n"
+        resp += f"carla_id: {self.carla_id}\n"
+        resp += f"is_spawned: {self.is_spawned}\n"
+        resp += f"traffic manager port: {self.tm_port}\n"
         return resp
 
     def get_cr_state(self, time_step=0) -> State:
@@ -62,14 +61,14 @@ class CarlaVehicleInterface:
                 actor = self.client.get_world().get_actor(self.carla_id)
                 vel_vec = actor.get_velocity()
                 vel = sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)  # velocity
-                ang_vec = actor.get_angular_velocity()
-                ang = sqrt(ang_vec.x ** 2 + ang_vec.y ** 2)  # angular velocity
+                # ang_vec = actor.get_angular_velocity()
+                # ang = sqrt(ang_vec.x ** 2 + ang_vec.y ** 2)  # angular velocity
                 transform = actor.get_transform()
                 location = transform.location
                 rotation = transform.rotation
                 return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw * pi) / 180),
                              velocity=vel, time_step=time_step)
-            except Exception as e:
+            except Exception as e:   
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())
@@ -103,8 +102,7 @@ class CarlaVehicleInterface:
                                                                   shape=dynamic_obstacle_shape))
             self.dynamic_obstacle = obs
             return obs
-        else:
-            return None
+        return None
 
     def update_after_spawn(self, spawned=True, cr_id=None, actor_id=None):
         """
@@ -119,8 +117,8 @@ class CarlaVehicleInterface:
         self.carla_id = actor_id
 
     def get_spawnable(self, random_vehicle=True, blue_print=None, spawn_point=None) -> carla.command.SpawnActor:
-        """
 
+        """
         :param random_vehicle: if true a random blue print & random spawn point will be used to create a spawnable
         :param blue_print: blue print to be used to create the vehicle
         :param spawn_point: spawn point to be used to spawn the vehicle
@@ -151,8 +149,7 @@ class CarlaVehicleInterface:
                 # Carla can not find the vehicle in vehicle_dict. Require an update on the vehicle name
                 # https://carla.readthedocs.io/en/latest/bp_library/
                 raise AttributeError(choice)
-            else:
-                bp = bps[0]
+            bp = bps[0]
         elif blue_print:
             bp = blue_print
         else:

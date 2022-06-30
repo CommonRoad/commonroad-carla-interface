@@ -1,0 +1,49 @@
+
+strictness: medium
+test-warnings: false
+doc-warnings: false
+member-warnings: false
+inherits:
+  - default
+ignore-paths:
+  - docs/
+autodetect: true
+max-line-length: 120
+
+pycodestyle:
+  disable:
+    - W602
+    - W603
+
+pydocstyle:
+  disable:
+    - D100
+    - D101
+
+pyflakes:
+  disable:
+    - F403
+    - F810
+
+pylint:
+  disable:
+    - consider-using-dict-items
+    - import-error
+    - too-many-branches
+    - too-many-arguments
+    - too-many-locals
+    - too-many-statements
+    - pointless-string-statement
+    - consider-using-f-string
+    - no-member
+    - too-few-public-methods
+    - too-many-instance-attributes
+    - too-many-nested-blocks
+
+mypy:
+  run: true
+  disable:
+    -
+  options:
+    ignore-missing-imports: true
+    follow-imports: skip

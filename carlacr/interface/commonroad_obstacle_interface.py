@@ -1,11 +1,9 @@
 from enum import Enum
-
+import logging
 import carla
 import numpy as np
-import logging
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import State
-
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
                                          similar_by_width)
 
@@ -21,7 +19,7 @@ class ApproximationType(Enum):
 class CommonRoadObstacleInterface:
     """
     One to one representation of a CommonRoad obstacle to be worked with in CARLA
-    (Caution: only vehicles are currently supported, basic setup for pedestrians in comments) 
+    (Caution: only vehicles are currently supported, basic setup for pedestrians in comments)
     """
 
     def __init__(self, cr_obstacle: Obstacle):
@@ -36,7 +34,9 @@ class CommonRoadObstacleInterface:
         # self.next_update_time = cr_obstacle.prediction.trajectory.initial_time_step
         self.init_state = cr_obstacle.initial_state
         self.init_signal_state = cr_obstacle.initial_signal_state
-        self.trajectory = cr_obstacle.prediction.trajectory if cr_obstacle.obstacle_role == ObstacleRole.DYNAMIC else None
+        self.trajectory = cr_obstacle.prediction.trajectory \
+            if cr_obstacle.obstacle_role == ObstacleRole.DYNAMIC \
+            else None
         self.signal_series = cr_obstacle.signal_series
         self.size = (cr_obstacle.obstacle_shape.length, cr_obstacle.obstacle_shape.width, 0)  # (x, y, z)
         self.role = cr_obstacle.obstacle_role
@@ -73,7 +73,7 @@ class CommonRoadObstacleInterface:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
                 if obstacle:
                     obstacle.set_simulate_physics(physics)
-                    logger.debug("Spawn successful: CR-ID {} CARLA-ID {}".format(self.commonroad_id, obstacle.id))
+                    logger.debug("Spawn successful: CR-ID %i CARLA-ID %s", self.commonroad_id, obstacle.id)
                     # do lights:
                     if self.init_signal_state:
                         vehicle = world.get_actor(obstacle.id)
@@ -92,9 +92,9 @@ class CommonRoadObstacleInterface:
                             vehicle.set_light_state(carla.VehicleLightState(z))
                     self.carla_id = obstacle.id
                     self.is_spawned = True
-                    return obstacle
-                else:
-                    return None
+                    # return obstacle
+                # return None
+
             except Exception as e:
                 logger.error("Error while spawning:")
                 raise e
@@ -151,13 +151,13 @@ class CommonRoadObstacleInterface:
                 actor.destroy()
 
     def __str__(self):
-        resp = "commonroad_id: {}\n".format(self.commonroad_id)
-        resp += "carla_id: {}\n".format(self.carla_id)
-        resp += "is_spawned: {}\n".format(self.is_spawned)
-        resp += "spawn_timestep: {}\n".format(self.spawn_timestep)
-        resp += "next_update_time: {}\n".format(self.next_update_time)
-        resp += "trajectory: {{{}\n}}\n".format(self.trajectory)
-        resp += "size: {}\n".format(self.size)
-        resp += "role: {}".format(self.role)
-        resp += "type: {}\n".format(self.type)
+        resp = f"commonroad_id: {self.commonroad_id}\n"
+        resp += f"carla_id: {self.carla_id}\n"
+        resp += f"is_spawned: {self.is_spawned}\n"
+        resp += f"spawn_timestep: {self.spawn_timestep}\n"
+        resp += f"next_update_time: {self.next_update_time}\n"
+        resp += f"trajectory: {{{self.trajectory}\n}}\n"
+        resp += f"size: {self.size}\n"
+        resp += f"role: {self.role}"
+        resp += f"type: {self.type}\n"
         return resp
