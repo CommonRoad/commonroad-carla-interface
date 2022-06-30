@@ -1,0 +1,72 @@
+image: "python:3.7"
+
+stages:
+  - static_check
+  - test
+  - build
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install -r requirements.txt
+  - pip install -e .
+
+.install-and-run: &install-and-run
+  - pip install tox coverage
+  - coverage run --source ./ -m unittest tests/run_tests.py
+  - coverage report -m --omit="*/src/*,*/tests/*" || true
+
+# static_check
+prospector_und_mypy:
+  stage: static_check
+  image: "python:3.7"
+  allow_failure: true
+  script :
+    - python -m pip install prospector[with_mypy]
+    - python -m prospector
+
+# test
+build_test_python_3_8:
+  image: "python:3.8"
+  stage: test
+  script:
+    - *install-and-run
+
+build_test_python_3_7:
+  image: "python:3.7"
+  stage: test
+  script:
+    - *install-and-run
+
+# build
+
+#build_package_py_37:
+#    stage: build
+#    image: "python:3.7"
+#    script:
+#        - python setup.py install
+
+#build_package_py_38:
+#    stage: build
+#    image: "python:3.8"
+#    script:
+#        - python setup.py install
+
+docs_py_37:
+    image: "python:3.7"
+    stage: build
+    script:
+        - pip install -r ./docs/doc_requirements.txt
+        - cd docs && bash ./setup.sh
+    artifacts:
+      paths :
+        - ./docs/build/
+
+docs_py_38:
+    image: "python:3.8"
+    stage: build
+    script:
+        - pip install -r ./docs/doc_requirements.txt
+        - cd docs && bash ./setup.sh
+    artifacts:
+      paths :
+        - ./docs/build/

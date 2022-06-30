@@ -44,3 +44,13 @@ venv.bak/
 
 
 /docs/build/
+
+# Static Test files
+.mypy_cache
+.pytest_cache
+commonroad_carla_interface.egg-info
+tutorials/.mypy_cache
+tutorials/.ipynb_checkpoints
+carlacr/helper/.mypy_cache
+carlacr/.mypy_cache
+.pylintrc

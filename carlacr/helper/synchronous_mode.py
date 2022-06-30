@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
 # Barcelona (UAB).
@@ -6,32 +6,26 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-import glob
-import os
 import random
-import sys
 import logging
-logger = logging.getLogger(__name__)
-
+import queue
 import carla
+
+logger = logging.getLogger(__name__)
 
 try:
     import pygame
-except ImportError:
-    raise RuntimeError('cannot import pygame, make sure pygame package is installed')
+except ImportError as exc:
+    raise RuntimeError('cannot import pygame, make sure pygame package is installed') from exc
 
 try:
     import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+except ImportError as exc:
+    raise RuntimeError('cannot import numpy, make sure numpy package is installed') from exc
 
 
-class CarlaSyncMode(object):
+class CarlaSyncMode:
+
     """
     Context manager to synchronize output from different sensors. Synchronous
     mode is enabled as long as we are inside this context
@@ -98,7 +92,7 @@ def draw_image(surface, image, blend=False):
 
 
 def get_font():
-    fonts = [x for x in pygame.font.get_fonts()]
+    fonts = [pygame.font.get_fonts()]
     default_font = 'ubuntumono'
     font = default_font if default_font in fonts else fonts[0]
     font = pygame.font.match_font(font)
@@ -109,7 +103,7 @@ def should_quit():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return True
-        elif event.type == pygame.KEYUP:
+        if event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 return True
     return False
@@ -169,10 +163,10 @@ def main():
                 draw_image(display, image_rgb)
                 # draw_image(display, image_semseg, blend=True)
                 display.blit(
-                    font.render('% 5d FPS (real)' % clock.get_fps(), True, (255, 255, 255)),
+                    font.render(f'{clock.get_fps()} 5d FPS (real)', True, (255, 255, 255)),
                     (8, 10))
                 display.blit(
-                    font.render('% 5d FPS (simulated)' % fps, True, (255, 255, 255)),
+                    font.render(f'{fps} FPS (simulated)', True, (255, 255, 255)),
                     (8, 28))
                 pygame.display.flip()
 

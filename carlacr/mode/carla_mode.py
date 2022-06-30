@@ -1,5 +1,4 @@
 import carla
-
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, ObstacleRole
@@ -8,7 +7,9 @@ from carlacr.interface.carla_interface import CarlaInterface
 
 
 class CarlaMode:
-    def __init__(self, open_drive_map_path: str, cr_scenario_file_path: str = None, vehicle_id: id = -1):
+    def __init__(self, open_drive_map_path: str,
+                 cr_scenario_file_path: str = None,
+                 vehicle_id: int = -1):
 
         self.carla_client = carla.Client("localhost", 2000)
         self.time_step_delta = None
@@ -21,19 +22,22 @@ class CarlaMode:
                                               cr_scenario_file_path=cr_scenario_file_path,
                                               carla_client=carla.Client("localhost", 2000))
 
-    def saving_video(self, create_video: bool = True, video_path: str = None, video_name: str = None,
-                     video_asMP4: bool = False):
-        """
+    def saving_video(self, create_video: bool = True,
+                     video_path: str = None,
+                     video_name: str = "test",
+                     video_as_mp4: bool = False):
+        """c
         :param create_video: flag for creating video
-        :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be
+        :param video_path: path to a folder where the gif will be saved,
+        additionally a folder at "gif_path"/img will be
         created in to save the images used for the gif
         :param video_name: filename for the gif
-        :param video_asMP4: flag to save as mp4 or gif
+        :param video_as_mp4: flag to save as mp4 or gif
         """
         self.carla_interface.saving_video(create_video=create_video,
                                           video_path=video_path,
                                           video_name=video_name,
-                                          video_as_mp4=video_asMP4)
+                                          video_as_mp4=video_as_mp4)
 
     def set_carla_client(self, host: str, port: int):
         """
@@ -59,10 +63,9 @@ class CarlaMode:
         """
         if not ego_vehicle:
             raise ValueError("ego vehicle should not be null")
-        else:
-            if ego_vehicle.obstacle_role != ObstacleRole.DYNAMIC:
-                raise AttributeError("ego vehicle muss be dynamic")
-            self.ego_vehicle = ego_vehicle
+        if ego_vehicle.obstacle_role != ObstacleRole.DYNAMIC:
+            raise AttributeError("ego vehicle muss be dynamic")
+        self.ego_vehicle = ego_vehicle
 
     def obstacle_by_id(self, veh_id: int):
         """

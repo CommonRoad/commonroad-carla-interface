@@ -22,6 +22,7 @@
 
 import os
 import sys
+import typing
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../carlacr'))
@@ -60,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Commonroad Carla Interface'
-copyright = '2021, TUM'
+Copyright = '2021, TUM'
 author = 'TUM'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -82,7 +83,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns: typing.List[str] = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -144,7 +145,8 @@ htmlhelp_basename = 'commonroad_carla_interface'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+
+latex_elements: typing.Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
@@ -191,5 +193,3 @@ texinfo_documents = [
      author, 'commonroad_carla_interface', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-

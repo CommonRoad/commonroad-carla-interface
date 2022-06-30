@@ -1,8 +1,8 @@
 import os
-
+import logging
 import imageio
 import moviepy.editor as moviepy_edit
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,7 +14,8 @@ class GifCreator:
     def __init__(self, path, gif_name):
         """
 
-        :param path: path of the root folder for the GIF, within this directory is a folder /img containing all
+        :param path: path of the root folder for the GIF,
+        within this directory is a folder /img containing all
         images saved by the ego-vehicle camera
         :param gif_name: filename of the GIF to be created
         """
@@ -30,7 +31,7 @@ class GifCreator:
         path = self.path + "/img"
 
         # Get filenames
-        for root, dirs, files in os.walk(path):
+        for files in os.walk(path):
             for file in files:
                 if file.endswith(".jpg"):
                     filenames.append(file)
@@ -44,7 +45,7 @@ class GifCreator:
                 writer.append_data(image)
 
         logger.debug("GIF created!")
-        f"{self.path}/{self.gif_name}.gif"
+        # f"{self.path}/{self.gif_name}.gif"
 
     def make_video(self):
         """
@@ -54,7 +55,7 @@ class GifCreator:
         path = self.path + "/img"
 
         # Get filenames
-        for root, dirs, files in os.walk(path):
+        for files in os.walk(path):
             for file in files:
                 if file.endswith(".jpg"):
                     filenames.append(file)

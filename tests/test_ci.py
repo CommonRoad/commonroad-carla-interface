@@ -5,7 +5,6 @@ import warnings
 
 from commonroad.scenario.trajectory import State
 from carlacr.mode.carla_replay_mode import CarlaReplayMode
-from carlacr.interface.carla_interface import CarlaInterface, MotionPlanner
 
 
 class TestReplayMode(unittest.TestCase):
