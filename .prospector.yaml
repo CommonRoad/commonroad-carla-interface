@@ -20,10 +20,15 @@ pydocstyle:
     - D100
     - D101
 
+
 pyflakes:
   disable:
     - F403
     - F810
+
+mccabe:
+  disable:
+    - MC0001  # mccabe: MC0001 / CarlaPedestrianHandler.spawn is too complex (17)
 
 pylint:
   disable:
@@ -42,8 +47,6 @@ pylint:
 
 mypy:
   run: true
-  disable:
-    -
   options:
     ignore-missing-imports: true
     follow-imports: skip

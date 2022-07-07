@@ -19,7 +19,6 @@ before_script:
 prospector_und_mypy:
   stage: static_check
   image: "python:3.7"
-  allow_failure: true
   script :
     - python -m pip install prospector[with_mypy]
     - python -m prospector

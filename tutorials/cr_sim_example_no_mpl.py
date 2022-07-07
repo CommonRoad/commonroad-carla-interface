@@ -1,21 +1,19 @@
 import time
-import os
-import sys
-import logging
 import carla
 from carlacr.interface.carla_interface import CarlaInterface
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath("__file__"))))
+import logging
+import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
-map_path = os.path.dirname(os.path.abspath(__file__)) + "/maps/"
-scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/scenarios/"
+map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
+scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
 
-name = "DEU_Test-1_1_T-1"
+map_name = "four_way_crossing"
+scenario_name = "four_way_crossing_Modi"
 
 client = carla.Client('localhost', 2000)
-ci = CarlaInterface(map_path + name + ".xodr",
-                    client, scenario_path + name + ".xml", None)
+ci = CarlaInterface(map_path + map_name + ".xodr", client, scenario_path + scenario_name + ".xml", None)
 
 ci.load_map()
 

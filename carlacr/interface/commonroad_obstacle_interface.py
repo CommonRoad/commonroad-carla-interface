@@ -4,10 +4,12 @@ import carla
 import numpy as np
 from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import State
-from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
-                                         similar_by_width)
+
+from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
 
 logger = logging.getLogger(__name__)
+
+SpawnActor = carla.command.SpawnActor
 
 
 class ApproximationType(Enum):
@@ -31,17 +33,16 @@ class CommonRoadObstacleInterface:
         self.carla_id = None
         self.is_spawned = False
         self.spawn_timestep = cr_obstacle.initial_state.time_step
-        # self.next_update_time = cr_obstacle.prediction.trajectory.initial_time_step
         self.init_state = cr_obstacle.initial_state
         self.init_signal_state = cr_obstacle.initial_signal_state
-        self.trajectory = cr_obstacle.prediction.trajectory \
-            if cr_obstacle.obstacle_role == ObstacleRole.DYNAMIC \
-            else None
+        self.trajectory = cr_obstacle.prediction.trajectory if cr_obstacle.obstacle_role == ObstacleRole.DYNAMIC else\
+            None
         self.signal_series = cr_obstacle.signal_series
         self.size = (cr_obstacle.obstacle_shape.length, cr_obstacle.obstacle_shape.width, 0)  # (x, y, z)
         self.role = cr_obstacle.obstacle_role
         self.type = cr_obstacle.obstacle_type
         self.cr_base = cr_obstacle
+        self.client = carla.Client
 
     def spawn(self, world: carla.World, approx_type=ApproximationType.LENGTH, physics=True) -> carla.Actor:
         """
@@ -52,6 +53,24 @@ class CommonRoadObstacleInterface:
         :param physics: if physics should be enabled for the vehicle
         :return: if spawn successful the according CARLA actor else None
         """
+        transform = carla.Transform(
+                carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
+                carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
+        # # PEDESTRIAN
+        if self.type == ObstacleType.PEDESTRIAN:
+            obstacle_blueprint_walker = world.get_blueprint_library().find('walker.pedestrian.0002')
+            try:
+                obstacle = world.spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
+                if obstacle:
+                    obstacle.set_simulate_physics(physics)
+                    logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self.commonroad_id, obstacle.id)
+                    self.carla_id = obstacle.id
+                    self.is_spawned = True
+            except Exception as e:
+                logger.error("Error while spawning PEDESTRIAN:")
+                raise e
+
+        # VEHICLE
         if self.type in [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
                          ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
             if approx_type == ApproximationType.LENGTH:
@@ -61,19 +80,12 @@ class CommonRoadObstacleInterface:
             if approx_type == ApproximationType.AREA:
                 nearest_vehicle_type = similar_by_area(self.size[0], self.size[1], 0)
             obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
-            # TODO: Control Walker
-            # if self.role == ObstacleRole.PEDESTRIAN:
-            #     walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-            #     world.SpawnActor(walker_controller_bp, carla.Transform(), parent_walker)
-            transform = carla.Transform(
-                carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
-                carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
 
             try:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
                 if obstacle:
                     obstacle.set_simulate_physics(physics)
-                    logger.debug("Spawn successful: CR-ID %i CARLA-ID %s", self.commonroad_id, obstacle.id)
+                    logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self.commonroad_id, obstacle.id)
                     # do lights:
                     if self.init_signal_state:
                         vehicle = world.get_actor(obstacle.id)
@@ -92,11 +104,8 @@ class CommonRoadObstacleInterface:
                             vehicle.set_light_state(carla.VehicleLightState(z))
                     self.carla_id = obstacle.id
                     self.is_spawned = True
-                    # return obstacle
-                # return None
-
             except Exception as e:
-                logger.error("Error while spawning:")
+                logger.error("Error while spawning VEHICLE:")
                 raise e
 
     def update_position_by_time(self, world: carla.World, state: State):
@@ -112,26 +121,10 @@ class CommonRoadObstacleInterface:
                 if actor:
                     new_orientation = state.orientation
                     new_position = state.position
-                    transform = carla.Transform(carla.Location(
-                        x=new_position[0], y=-new_position[1], z=actor.get_location().z),
-                        carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
+                    transform = carla.Transform(
+                            carla.Location(x=new_position[0], y=-new_position[1], z=actor.get_location().z),
+                            carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
                     actor.set_transform(transform)
-                    # do lights:
-                    vehicle = world.get_actor(self.carla_id)
-                    z = carla.VehicleLightState.NONE
-                    vehicle.set_light_state(z)
-                    sig = self.cr_base.signal_state_at_time_step(state.time_step)
-                    if sig:
-                        if sig.braking_lights:
-                            z = z | carla.VehicleLightState.Brake
-                        if sig.indicator_left and not sig.hazard_warning_lights:
-                            z = z | carla.VehicleLightState.LeftBlinker
-                        if sig.indicator_right and not sig.hazard_warning_lights:
-                            z = z | carla.VehicleLightState.RightBlinker
-                        if sig.hazard_warning_lights:
-                            z = z | carla.VehicleLightState.RightBlinker
-                            z = z | carla.VehicleLightState.LeftBlinker
-                        vehicle.set_light_state(carla.VehicleLightState(z))
 
                 else:
                     logger.debug("Could not find actor")
