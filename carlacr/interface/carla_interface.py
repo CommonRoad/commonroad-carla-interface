@@ -1,10 +1,10 @@
+import carla
 import os
 import sys
 import time
 from datetime import date, datetime
 from typing import List, Tuple, Union
 import logging
-import carla
 import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, DynamicObstacle
@@ -326,7 +326,6 @@ class CarlaInterface:
         carla_interface_obstacles: List[Tuple] = []
         carla_controlled_obstacles: List[int] = []
         carla_contr_obs_classes: List[CarlaVehicleInterface] = []
-
         ego_interface_list: List[CommonRoadEgoInterface] = []
         batch: List[carla.command.SpawnActor] = []
         carla_contr_dynamic_obs: List[DynamicObstacle] = []
@@ -339,7 +338,6 @@ class CarlaInterface:
         # obstacle_type=ObstacleType.CAR)
         dynamic_obstacles = self.scenario.dynamic_obstacles
         dynamic_obstacles += self.scenario.static_obstacles
-
         # real world time step delta
         if time_step_delta_real:
             time_between_ticks = time_step_delta_real
@@ -382,10 +380,12 @@ class CarlaInterface:
                 world.apply_settings(settings)
                 # clean up
                 if clean_up:
-                    self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
+                    self._clean_up_carla(ego_interface_list,
+                                         interface_obstacles,
+                                         carla_controlled_obstacles,
                                          pedestrian_handler)
                 sys.exit(0)
-            except Exception as e:  
+            except Exception as e:
                 logger.error(e, exc_info=sys.exc_info())
 
         settings = world.get_settings()
@@ -396,7 +396,9 @@ class CarlaInterface:
         self._update_vehicle_to_scenario(carla_contr_obs_classes)
         # clean up
         if clean_up:
-            self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
+            self._clean_up_carla(ego_interface_list,
+                                 interface_obstacles,
+                                 carla_controlled_obstacles,
                                  pedestrian_handler)
 
     def run_scenario_with_ego_vehicle(self, time_step_delta_real, ego_vehicle: DynamicObstacle,
@@ -536,19 +538,25 @@ class CarlaInterface:
             self.video_path += video_folder
 
         if self.motion_planner:
-            self._run_scenario_with_mpl(clean_up=clean_up, time_step_delta_real=time_step_delta_real,
-                                        ego_vehicle=ego_vehicle, carla_vehicles=carla_vehicles,
+            self._run_scenario_with_mpl(clean_up=clean_up,
+                                        time_step_delta_real=time_step_delta_real,
+                                        ego_vehicle=ego_vehicle,
+                                        carla_vehicles=carla_vehicles,
                                         carla_pedestrians=carla_pedestrians)
 
         else:
             if self.create_video and not ego_vehicle:
                 logger.debug("GIFs can only be created when a ego_vehicle or motion planner is provided!")
             if ego_vehicle:
-                self.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real, ego_vehicle=ego_vehicle,
-                                                   carla_pedestrians=carla_pedestrians, carla_vehicles=carla_vehicles)
+                self.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real,
+                                                   ego_vehicle=ego_vehicle,
+                                                   carla_pedestrians=carla_pedestrians,
+                                                   carla_vehicles=carla_vehicles)
             else:
-                self._run_scenario_without_mpl(clean_up=clean_up, time_step_delta_real=time_step_delta_real,
-                                               carla_pedestrians=carla_pedestrians, carla_vehicles=carla_vehicles,
+                self._run_scenario_without_mpl(clean_up=clean_up,
+                                               time_step_delta_real=time_step_delta_real,
+                                               carla_pedestrians=carla_pedestrians,
+                                               carla_vehicles=carla_vehicles,
                                                scenario_time_steps=scenario_time_steps)
         if self.video_path:
             self.video_path = self.video_path[:len(self.video_path) - len(video_folder)]

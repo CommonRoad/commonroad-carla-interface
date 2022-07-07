@@ -1,8 +1,7 @@
-import logging
 import sys
 from math import sqrt
 from numpy import array, pi, random
-
+import logging
 import carla
 from carla import VehicleLightState as vls
 from commonroad.geometry.shape import Rectangle
