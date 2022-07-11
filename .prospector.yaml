@@ -44,6 +44,8 @@ pylint:
     - too-few-public-methods
     - too-many-instance-attributes
     - too-many-nested-blocks
+    - unnecessary-lambda
+    - unsupported-assignment-operation
 
 mypy:
   run: true

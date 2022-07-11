@@ -1,28 +1,38 @@
 import time
 import carla
-from carlacr.interface.carla_interface import CarlaInterface
+import subprocess
 import logging
+from carlacr.interface.carla_interface import CarlaInterface
 import os
+from configurations.set_configs import set_configs
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
-map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
-scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
+# Load config files
+config = set_configs()
+sleep_time = config.config_carla.sleep_time
 
-map_name = "four_way_crossing"
-scenario_name = "four_way_crossing_Modi"
+# Run Carla Server
+with subprocess.Popen([config.config_carla.carla_path]):
+    time.sleep(sleep_time)
 
-client = carla.Client('localhost', 2000)
-ci = CarlaInterface(map_path + map_name + ".xodr", client, scenario_path + scenario_name + ".xml", None)
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.DEBUG)
+    map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
+    scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
 
-ci.load_map()
+    map_name = "four_way_crossing"
+    scenario_name = "four_way_crossing_Modi"
 
-time.sleep(5)  # time to move your view in carla-window
+    client = carla.Client(config.carla_config.host, config.carla_config.port)
+    ci = CarlaInterface(map_path + map_name + ".xodr", client, scenario_path + scenario_name + ".xml", None)
 
-ci.setup_carla(hybrid_physics_mode=False)
+    ci.load_map()
 
-StartTime = time.time()
-ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=0)
-ExecutionTime = (time.time() - StartTime)
+    time.sleep(sleep_time)  # time to move your view in carla-window
 
-print('Execution time in seconds: ' + str(ExecutionTime))
+    ci.setup_carla(hybrid_physics_mode=False)
+
+    StartTime = time.time()
+    ci.run_scenario(clean_up=True, carla_vehicles=0, carla_pedestrians=0)
+    ExecutionTime = (time.time() - StartTime)
+
+    print('Execution time in seconds: ' + str(ExecutionTime))

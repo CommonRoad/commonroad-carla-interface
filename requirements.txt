@@ -4,6 +4,6 @@ commonroad-io>=2022.1
 imageio~=2.9.0
 scipy>=1.2.0
 carla>=0.9.13
-typer~=0.4.0
+typer==0.4.0
 moviepy~=1.0.3
 lxml>=4.8.0
