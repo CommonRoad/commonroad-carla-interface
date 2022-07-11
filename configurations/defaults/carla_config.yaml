@@ -1,0 +1,5 @@
+carla_parameters:
+  host: localhost  # carla host setting
+  port: 2000  # carla default port setting
+  sleep_time: 10 # time to move your view in carla-window
+  carla_path: /opt/carla-simulator/CarlaUE4.sh  # carla path of installation

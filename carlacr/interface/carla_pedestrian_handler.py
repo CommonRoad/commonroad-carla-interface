@@ -10,6 +10,7 @@ from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State
 from numpy import array, random
 import logging
+from configurations.set_configs import set_configs
 logger = logging.getLogger(__name__)
 
 
@@ -91,8 +92,15 @@ class CarlaPedestrianHandler:
         if self.spawned:
             return
 
-        percentage_pedestrians_running = 0.0  # how many pedestrians will run
-        percentage_pedestrians_crossing = 0.0  # how many pedestrians will walk through the road
+        """
+        Load configs for percentage_pedestrians_running and percentage_pedestrians_crossing
+        from Configurations
+        """
+        config = set_configs()
+        # how many pedestrians will run, default = 0
+        percentage_pedestrians_running = config.config_carla_pedestrian.percentage_pedestrians_running
+        # how many pedestrians will walk through the road, default = 0
+        percentage_pedestrians_crossing = config.config_carla_pedestrian.percentage_pedestrians_crossing
 
         world = self.client.get_world()
         blueprints_walkers = world.get_blueprint_library().filter("walker.pedestrian.*")
