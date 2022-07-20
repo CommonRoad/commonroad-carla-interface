@@ -5,7 +5,7 @@ from typing import Union
 
 from omegaconf import OmegaConf, ListConfig, DictConfig
 
-from configurations.configuration import Configuration
+from carlacr.configurations.configuration import Configuration
 
 
 class ConfigurationBuilder:

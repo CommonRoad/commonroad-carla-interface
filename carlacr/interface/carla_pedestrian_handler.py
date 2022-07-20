@@ -10,7 +10,7 @@ from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import State
 from numpy import array, random
 import logging
-from configurations.set_configs import set_configs
+from carlacr.configurations.set_configs import set_configs
 logger = logging.getLogger(__name__)
 
 

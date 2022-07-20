@@ -3,21 +3,21 @@ import carla
 import subprocess
 import logging
 from carlacr.interface.carla_interface import CarlaInterface
+import os
 from carlacr.configurations.set_configs import set_configs
 
 # Load config files
 config = set_configs()
 sleep_time = config.config_carla.sleep_time
 
-# Run Carla Server with 3D mode
-with subprocess.Popen([config.config_carla.carla_path]):
+# Run Carla Server with OFFScreen mode
+with subprocess.Popen([config.config_carla.carla_path, '-RenderOffScreen']):
     time.sleep(sleep_time)
 
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=logging.DEBUG)
-
-    map_path = config.general.map_path
-    scenario_path = config.general.scenario_path
+    map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
+    scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
 
     map_name = "four_way_crossing"
     scenario_name = "four_way_crossing_Modi"

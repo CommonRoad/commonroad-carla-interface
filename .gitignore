@@ -3,6 +3,10 @@
 # ignore converted maps to not clutter the repo
 /maps/converted/*
 
+# ignore cache files
+/carlacr/mode/cache
+/tutorials/cache
+
 # Editors
 .vscode/
 .idea/
