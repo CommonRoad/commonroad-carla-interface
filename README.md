@@ -21,33 +21,78 @@ to install requirement open terminal in CommonRoad-CARLA Interface and run:
 pip install -e .
 ```
 ## Getting started
-To simulate only a CommonRoad scenario in CARLA:
+To simulate only a CommonRoad scenario in CARLA.
+
+### 1 - Simple start
+
+1. 3D Mode (Carla Default mode)
+
+For Motion planning mode please set parameters in `
+cr_simple_start_no_mpl.py`
+``` 
+python /tutorials/cr_simple_start.py
+```
+2. Off-screen mode
+
+For Motion planning mode please set parameters in 
+`cr_simple_start_no_mpl_offscreen.py`
+
+``` 
+python /tutorials/cr_simple_start_offscreen.py
+```
+3. 2D mode can not with oneline code start.
+
+For Motion planning mode please set parameters in `
+cr_simple_start_no_mpl.py`
+```
+python /tutorials/cr_simple_start.py
+```
+&nbsp; &nbsp; &nbsp; &nbsp; Wait until your scenario is loaded
+```
+python /carlacr/mode/start_2d_mode.py
+```
+### 2 - Start step by step
+
+#### 3D mode (Carla default mode and off-screen mode)
+
 1. Load configuration files and set sleep_time
 ```
 config = set_configs()
 sleep_time = config.config_carla.sleep_time
 ```
 2. Run a CARLA server (Debian installation:)
+
+&nbsp; &nbsp; &nbsp; &nbsp; A. 3D mode:
+
+~~~
+    with subprocess.Popen([config.config_carla.carla_path]):
+        time.sleep(sleep_time)
+~~~
+
+&nbsp; &nbsp; &nbsp; &nbsp; B. Off-screen mode:
+
 ```
-with subprocess.Popen([config.config_carla.carla_path]):
-    time.sleep(sleep_time)
+    with subprocess.Popen([config.config_carla.carla_path, '-RenderOffScreen']):
+        time.sleep(sleep_time)
 ```
-2. Create a CARLA client object<br/>
+
+3. Create a CARLA client object<br/>
+
 ```
     client = carla.Client(config.carla_config.host, config.carla_config.port)
 ```
-3. Define path of map and path of scenario 
+4. Define path of map and path of scenario 
 ```
-    map_path = os.path.dirname(os.path.abspath(__file__)) + "/../maps/"
-    scenario_path = os.path.dirname(os.path.abspath(__file__)) + "/../scenarios/"
+    map_path = config.general.map_path
+    scenario_path = config.general.scenario_path
 ```
-4. Define name of map and name of scenario ("four_way_crossing" is an example)
+5. Define name of map and name of scenario ("four_way_crossing" is an example)
 ```
     map_name = "four_way_crossing"
     scenario_name = "four_way_crossing_Modi"
 ```
 
-4. Initialize _CarlaInterface_<br/>
+6. Initialize _CarlaInterface_<br/>
 
 &nbsp; &nbsp; &nbsp; &nbsp; A. without MPL:
 
@@ -61,33 +106,60 @@ with subprocess.Popen([config.config_carla.carla_path]):
     ci = CarlaInterface(open_drive_map_path, carla_client, cr_scenario_file_path, MotionPlanner)
 ```
 
-5. Load the map in CARLA<br/>
-   require all user write permissition for directory: CarlaUE4/Content/Carla/Maps/OpenDrive/
+7. Load the map in CARLA<br/>
+   require all user write permission for directory: 
+CarlaUE4/Content/Carla/Maps/OpenDrive/
 ```
     ci.load_map()
 ```
-6. Setup CarlaInterface<br/>
+8. Setup CarlaInterface<br/>
 ```
-    ci.setup_carla()
+    ci.setup_carla(hybrid_physics_mode)
 ```
-7. Run the scenario<br/>
+9. Run the scenario<br/>
 ```
-    ci.run_scenario()
+    ci.run_scenario(clean_up, carla_vehicles, carla_pedestrians)
 ```
+## Aerial view mode (2D mode)
 
 
-## Replay Mode
+First run the code the same as 3D mode in `#1` Terminal.   
+
+When the 3D mode started 
+(Street from `.xodr` file showed in carla windows), 
+run the `carlacr/mode/carla_2d_mode.py` in `#2` Terminal.   
+
+#### Example for aerial view mode:
+
+&nbsp; &nbsp; &nbsp; &nbsp; 1. Run `cr_sim_example_no_mpl.py` in `tutorials` in 
+`#1` Terminal, and wait until your scenario is loaded 
+(For example, "four_way_crossing"). 
+
+```
+    python cr_sim_example_no_mpl.py
+```
+
+&nbsp; &nbsp; &nbsp; &nbsp; 2. Run `carlacr/mode/carla_2d_mode.py`
+
+```
+    python carla_2d_mode.py
+```
+
+&nbsp; &nbsp; &nbsp; &nbsp; 3. You can run `cr_sim_example_no_mpl.py` in `tutorials` 
+one more time to see the 2D view running in windows `CARLA No Rendering Mode Visualizer` from start.
+
+![](/example_videos/carla_2D_mode_example.mp4)
+
+## Replay mode
 Watching a scenario in vehicles view with Replay Mode
     
     replaymode=CarlaReplayMode(commonroad_scenario,open_drive_map)
     replaymode.set_ego_vehicle_by_id(id)
     replaymode.saving_video(path,name,as mp4 or gif)
     replaymode.visualize()
-    
-![](../test_image/None.gif)
 
 See in example_replay_mode
-## Using Replay Mode in command line
+## Using replay mode in command line
 Example command
 
     python3 ./main.py ../scenarios/DEU_Test-1_1_T-1.xml ../maps/DEU_Test-1_1_T-1.xodr --veh-id 6
@@ -96,18 +168,15 @@ For further Information
 
     python3 ./main.py --help
 
-## Motion Planning Mode
-Watching a scenario in vehicles view with Motion Planning Mode.This allow user to put in a motion planner, scenario and a map them have a visualization in carla.
-            This API can setup map, scenario. Trigger the motion planning at the beginning of the simulation.
+## Motion planning mode
+Watching a scenario in vehicles view with Motion Planning Mode.This allows user to put in a motion planner, scenario and a map them have a visualization in carla.
+            This API can set up map, scenario. Trigger the motion planning at the beginning of the simulation.
     
     motionplanner_mode=CarlaMotionPlannerMode(commonroad_scenario,open_drive_map,mp)
     motionplanner_mode.set_ego_vehicle_by_id(id)
     motionplanner_mode.saving_video(path,name,as mp4 or gif)
     motionplanner_mode.visualize()
 
-See in example_motion_planning_mode
-![](../test_image/DEU_Test-1_1_T-1_06_01_2022_18_53_21/None.gif)
-(The black vehicle is controled by motion planner)
 
 This mode is currently not working with command
 
@@ -121,7 +190,7 @@ Afterward run:
 ```
 cd docs && make html
 ```
-## Additionally installed packages for testing
+## Additional installed packages for testing
 
 - pytest        6.2.4
 - pytest-cov    2.12.1

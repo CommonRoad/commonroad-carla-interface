@@ -1,0 +1,4 @@
+description: 'CARLA No Rendering Mode Visualizer'
+res: '1280x720'  # window resolution (default: 1280x720)
+filter: 'vehicle.*'  # actor filter (default: "vehicle.*")
+map: None  # start a new episode at the given TOWN

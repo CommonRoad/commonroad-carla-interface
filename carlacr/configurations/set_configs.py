@@ -1,5 +1,5 @@
 import os
-from configurations.configuration_builder import ConfigurationBuilder
+from carlacr.configurations.configuration_builder import ConfigurationBuilder
 
 
 def set_configs():
@@ -12,7 +12,7 @@ def set_configs():
         config:  config containing all relevant information
     """
 
-    path_config = os.path.join(os.getcwd(), "../configurations")
+    path_config = os.path.dirname(os.path.abspath(__file__))
     ConfigurationBuilder.set_path_to_config(path_config)
     config = ConfigurationBuilder.build_configuration()
 

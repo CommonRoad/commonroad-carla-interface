@@ -1,0 +1,4 @@
+  path_root : ./../
+
+  scenario_path : ${join_paths:${path_root},scenarios/}  # Path of scenario files  .xml
+  map_path : ${join_paths:${path_root},maps/}  # Path of maps files  .xodr
