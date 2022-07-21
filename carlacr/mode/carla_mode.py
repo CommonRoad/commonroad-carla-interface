@@ -26,10 +26,9 @@ class CarlaMode:
                      video_path: str = None,
                      video_name: str = "test",
                      video_as_mp4: bool = False):
-        """c
+        """
         :param create_video: flag for creating video
-        :param video_path: path to a folder where the gif will be saved,
-        additionally a folder at "gif_path"/img will be
+        :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be
         created in to save the images used for the gif
         :param video_name: filename for the gif
         :param video_as_mp4: flag to save as mp4 or gif

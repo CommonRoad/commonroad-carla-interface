@@ -12,6 +12,7 @@ class Configuration:
         self.config_carla_pedestrian = CarlaPedestrianConConfiguration(config)
         self.config_carla_2d = CarlaConfig2d(config)
         self.config_general = GeneralConfiguration(config)
+        self.config_carla_obstacle = ObstacleConfiguration(config)
 
     @property
     def carla_config(self):
@@ -36,6 +37,14 @@ class Configuration:
     @config_carla_pedestrian.setter
     def config_carla_pedestrian(self, value):
         self._config_carla_pedestrian = value
+
+    @property
+    def config_carla_obstacle(self):
+        return self._config_carla_obstacle
+
+    @config_carla_obstacle.setter
+    def config_carla_obstacle(self, value):
+        self._config_carla_obstacle = value
 
 
 class CarlaConfiguration:
@@ -92,3 +101,23 @@ class CarlaConfig2d:
         self.res = config_relevant.res
         self.filter = config_relevant.filter
         self.map = config_relevant.map
+
+
+class ObstacleConfiguration:
+    """
+    Class holding carla obstacle configuration
+    """
+
+    def __init__(self, config: Union[ListConfig, DictConfig]):
+        config_relevant = config.obstacle_interface.obstacle_parameters
+
+        self.args_lateral_dict = config_relevant.args_lateral_dict
+        self.args_long_dict = config_relevant.args_long_dict
+
+        config_relevant = config.obstacle_interface.obstacle_parameters.args_ackermann_PID
+        self.speed_kp = config_relevant.speed_kp
+        self.speed_ki = config_relevant.speed_ki
+        self.speed_kd = config_relevant.speed_kd
+        self.accel_kp = config_relevant.accel_kp
+        self.accel_ki = config_relevant.accel_ki
+        self.accel_kd = config_relevant.accel_kd

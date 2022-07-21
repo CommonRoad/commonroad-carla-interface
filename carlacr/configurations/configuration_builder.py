@@ -23,12 +23,14 @@ class ConfigurationBuilder:
             path_config (str): root folder of configurations
             dir_configs_default (str): directory under root folder containing
             default carla interface config files.
+
         """
         cls.path_config = path_config
         cls.path_config_default = os.path.join(path_config, dir_configs_default)
 
     @classmethod
     def build_configuration(cls) -> Configuration:
+
         """Builds configuration from default files.
 
         Steps:
@@ -41,6 +43,7 @@ class ConfigurationBuilder:
 
         # default configurations
         config_default = cls.construct_default_config()
+
         config_combined = OmegaConf.merge(config_default)
         print(OmegaConf.to_yaml(config_combined))
 

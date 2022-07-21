@@ -581,7 +581,8 @@ class CarlaInterface:
             pedestrian_handler.destroy()
 
     def _control_commonroad_obstacles(self, interface_obstacles: List[CommonRoadObstacleInterface],
-                                      carla_interface_obstacles: List[Tuple], curr_time_step: int):
+                                      carla_interface_obstacles: List[Tuple], curr_time_step: int,
+                                      mode: str = "by-time"):
         """
         Control CommonRoad obstacles, try to spawn, update position and destroy regarding actor in carla if out of
         scenario
@@ -589,6 +590,7 @@ class CarlaInterface:
         :param interface_obstacles: list of CommonRoadObstacleInterface object
         :param carla_interface_obstacles: list of tuple (interface object,actor)
         :param curr_time_step: current time step of the scenario
+        :param mode: update obstacle "by-time", "by-control", or "by-ackermann-control"
         """
         deleted_obs = []
         for obs in interface_obstacles:
@@ -602,8 +604,17 @@ class CarlaInterface:
             else:
                 try:
                     if obs.role == ObstacleRole.DYNAMIC and obs.trajectory.state_at_time_step(curr_time_step):
-                        obs.update_position_by_time(self.client.get_world(),
-                                                    obs.trajectory.state_at_time_step(curr_time_step))
+                        # decide control mode
+                        if mode == "by-time":
+                            obs.update_position_by_time(self.client.get_world(),
+                                                        obs.trajectory.state_at_time_step(curr_time_step))
+                        elif mode == "by-control":
+                            obs.update_position_by_control(self.client.get_world(),
+                                                           obs.trajectory.state_at_time_step(curr_time_step))
+                        elif mode == "by-ackermann-control":
+                            obs.update_with_ackermann_control(self.client.get_world(),
+                                                              obs.trajectory.state_at_time_step(curr_time_step))
+
                     elif obs.role != ObstacleRole.STATIC:
                         deleted_obs.append(obs)
                         obs.destroy_carla_obstacle(self.client.get_world())
