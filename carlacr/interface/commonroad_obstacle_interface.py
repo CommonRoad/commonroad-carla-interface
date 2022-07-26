@@ -51,10 +51,12 @@ class CommonRoadObstacleInterface:
         # merge
         self.clock = pygame.time.Clock()
         self.client = carla.Client
-        _args = config.config_carla_obstacle
-        self.ackermann_settings = carla.AckermannControllerSettings(speed_kp=_args.speed_kp, speed_ki=_args.speed_ki,
-                                                                    speed_kd=_args.speed_kd,accel_kp=_args.accel_kp,
-                                                                    accel_ki=_args.accel_ki, accel_kd=_args.accel_kd)
+
+        # uncomment to use Ackermann controller
+        # _args = config.config_carla_obstacle
+        # self.ackermann_settings = carla.AckermannControllerSettings(speed_kp=_args.speed_kp, speed_ki=_args.speed_ki,
+        #                                                             speed_kd=_args.speed_kd,accel_kp=_args.accel_kp,
+        #                                                             accel_ki=_args.accel_ki, accel_kd=_args.accel_kd)
 
     def spawn(self, world: carla.World, approx_type=ApproximationType.LENGTH, physics=True) -> carla.Actor:
         """
