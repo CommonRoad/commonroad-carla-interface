@@ -175,6 +175,131 @@ To test the converter run:
 pytest -v --cov=conversion.converter --cov-report html
 
 ## Structure of Commonroad-CARLA interface
-
+### UML diagram
 
 ![](docs/Carlacr_OnlyClass_V8.png)
+
+### Tree structure of folders
+
+```angular2html
+.
+├── MANIFEST.in
+├── README.md
+├── __init__.py
+├── carlacr
+│   ├── __init__.py
+│   ├── command_line_interface.py
+│   ├── configurations
+│   │   ├── __init__.py
+│   │   ├── configuration.py
+│   │   ├── configuration_builder.py
+│   │   ├── defaults
+│   │   │   ├── carla_2D_mode.yaml
+│   │   │   ├── carla_config.yaml
+│   │   │   ├── carla_pedestrians.yaml
+│   │   │   ├── general.yaml
+│   │   │   └── obstacle_interface.yaml
+│   │   └── set_configs.py
+│   ├── helper
+│   │   ├── __init__.py
+│   │   ├── carla_interface_helper.py
+│   │   └── vehicle_dict.py
+│   ├── interface
+│   │   ├── __init__.py
+│   │   ├── carla_interface.py
+│   │   ├── carla_pedestrian_handler.py
+│   │   ├── carla_vehicle_interface.py
+│   │   ├── commonroad_ego_interface.py
+│   │   └── commonroad_obstacle_interface.py
+│   └── mode
+│       ├── __init__.py
+│       ├── carla_2d_mode.py
+│       ├── carla_mode.py
+│       └── synchronous_mode.py
+├── carlacr_main_function.py
+├── ci
+│   ├── Dockerfile
+│   └── README.md
+├── docs
+│   ├── Carlacr_OnlyClass.drawio
+│   ├── Carlacr_OnlyClass_V8.png
+│   ├── Makefile
+│   ├── README.md
+│   ├── doc_requirements.txt
+│   ├── setup.sh
+│   └── source
+│       ├── api
+│       │   ├── additional_modules.rst
+│       │   ├── carla_interface.rst
+│       │   ├── carla_mode.rst
+│       │   ├── carla_pedestrian_handler.rst
+│       │   ├── carla_vehicle_interface.rst
+│       │   ├── commonroad_ego_interface.rst
+│       │   ├── commonroad_obstacle_interface.rst
+│       │   └── index.rst
+│       ├── conf.py
+│       ├── figures
+│       │   └── DEU_Test-1_1_T-1.png
+│       ├── img
+│       │   └── commonroad_white150.png
+│       ├── index.rst
+│       └── user
+│           ├── getting_started.rst
+│           └── index.rst
+├── example_videos
+│   ├── carla_2D_mode_example.mp4
+│   ├── carla_example.mp4
+│   └── carla_pedestrian_example.mp4
+├── maps
+│   ├── DEU_Test-1_1_T-1.xodr
+│   ├── DEU_Test-1_1_T-1_no_center.xodr
+│   └── four_way_crossing.xodr
+├── requirements.txt
+├── scenarios
+│   ├── DEU_Test-1_1_T-1.xml
+│   ├── four_way_crossing.xml
+│   └── four_way_crossing_Modi.xml
+├── setup.py
+├── tests
+│   ├── README.md
+│   ├── __init__.py
+│   ├── helpers
+│   │   ├── __init__.py
+│   │   └── motion_planner_config.py
+│   ├── run_tests.py
+│   ├── test_ci.py
+│   ├── test_motion_planner_mode
+│   │   └── test_motion_planner_mode.py
+│   ├── test_replay_mode
+│   │   └── test_replay_mode.py
+│   ├── test_requirements.txt
+│   └── test_traffic_mode
+│       └── test_traffic_generation_mode.py
+└── tutorials
+    ├── cr_sim_example.py
+    ├── cr_sim_example_offscreen.py
+    ├── cr_simple_start.py
+    ├── cr_simple_start_offscreen.py
+    ├── example_replay_mode.py
+    ├── example_traffic_generation_mode.ipynb
+    └── video
+        └── DEU_Test-1_1_T-1_12_12_2021_14_56_00
+            └── ego.gif
+
+24 directories, 78 files
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
