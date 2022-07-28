@@ -9,19 +9,13 @@ import pygame
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.scenario.obstacle import ObstacleRole, DynamicObstacle
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.trajectory import Trajectory
 from commonroad.prediction.prediction import TrajectoryPrediction
 from carlacr.interface.carla_pedestrian_handler import CarlaPedestrianHandler
 from carlacr.interface.carla_vehicle_interface import CarlaVehicleInterface
 from carlacr.interface.commonroad_ego_interface import CommonRoadEgoInterface
 from carlacr.interface.commonroad_obstacle_interface import (ApproximationType, CommonRoadObstacleInterface)
-from carlacr.helper.gif_creator import GifCreator
-from carlacr.helper.synchronous_mode import (CarlaSyncMode, draw_image, get_font, should_quit)
-from carlacr.helper.carla_motion_planner_helper import calc_max_timestep
-
-
-class MotionPlanner:
-    pass
+from carlacr.helper.carla_interface_helper import GifCreator, calc_max_timestep
+from carlacr.mode.synchronous_mode import (CarlaSyncMode, draw_image, get_font, should_quit)
 
 
 logger = logging.getLogger(__name__)
@@ -35,14 +29,12 @@ class CarlaInterface:
     "CarlaInterface" defined here
     """
     def __init__(self, open_drive_map_path: str, carla_client: carla.Client, cr_scenario_file_path: str = None,
-                 motion_planner: MotionPlanner = None, mpl_update_n: int = 5, cr_scenario: Scenario = None):
+                 cr_scenario: Scenario = None):
         """
 
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
         :param carla_client: carla.Client() object connected to the simulation
-        :param motion_planner: a MotionPlanner object from the CommonRoad-motion-planning-library
-        :param mpl_update_n: (in DEV) update interval at which rate the motion planner receives updated CommonRoad
         dynamic obstacles of the CARLA generated vehicles & pedestrians
         :param cr_scenario: Scenario obj
         """
@@ -52,9 +44,7 @@ class CarlaInterface:
         else:
             self.scenario = cr_scenario
 
-        self.motion_planner = motion_planner
         self.client = carla_client
-        self.mpl_update_n = mpl_update_n
         self.create_video: bool = False
         self.video_path: Union[str, None] = None
         self.video_name: Union[str, None] = None
@@ -147,171 +137,13 @@ class CarlaInterface:
         self.max_timestep = calc_max_timestep(self.scenario)
         return self.max_timestep
 
-    def _run_scenario_with_mpl(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0,  # noqa: MC0001
-                               ego_vehicle=None, max_time_steps=0):
-        #  mccabe: MC0001 / CarlaInterface._run_scenario_with_mpl is too complex (27)
+    def _run_scenario_default(self, clean_up=True,
+                              time_step_delta_real=0.05,
+                              carla_vehicles=0,
+                              carla_pedestrians=0,
+                              scenario_time_steps: int = 0):
         """
-        Runs the CommonRoad Scenario in CARLA (with MPL & PyGame)
-
-        :param clean_up: if True destroys all created actors in the CARLA simulation
-        :param time_step_delta_real: sets the time that will be waited in real time between the timesteps,
-        if None the dt of the scenario will be used
-        :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to
-        the objects defined in the scenario
-        :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
-        additional to the objects defined in the scenario
-        """
-        interface_obstacles, \
-            pedestrian_handler,\
-            carla_interface_obstacles,\
-            carla_controlled_obstacles, carla_contr_obs_classes,\
-            ego_interface_list, batch = [], [], [], [], [], [], []
-
-        carla_contr_dynamic_obs = []
-        carla_controlled_imported = False
-
-        pygame.init()
-
-        display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
-        font = get_font()
-        clock = pygame.time.Clock()
-
-        world = self.client.get_world()
-        # Load all dynamic obstacles from scenario into CARLA:
-        # dynamic_obstacles = scenario.obstacles_by_role_and_type(obstacle_role=ObstacleRole.DYNAMIC,
-        # obstacle_type=ObstacleType.CAR)
-        dynamic_obstacles = self.scenario.dynamic_obstacles
-        dynamic_obstacles += self.scenario.static_obstacles
-
-        # real world time step delta
-        if time_step_delta_real:
-            time_between_ticks = time_step_delta_real
-        else:
-            time_between_ticks = self.scenario.dt
-
-        if ego_vehicle in dynamic_obstacles:
-            dynamic_obstacles.remove(ego_vehicle)
-
-        # Create Interface
-        for obstacle in dynamic_obstacles:
-            obs = CommonRoadObstacleInterface(obstacle)
-            interface_obstacles.append(obs)
-
-        # Create Motion Planner Vehicle
-        if self.motion_planner:
-            motion_planner_vehicle = CommonRoadEgoInterface(
-                    client=self.client,
-                    initial_state=self.motion_planner.trajectory_planner.planning_problem.initial_state,
-            trajectory=Trajectory(self.motion_planner.trajectory_planner.planning_problem.initial_state.time_step,
-                                  self.motion_planner.trajectory_planner.planning_problem.initial_state))
-            self.motion_planner.initialize_plan()
-            ego_interface_list.append(motion_planner_vehicle)
-            ego = motion_planner_vehicle
-            try:
-                actor = motion_planner_vehicle.spawn(world)
-                if actor:
-                    carla_interface_obstacles.append((motion_planner_vehicle, actor))
-            except (Exception, ) as e:  
-                logger.error(e, exc_info=sys.exc_info())
-        # Create ego
-        if ego_vehicle:
-            ego = self._create_ego_vehicle(ego_vehicle=ego_vehicle, ego_interface_list=ego_interface_list,
-                                           carla_interface_obstacles=carla_interface_obstacles)
-
-        i = 0  # time-step counter
-        max_time_steps = max(self._calc_max_timestep(), max_time_steps)
-        logger.debug(max_time_steps)
-        with CarlaSyncMode(world, ego.actor_list[0], fps=30) as sync_mode:
-            while i <= max_time_steps:
-                if should_quit():
-                    return
-                clock.tick()
-                snapshot, image_rgb = sync_mode.tick(timeout=2.0)
-                if self.create_video and self.video_path:
-                    image_rgb.save_to_disk('%s/img/%.6d.jpg' % (self.video_path, image_rgb.frame))
-                try:  # Simulation
-                    # ego vehicle
-                    if ego.is_spawned and ego != motion_planner_vehicle:
-                        try:
-                            state = ego.trajectory.state_at_time_step(i)
-                            if state:
-                                ego.update_position_by_time(world, state)
-                        except Exception as e:  
-                            logger.debug("Error when update vehicle")
-                            logger.debug(ego)
-                            logger.error(e, exc_info=sys.exc_info())
-
-                    # CommonRoad controlled:
-                    self._control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
-
-                    # CARLA controlled:
-                    if not carla_controlled_imported:
-                        pedestrian_handler = self._create_carla_obstacles(carla_vehicles, carla_contr_obs_classes,
-                                                                          batch, carla_controlled_obstacles,
-                                                                          carla_pedestrians)
-                        carla_controlled_imported = True
-                        self._wait_for_carla_vehicle(time_between_ticks)
-                        self._control_carla_obstacles(carla_contr_obs_classes, i, carla_contr_dynamic_obs)
-                    else:
-                        self._control_carla_obstacles(carla_contr_obs_classes, i, carla_contr_dynamic_obs)
-
-                    # Motion planner Vehicle
-                    # If n-th timestep update obstacles for mpl
-                    if i % self.motion_planner.trajectory_planner.replanning_frequency == 0:
-                        found_optimal_trajectory = self._update_scenario_motion_planner(carla_contr_dynamic_obs,
-                                                                                        motion_planner_vehicle)
-                        if found_optimal_trajectory:
-                            motion_planner_vehicle.set_trajectory(
-                                    Trajectory(0, self.motion_planner.trajectory_planner.record_state_list))
-                        else:
-                            break
-
-                    if motion_planner_vehicle.is_spawned:
-                        try:
-                            state = motion_planner_vehicle.trajectory.state_at_time_step(i)
-                            if state:
-                                motion_planner_vehicle.update_position_by_time(world, state)
-                        except Exception as e:  
-                            logger.debug("Error when update vehicle")
-                            logger.debug(motion_planner_vehicle)
-                            logger.error(e, exc_info=sys.exc_info())
-                    fps = round(1.0 / snapshot.timestamp.delta_seconds)
-                    draw_image(display, image_rgb)
-                    display.blit(font.render('% 5d FPS (real)' % clock.get_fps(), True, (255, 255, 255)), (8, 10))
-                    display.blit(font.render('% 5d FPS (simulated)' % fps, True, (255, 255, 255)), (8, 28))
-                    pygame.display.flip()
-
-                    # advance time:
-                    logger.debug("Timestep: %s", str(i))
-                    world.tick()
-                    time.sleep(time_between_ticks)
-                    i += 1
-                except KeyboardInterrupt:
-                    self._end_simulation_error(clean_up=clean_up, ego_interface_list=ego_interface_list,
-                                               interface_obstacles=interface_obstacles,
-                                               carla_controlled_obstacles=carla_controlled_obstacles,
-                                               pedestrian_handler=pedestrian_handler)
-                except Exception as e:  
-                    logger.error(e, exc_info=sys.exc_info())
-        # Create video
-        self._create_video()
-        settings = world.get_settings()
-        # Stop synchronous mode to be able to investigate CARLA without a Script running
-        settings.synchronous_mode = False
-        world.apply_settings(settings)
-
-        # add new obs to the scenario
-        self._update_vehicle_to_scenario(carla_contr_obs_classes)
-
-        # clean up
-        if clean_up:
-            self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
-                                 pedestrian_handler)
-
-    def _run_scenario_without_mpl(self, clean_up=True, time_step_delta_real=0.05, carla_vehicles=0, carla_pedestrians=0,
-                                  scenario_time_steps: int = 0):
-        """
-        Runs the CommonRoad Scenario in CARLA without mpl
+        Runs the CommonRoad Scenario in CARLA default
 
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the time steps,
@@ -518,7 +350,7 @@ class CarlaInterface:
     def run_scenario(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0,
                      ego_vehicle=None, scenario_time_steps: int = 0):
         """
-        Runs the CommonRoad Scenario in CARLA. Splits up between a simulation with and without a motion planner
+        Runs the CommonRoad Scenario in CARLA.
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps,
         if None the dt of the scenario will be used
@@ -537,27 +369,20 @@ class CarlaInterface:
             video_folder = f"/{self.scenario.scenario_id}_{current_date}_{current_time}"
             self.video_path += video_folder
 
-        if self.motion_planner:
-            self._run_scenario_with_mpl(clean_up=clean_up,
-                                        time_step_delta_real=time_step_delta_real,
-                                        ego_vehicle=ego_vehicle,
-                                        carla_vehicles=carla_vehicles,
-                                        carla_pedestrians=carla_pedestrians)
-
         else:
             if self.create_video and not ego_vehicle:
-                logger.debug("GIFs can only be created when a ego_vehicle or motion planner is provided!")
+                logger.debug("GIFs can only be created with default mode or when a ego_vehicle is provided!")
             if ego_vehicle:
                 self.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real,
                                                    ego_vehicle=ego_vehicle,
                                                    carla_pedestrians=carla_pedestrians,
                                                    carla_vehicles=carla_vehicles)
             else:
-                self._run_scenario_without_mpl(clean_up=clean_up,
-                                               time_step_delta_real=time_step_delta_real,
-                                               carla_pedestrians=carla_pedestrians,
-                                               carla_vehicles=carla_vehicles,
-                                               scenario_time_steps=scenario_time_steps)
+                self._run_scenario_default(clean_up=clean_up,
+                                           time_step_delta_real=time_step_delta_real,
+                                           carla_pedestrians=carla_pedestrians,
+                                           carla_vehicles=carla_vehicles,
+                                           scenario_time_steps=scenario_time_steps)
         if self.video_path:
             self.video_path = self.video_path[:len(self.video_path) - len(video_folder)]
 
@@ -760,23 +585,3 @@ class CarlaInterface:
                         shape=obs.dynamic_obstacle.obstacle_shape)
                 new_dynamic_obs.append(obs.dynamic_obstacle)
         self.scenario.add_objects(new_dynamic_obs)
-
-    def _update_scenario_motion_planner(self, carla_contr_dynamic_obs: List[DynamicObstacle],
-                                        motion_planner_vehicle: CommonRoadEgoInterface) -> bool:
-        """
-        update current states of all vehicles created by carla vehicles auto_generation to motion planner, and replan
-        new trajectory
-
-        :param carla_contr_dynamic_obs: list of DynamicObstacle created by carla vehicles auto generation
-        :param motion_planner_vehicle: CommonRoadEgoInterface respond for motion_planner_vehicle
-        :return: boolean True if found a plan for the scenario otherwise False
-        """
-        self.motion_planner.update_scenario_objects(carla_contr_dynamic_obs, None)  # type: ignore
-        new_planning_problem_state = motion_planner_vehicle.get_cr_state()
-        current_state = self.motion_planner.trajectory_planner.planning_problem.initial_state  # type: ignore
-        current_state.position = new_planning_problem_state.position
-        # velocity is now not transform correctly
-        current_state.velocity = self.motion_planner.trajectory_planner.record_state_list[-1].velocity  # type: ignore
-        current_state.orientation = new_planning_problem_state.orientation
-        found = self.motion_planner.re_plan()  # type: ignore
-        return found

@@ -13,7 +13,6 @@ Entrypoint is CarlaInterface.py
 - numpy
 - carla
 - typer
-- (Optional) commonroad-motion-planning-library
 
 ## Installation
 to install requirement open terminal in CommonRoad-CARLA Interface and run:
@@ -27,27 +26,24 @@ To simulate only a CommonRoad scenario in CARLA.
 
 1. 3D Mode (Carla Default mode)
 
-For Motion planning mode please set parameters in `
-cr_simple_start_no_mpl.py`
+&nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start.py` and run:
 ``` 
 python /tutorials/cr_simple_start.py
 ```
 2. Off-screen mode
 
-For Motion planning mode please set parameters in 
-`cr_simple_start_no_mpl_offscreen.py`
+&nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start_offscreen.py` and run:
 
 ``` 
 python /tutorials/cr_simple_start_offscreen.py
 ```
 3. 2D mode can not with oneline code start.
 
-For Motion planning mode please set parameters in `
-cr_simple_start_no_mpl.py`
+&nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start.py` and run:
 ```
 python /tutorials/cr_simple_start.py
 ```
-&nbsp; &nbsp; &nbsp; &nbsp; Wait until your scenario is loaded
+&nbsp; &nbsp; &nbsp; &nbsp; Wait until your scenario is loaded, then run:
 ```
 python /carlacr/mode/start_2d_mode.py
 ```
@@ -94,17 +90,9 @@ sleep_time = config.config_carla.sleep_time
 
 6. Initialize _CarlaInterface_<br/>
 
-&nbsp; &nbsp; &nbsp; &nbsp; A. without MPL:
-
 ~~~
-    ci = CarlaInterface(open_drive_map_path, carla_client, cr_scenario_file_path, None)
+    ci = CarlaInterface(open_drive_map_path, carla_client, cr_scenario_file_path)
 ~~~
-
-&nbsp; &nbsp; &nbsp; &nbsp; B. with MPL:
-
-```
-    ci = CarlaInterface(open_drive_map_path, carla_client, cr_scenario_file_path, MotionPlanner)
-```
 
 7. Load the map in CARLA<br/>
    require all user write permission for directory: 
@@ -131,12 +119,12 @@ run the `carlacr/mode/carla_2d_mode.py` in `#2` Terminal.
 
 #### Example for aerial view mode:
 
-&nbsp; &nbsp; &nbsp; &nbsp; 1. Run `cr_sim_example_no_mpl.py` in `tutorials` in 
+&nbsp; &nbsp; &nbsp; &nbsp; 1. Run `cr_sim_example.py` in `tutorials` in 
 `#1` Terminal, and wait until your scenario is loaded 
 (For example, "four_way_crossing"). 
 
 ```
-    python cr_sim_example_no_mpl.py
+    python cr_sim_example.py
 ```
 
 &nbsp; &nbsp; &nbsp; &nbsp; 2. Run `carlacr/mode/carla_2d_mode.py`
@@ -145,7 +133,7 @@ run the `carlacr/mode/carla_2d_mode.py` in `#2` Terminal.
     python carla_2d_mode.py
 ```
 
-&nbsp; &nbsp; &nbsp; &nbsp; 3. You can run `cr_sim_example_no_mpl.py` in `tutorials` 
+&nbsp; &nbsp; &nbsp; &nbsp; 3. You can run `cr_sim_example.py` in `tutorials` 
 one more time to see the 2D view running in windows `CARLA No Rendering Mode Visualizer` from start.
 
 ![](/example_videos/carla_2D_mode_example.mp4)
@@ -168,19 +156,6 @@ For further Information
 
     python3 ./main.py --help
 
-## Motion planning mode
-Watching a scenario in vehicles view with Motion Planning Mode.This allows user to put in a motion planner, scenario and a map them have a visualization in carla.
-            This API can set up map, scenario. Trigger the motion planning at the beginning of the simulation.
-    
-    motionplanner_mode=CarlaMotionPlannerMode(commonroad_scenario,open_drive_map,mp)
-    motionplanner_mode.set_ego_vehicle_by_id(id)
-    motionplanner_mode.saving_video(path,name,as mp4 or gif)
-    motionplanner_mode.visualize()
-
-
-This mode is currently not working with command
-
-
 ## Documentation
 to generate the documentation from the source, first install the dependencies with pip:
 ```
@@ -198,3 +173,8 @@ cd docs && make html
 
 To test the converter run:
 pytest -v --cov=conversion.converter --cov-report html
+
+## Structure of Commonroad-CARLA interface
+
+
+![](docs/Carlacr_OnlyClass_V8.png)
