@@ -1,5 +1,5 @@
 import signal
-import unittest as unittest
+import unittest
 import os
 import sys
 import time
@@ -10,22 +10,22 @@ if __name__ == "__main__":
     errors = 0
     failures = 0
     tests = 0
-    process = subprocess.Popen(["/opt/carla-simulator/CarlaUE4.sh", '-RenderOffScreen'])
-    try:
-        print('Running Carla in process', process.pid)
-        time.sleep(4)
-        for x in os.walk(os.getcwd()):
-            if not '__' in x[0] and not '.' in x[0]:
-                print(x[0])
-                all_tests = unittest.TestLoader().discover(x[0], pattern='test_*.py')
-                b = unittest.TextTestRunner().run(all_tests)
-                failures += len(b.failures)
-                errors += len(b.errors)
-                tests += b.testsRun
-        process.wait(timeout=1)
-    except subprocess.TimeoutExpired:
-        print('Carla Timed out - killing')
-        process.kill()
+    with subprocess.Popen(["/opt/carla-simulator/CarlaUE4.sh", '-RenderOffScreen']) as process:
+        try:
+            print('Running Carla in process', process.pid)
+            time.sleep(4)
+            for x in os.walk(os.getcwd()):
+                if '__' not in x[0] and '.' not in x[0]:
+                    print(x[0])
+                    all_tests = unittest.TestLoader().discover(x[0], pattern='test_*.py')
+                    b = unittest.TextTestRunner().run(all_tests)
+                    failures += len(b.failures)
+                    errors += len(b.errors)
+                    tests += b.testsRun
+            process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            print('Carla Timed out - killing')
+            process.kill()
 
     # Kill CarlaUE4-Linux
     try:
@@ -37,7 +37,7 @@ if __name__ == "__main__":
             # terminating process
             os.kill(int(pid), signal.SIGKILL)
         print("CarlaUE4-Linux  Successfully terminated")
-    except:
+    except Exception:
         print("Error Encountered while running script")
 
     print("Done")

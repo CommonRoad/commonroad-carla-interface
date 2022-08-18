@@ -92,10 +92,8 @@ class CarlaPedestrianHandler:
         if self.spawned:
             return
 
-        """
-        Load configs for percentage_pedestrians_running and percentage_pedestrians_crossing
-        from Configurations
-        """
+        # Load configs for percentage_pedestrians_running and percentage_pedestrians_crossing
+        # from Configurations
         config = set_configs()
         # how many pedestrians will run, default = 0
         percentage_pedestrians_running = config.config_carla_pedestrian.percentage_pedestrians_running

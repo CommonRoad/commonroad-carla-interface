@@ -1,8 +1,8 @@
 
 strictness: medium
-test-warnings: false
+test-warnings: true
 doc-warnings: false
-member-warnings: false
+member-warnings: true
 inherits:
   - default
 ignore-paths:
@@ -11,44 +11,27 @@ autodetect: true
 max-line-length: 120
 
 pycodestyle:
-  disable:
-    - W602
-    - W603
+    run: true
 
 pydocstyle:
   disable:
-    - D100
-    - D101
-
+    - D100 #  exception should be removed
 
 pyflakes:
-  disable:
-    - F403
-    - F810
+  run: true
 
 mccabe:
   disable:
-    - MC0001  # mccabe: MC0001 / CarlaPedestrianHandler.spawn is too complex (17)
+    - MC0001  # mccabe: MC0001 / CarlaPedestrianHandler.spawn is too complex (17), exception should be removed
 
 pylint:
   disable:
-    - consider-using-dict-items
     - import-error
     - too-many-branches
     - too-many-arguments
     - too-many-locals
     - too-many-statements
-    - pointless-string-statement
     - consider-using-f-string
-    - no-member
-    - too-few-public-methods
-    - too-many-instance-attributes
-    - too-many-nested-blocks
-    - unnecessary-lambda
-    - unsupported-assignment-operation
 
 mypy:
   run: true
-  options:
-    ignore-missing-imports: true
-    follow-imports: skip

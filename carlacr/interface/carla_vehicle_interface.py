@@ -3,7 +3,6 @@ from math import sqrt
 from numpy import array, pi, random
 import logging
 import carla
-from carla import VehicleLightState as vls
 from commonroad.geometry.shape import Rectangle
 from commonroad.scenario.obstacle import (DynamicObstacle, ObstacleType)
 from commonroad.scenario.scenario import Scenario
@@ -166,7 +165,7 @@ class CarlaVehicleInterface:
         bp.set_attribute('role_name', 'autopilot')
 
         # prepare the light state of the cars to spawn
-        light_state = vls.NONE
+        light_state = carla.VehicleLightState.NONE
         SpawnActor = carla.command.SpawnActor
         SetAutopilot = carla.command.SetAutopilot
         SetVehicleLightState = carla.command.SetVehicleLightState

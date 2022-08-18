@@ -25,12 +25,10 @@ class CarlaInterface:
     """
     Main class of the CommonRoad-CARLA-Interface
     """
-    """
-    "CarlaInterface" defined here
-    """
     def __init__(self, open_drive_map_path: str, carla_client: carla.Client, cr_scenario_file_path: str = None,
                  cr_scenario: Scenario = None):
         """
+        Constructor of CarlaInterface
 
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
@@ -81,11 +79,9 @@ class CarlaInterface:
         self.client.set_timeout(2.0)
         world = self.client.get_world()
         # Synchrony:
-        """
-            Warning: If synchronous mode is enabled, and there is a Traffic Manager running, this must be set to sync
-            mode too. Read this to learn how to do it.
-            See: https://carla.readthedocs.io/en/latest/adv_synchrony_timestep/#setting-synchronous-mode
-        """
+        # Warning: If synchronous mode is enabled, and there is a Traffic Manager running, this must be set to sync
+        # mode too. Read this to learn how to do it.
+        # See: https://carla.readthedocs.io/en/latest/adv_synchrony_timestep/#setting-synchronous-mode
 
         if time_step_delta:
             delta_seconds = 1.0 / time_step_delta

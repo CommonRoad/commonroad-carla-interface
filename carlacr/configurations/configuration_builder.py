@@ -71,7 +71,7 @@ class ConfigurationBuilder:
                     print(e)
 
                 else:
-                    config_default[name_file] = config_partial
+                    config_default[name_file] = config_partial  # pylint: disable=unsupported-assignment-operation
 
         return config_default
 
@@ -81,7 +81,9 @@ class ConfigurationBuilder:
         Registers Python functions to yaml configuration files using omega.conf's functionality.
         """
         try:
-            OmegaConf.register_new_resolver("join_paths",
-                                            lambda base_path, additional_path: os.path.join(base_path, additional_path))
+            OmegaConf.register_new_resolver(
+                    "join_paths",
+                    lambda base_path, additional_path:  # pylint: disable=unnecessary-lambda
+                    os.path.join(base_path, additional_path))
         except ValueError:
             logging.debug("Re-attempting to register join_paths resolver exception is suppressed.")

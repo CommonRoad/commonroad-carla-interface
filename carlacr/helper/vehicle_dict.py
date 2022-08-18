@@ -1,12 +1,10 @@
+from typing import Dict
 
-"""
-Helper functions for selecting most appropriate vehicle
-x = length
-y = width
-z = height
-"""
-
-vehicle_dict = {
+# Helper functions for selecting most appropriate vehicle
+# x = length
+# y = width
+# z = height
+vehicle_dict: Dict[str, Dict[str, float]] = {
     'vehicle.audi.a2':
         {'x': 3.705369472503662, 'y': 1.7886788845062256, 'z': 1.5470870733261108},
     'vehicle.audi.tt':
@@ -66,7 +64,7 @@ vehicle_dict = {
 }
 
 
-def similar_by_length(length, width, height):
+def similar_by_length(length: float, width: float, height: float):
     """
     Returns Carla BluePrint name of closest vehicle
     regarding length (second: width, third: height)
@@ -77,29 +75,28 @@ def similar_by_length(length, width, height):
         'dif_y': abs(length - current_best[1]['y']),
         'dif_z': abs(length - current_best[1]['z'])
     }
-    for name in vehicle_dict:
-        v = vehicle_dict[name]
-        if abs(length - v['x']) < current_diff['dif_x']:
-            current_best = (name, v)
+    for name, value in vehicle_dict.items():
+        if abs(length - value['x']) < current_diff['dif_x']:
+            current_best = (name, value)
             current_diff['dif_x'] = abs(length - current_best[1]['x'])
             current_diff['dif_y'] = abs(width - current_best[1]['y'])
             current_diff['dif_z'] = abs(height - current_best[1]['z'])
-        if abs(length - v['x']) == current_diff['dif_x']:
-            if abs(width - v['y']) < current_diff['dif_y']:
-                current_best = (name, v)
+        if abs(length - value['x']) == current_diff['dif_x']:
+            if abs(width - value['y']) < current_diff['dif_y']:
+                current_best = (name, value)
                 current_diff['dif_x'] = abs(length - current_best[1]['x'])
                 current_diff['dif_y'] = abs(width - current_best[1]['y'])
                 current_diff['dif_z'] = abs(height - current_best[1]['z'])
-            if (abs(width - v['y']) == current_diff['dif_y']) & \
-                    (abs(height - v['z']) <= current_diff['dif_z']):
-                current_best = (name, v)
+            if (abs(width - value['y']) == current_diff['dif_y']) & \
+                    (abs(height - value['z']) <= current_diff['dif_z']):
+                current_best = (name, value)
                 current_diff['dif_x'] = abs(length - current_best[1]['x'])
                 current_diff['dif_y'] = abs(width - current_best[1]['y'])
                 current_diff['dif_z'] = abs(height - current_best[1]['z'])
     return current_best
 
 
-def similar_by_width(length, width, height):
+def similar_by_width(length: float, width: float, height: float):
 
     """
     Returns Carla BluePrint name of closest vehicle
@@ -112,29 +109,28 @@ def similar_by_width(length, width, height):
         'dif_y': abs(length - current_best[1]['y']),
         'dif_z': abs(length - current_best[1]['z'])
     }
-    for name in vehicle_dict:
-        v = vehicle_dict[name]
-        if abs(length - v['y']) < current_diff['dif_y']:
-            current_best = (name, v)
+    for name, value in vehicle_dict.items():
+        if abs(length - value['y']) < current_diff['dif_y']:
+            current_best = (name, value)
             current_diff['dif_x'] = abs(length - current_best[1]['x'])
             current_diff['dif_y'] = abs(width - current_best[1]['y'])
             current_diff['dif_z'] = abs(height - current_best[1]['z'])
-        if abs(length - v['y']) == current_diff['dif_y']:
-            if abs(width - v['x']) < current_diff['dif_x']:
-                current_best = (name, v)
+        if abs(length - value['y']) == current_diff['dif_y']:
+            if abs(width - value['x']) < current_diff['dif_x']:
+                current_best = (name, value)
                 current_diff['dif_x'] = abs(length - current_best[1]['x'])
                 current_diff['dif_y'] = abs(width - current_best[1]['y'])
                 current_diff['dif_z'] = abs(height - current_best[1]['z'])
-            if (abs(width - v['x']) == current_diff['dif_x']) & \
-                    (abs(height - v['z']) <= current_diff['dif_z']):
-                current_best = (name, v)
+            if (abs(width - value['x']) == current_diff['dif_x']) & \
+                    (abs(height - value['z']) <= current_diff['dif_z']):
+                current_best = (name, value)
                 current_diff['dif_x'] = abs(length - current_best[1]['x'])
                 current_diff['dif_y'] = abs(width - current_best[1]['y'])
                 current_diff['dif_z'] = abs(height - current_best[1]['z'])
     return current_best
 
 
-def similar_by_area(length, width, height):
+def similar_by_area(length: float, width: float, height: float):
     """
     Returns Carla BluePrint name of closest vehicle
     regarding area (= length * width) (second: height)
@@ -144,16 +140,15 @@ def similar_by_area(length, width, height):
         'dif_area': abs(length - current_best[1]['x']) * abs(length - current_best[1]['y']),
         'dif_z': abs(length - current_best[1]['z'])
     }
-    for name in vehicle_dict:
-        v = vehicle_dict[name]
-        if abs(length * width - v['x'] * v['y']) < current_diff['dif_area']:
-            current_best = v
+    for value in vehicle_dict.values():
+        if abs(length * width - value['x'] * value['y']) < current_diff['dif_area']:
+            current_best = value
             current_diff['dif_area'] = \
                 abs(length - current_best[1]['x']) * abs(length - current_best[1]['y'])
             current_diff['dif_z'] = abs(length - current_best[1]['z'])
-        if (abs(length * width - v['x'] * v['y']) == current_diff['dif_area']) \
-                & (abs(height - v['z']) <= current_diff['dif_z']):
-            current_best = v
+        if (abs(length * width - value['x'] * value['y']) == current_diff['dif_area']) \
+                & (abs(height - value['z']) <= current_diff['dif_z']):
+            current_best = value
             current_diff['dif_area'] = \
                 abs(length - current_best[1]['x']) * abs(length - current_best[1]['y'])
             current_diff['dif_z'] = abs(length - current_best[1]['z'])
