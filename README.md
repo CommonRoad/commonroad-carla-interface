@@ -138,23 +138,11 @@ one more time to see the 2D view running in windows `CARLA No Rendering Mode Vis
 
 ![](/example_videos/carla_2D_mode_example.mp4)
 
-## Replay mode
-Watching a scenario in vehicles view with Replay Mode
-    
-    replaymode=CarlaReplayMode(commonroad_scenario,open_drive_map)
-    replaymode.set_ego_vehicle_by_id(id)
-    replaymode.saving_video(path,name,as mp4 or gif)
-    replaymode.visualize()
+## Traffic generation mode
 
-See in example_replay_mode
-## Using replay mode in command line
-Example command
+Please see example_traffic_generation_mode.ipynb for details.
 
-    python3 ./main.py ../scenarios/DEU_Test-1_1_T-1.xml ../maps/DEU_Test-1_1_T-1.xodr --veh-id 6
-
-For further Information
-
-    python3 ./main.py --help
+![](/example_videos/Traffic_generation_mode.mp4)
 
 ## Documentation
 to generate the documentation from the source, first install the dependencies with pip:

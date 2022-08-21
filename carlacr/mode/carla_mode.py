@@ -47,6 +47,7 @@ class CarlaMode:
         """
 
         self.carla_client = carla.Client("localhost", 2000)
+        self.scenario = Scenario(dt=0.1)
         if cr_scenario:
             self.carla_interface = CarlaInterface(cr_scenario=cr_scenario,
                                                   open_drive_map_path=open_drive_map_path,
