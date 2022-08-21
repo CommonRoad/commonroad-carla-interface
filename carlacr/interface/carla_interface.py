@@ -120,8 +120,8 @@ class CarlaInterface:
             extra_width = 0.6  # in meters
 
             world = self.client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
-                     vertex_distance=vertex_distance, max_road_length=max_road_length, wall_height=wall_height,
-                     additional_width=extra_width, smooth_junctions=True, enable_mesh_visibility=True))
+                    vertex_distance=vertex_distance, max_road_length=max_road_length, wall_height=wall_height,
+                    additional_width=extra_width, smooth_junctions=True, enable_mesh_visibility=True))
             return world
         logging.error('file not found.')
         return None
