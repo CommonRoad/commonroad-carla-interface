@@ -123,8 +123,10 @@ class CarlaInterface:
                     vertex_distance=vertex_distance, max_road_length=max_road_length, wall_height=wall_height,
                     additional_width=extra_width, smooth_junctions=True, enable_mesh_visibility=True))
             return world
+
         logging.error('file not found.')
         return None
+
 
     def _calc_max_timestep(self) -> int:
         """

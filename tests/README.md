@@ -1,21 +1,33 @@
 # CommonRoad-CARLA Interface Test
 
 ## Set up run_tests
-If you want to turn on rendering for Carla please delete the option -RenderOffScreen in run_tests
-If you want to turn on GUI please uncomment the GUI comment in each test
+The given tests in `test_ci.py` covers most statements in `carla_mode.py` and `carla_interface.py`. 
 
-## Motion Planner Mode
-To set a test for this mode requires a meaning for to import Motion planner library module. Then set it up with motion_planner config
+## Notes
+- To run the test, you'll need a running CARLA server end standing by. 
+- To collect the coverage info, Python package `coverage` is required.
+- Write permission to directory `/CarlaUE4/Content/Carla/Maps/OpenDrive/` is required by CARLA to parse the OpenDrive,
+which can be done by 
+    ```angular2html
+    sudo chmod a+w /opt/carla-simulator/CarlaUE4/Content/Carla/Maps/OpenDrive/
+    ```
 
-## Uncoveraged  
-There still requires a test case for pedestrian.
-The other interfaces can be test through Replay Mode amd Traffic Generation mode. It would be ideal to have tests for these but it is quite hard to set up.
+
 
 ## Run test
-Under test directory,
-> coverage run run_tests.py
-> 
-> coverage report -m --omit="*/src/*,*/tests/*" || true     # show report in terminal
-> 
-> coverage html     # generate html report under directory htmlcov/index.html
+Under `tests/` directory,
+```angular2html
+coverage run run_tests.py
+```
+
+```angular2html
+coverage report -m --omit="*/src/*,*/tests/*,*__init__*,*/opt/carla-simulator/*" || true
+```
+to show report in terminal (no space in omit config allowed)
+
+
+```angular2html
+coverage html
+```
+to generate html report in `htmlcov/index.html`
 
