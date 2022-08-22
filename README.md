@@ -5,7 +5,7 @@ The code for converting a map from CommonRoad to OpenDRIVE is located in the Com
 
 ## Requirements
 Interface for using CommonRoad together with CARLA
-Entrypoint is CarlaInterface.py
+Entrypoint is CarlaInterface.py. Python packages required:
 - pygame
 - imageio 
 - moviepy
@@ -13,12 +13,26 @@ Entrypoint is CarlaInterface.py
 - numpy
 - carla
 - typer
+- commonroad-io
+- lxml
+- omegaconf
 
 ## Installation
-to install requirement open terminal in CommonRoad-CARLA Interface and run:
+To install requirement open terminal in CommonRoad-CARLA Interface and run:
 ```
 pip install -e .
 ```
+### Notes
+- CARLA simulator needs to be installed separately, see [here](https://carla.readthedocs.io/en/latest/start_quickstart/#a-debian-carla-installation)
+- As of now (Aug 2022), CARLA 0.9.13 is not fully compatible with Ubuntu 22.04. Hence, Ubuntu 20.04 is recommended.
+Be aware that you might encounter problem like "jammy release not found" while installing CARLA in Ubuntu 22.04.
+- Virtual Ubuntu environment will probably cause problems due to GPU connecting issues. Hence, dual boot is recomended if you don't have a Linux OS yet.
+- `libomp` library is needed by installation, which can be installed simply by 
+    ```angular2html
+        > sudo apt-get install libomp-dev
+    ```
+
+
 ## Getting started
 To simulate only a CommonRoad scenario in CARLA.
 
@@ -28,24 +42,24 @@ To simulate only a CommonRoad scenario in CARLA.
 
 &nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start.py` and run:
 ``` 
-python /tutorials/cr_simple_start.py
+python tutorials/cr_simple_start.py
 ```
 2. Off-screen mode
 
 &nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start_offscreen.py` and run:
 
 ``` 
-python /tutorials/cr_simple_start_offscreen.py
+python tutorials/cr_simple_start_offscreen.py
 ```
 3. 2D mode can not with oneline code start.
 
 &nbsp; &nbsp; &nbsp; &nbsp; Set the parameters in `cr_simple_start.py` and run:
 ```
-python /tutorials/cr_simple_start.py
+python tutorials/cr_simple_start.py
 ```
 &nbsp; &nbsp; &nbsp; &nbsp; Wait until your scenario is loaded, then run:
 ```
-python /carlacr/mode/start_2d_mode.py
+python carlacr/mode/start_2d_mode.py
 ```
 ### 2 - Start step by step
 
@@ -138,11 +152,13 @@ one more time to see the 2D view running in windows `CARLA No Rendering Mode Vis
 
 ![](/example_videos/carla_2D_mode_example.mp4)
 
+
 ## Traffic generation mode
 
 Please see example_traffic_generation_mode.ipynb for details.
 
 ![](/example_videos/Traffic_generation_mode.mp4)
+
 
 ## Documentation
 to generate the documentation from the source, first install the dependencies with pip:
@@ -153,14 +169,9 @@ Afterward run:
 ```
 cd docs && make html
 ```
-## Additional installed packages for testing
+## Tests
 
-- pytest        6.2.4
-- pytest-cov    2.12.1
-- coverage      5.5
-
-To test the converter run:
-pytest -v --cov=conversion.converter --cov-report html
+For testing info please refer to folder `tests/`.
 
 ## Structure of Commonroad-CARLA interface
 ### UML diagram
@@ -171,49 +182,74 @@ pytest -v --cov=conversion.converter --cov-report html
 
 ```angular2html
 .
-├── MANIFEST.in
-├── README.md
-├── __init__.py
 ├── carlacr
-│   ├── __init__.py
 │   ├── command_line_interface.py
 │   ├── configurations
-│   │   ├── __init__.py
-│   │   ├── configuration.py
 │   │   ├── configuration_builder.py
+│   │   ├── configuration.py
 │   │   ├── defaults
 │   │   │   ├── carla_2D_mode.yaml
 │   │   │   ├── carla_config.yaml
 │   │   │   ├── carla_pedestrians.yaml
 │   │   │   ├── general.yaml
 │   │   │   └── obstacle_interface.yaml
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── configuration_builder.cpython-37.pyc
+│   │   │   ├── configuration.cpython-37.pyc
+│   │   │   ├── __init__.cpython-37.pyc
+│   │   │   └── set_configs.cpython-37.pyc
 │   │   └── set_configs.py
 │   ├── helper
-│   │   ├── __init__.py
 │   │   ├── carla_interface_helper.py
-│   │   └── vehicle_dict.py
-│   ├── interface
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── carla_interface_helper.cpython-37.pyc
+│   │   │   ├── __init__.cpython-37.pyc
+│   │   │   └── vehicle_dict.cpython-37.pyc
+│   │   └── vehicle_dict.py
+│   ├── __init__.py
+│   ├── interface
 │   │   ├── carla_interface.py
 │   │   ├── carla_pedestrian_handler.py
 │   │   ├── carla_vehicle_interface.py
 │   │   ├── commonroad_ego_interface.py
-│   │   └── commonroad_obstacle_interface.py
-│   └── mode
-│       ├── __init__.py
-│       ├── carla_2d_mode.py
-│       ├── carla_mode.py
-│       └── synchronous_mode.py
+│   │   ├── commonroad_obstacle_interface.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       ├── carla_interface.cpython-37.pyc
+│   │       ├── carla_pedestrian_handler.cpython-37.pyc
+│   │       ├── carla_vehicle_interface.cpython-37.pyc
+│   │       ├── commonroad_ego_interface.cpython-37.pyc
+│   │       ├── commonroad_obstacle_interface.cpython-37.pyc
+│   │       └── __init__.cpython-37.pyc
+│   ├── mode
+│   │   ├── carla_2d_mode.py
+│   │   ├── carla_mode.py
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── carla_mode.cpython-37.pyc
+│   │   │   ├── __init__.cpython-37.pyc
+│   │   │   └── synchronous_mode.cpython-37.pyc
+│   │   └── synchronous_mode.py
+│   └── __pycache__
+│       └── __init__.cpython-37.pyc
 ├── carlacr_main_function.py
 ├── ci
 │   ├── Dockerfile
 │   └── README.md
+├── commonroad_carla_interface.egg-info
+│   ├── dependency_links.txt
+│   ├── PKG-INFO
+│   ├── requires.txt
+│   ├── SOURCES.txt
+│   └── top_level.txt
 ├── docs
 │   ├── Carlacr_OnlyClass.drawio
 │   ├── Carlacr_OnlyClass_V8.png
+│   ├── doc_requirements.txt
 │   ├── Makefile
 │   ├── README.md
-│   ├── doc_requirements.txt
 │   ├── setup.sh
 │   └── source
 │       ├── api
@@ -237,44 +273,39 @@ pytest -v --cov=conversion.converter --cov-report html
 ├── example_videos
 │   ├── carla_2D_mode_example.mp4
 │   ├── carla_example.mp4
-│   └── carla_pedestrian_example.mp4
+│   ├── carla_pedestrian_example.mp4
+│   └── Traffic_generation_mode.mp4
+├── __init__.py
+├── MANIFEST.in
 ├── maps
-│   ├── DEU_Test-1_1_T-1.xodr
 │   ├── DEU_Test-1_1_T-1_no_center.xodr
+│   ├── DEU_Test-1_1_T-1.xodr
 │   └── four_way_crossing.xodr
+├── README.md
 ├── requirements.txt
 ├── scenarios
 │   ├── DEU_Test-1_1_T-1.xml
-│   ├── four_way_crossing.xml
-│   └── four_way_crossing_Modi.xml
+│   ├── four_way_crossing_Modi.xml
+│   └── four_way_crossing.xml
 ├── setup.py
 ├── tests
-│   ├── README.md
 │   ├── __init__.py
-│   ├── helpers
-│   │   ├── __init__.py
-│   │   └── motion_planner_config.py
+│   ├── README.md
 │   ├── run_tests.py
 │   ├── test_ci.py
-│   ├── test_motion_planner_mode
-│   │   └── test_motion_planner_mode.py
-│   ├── test_replay_mode
-│   │   └── test_replay_mode.py
-│   ├── test_requirements.txt
-│   └── test_traffic_mode
-│       └── test_traffic_generation_mode.py
+│   └── video
+├── tree-structure-carla-interface.txt
 └── tutorials
-    ├── cr_sim_example.py
     ├── cr_sim_example_offscreen.py
-    ├── cr_simple_start.py
+    ├── cr_sim_example.py
     ├── cr_simple_start_offscreen.py
-    ├── example_replay_mode.py
+    ├── cr_simple_start.py
     ├── example_traffic_generation_mode.ipynb
     └── video
         └── DEU_Test-1_1_T-1_12_12_2021_14_56_00
             └── ego.gif
 
-24 directories, 78 files
+27 directories, 95 files
 
 ```
 

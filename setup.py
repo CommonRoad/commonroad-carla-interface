@@ -27,5 +27,6 @@ setuptools.setup(
         "typer >= 0.4.0",
         "moviepy >= 1.0.3",
         "lxml>=4.8.0",
+        "omegaconf>=2.1.2",
     ]
 )
