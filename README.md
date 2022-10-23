@@ -23,6 +23,7 @@ To install requirement open terminal in CommonRoad-CARLA Interface and run:
 pip install -e .
 ```
 ### Notes
+- You may have to update the path to the local CARLA executable (carla_root_path in carla_config.yaml)
 - CARLA simulator needs to be installed separately, see [here](https://carla.readthedocs.io/en/latest/start_quickstart/#a-debian-carla-installation)
 - As of now (Aug 2022), CARLA 0.9.13 is not fully compatible with Ubuntu 22.04. Hence, Ubuntu 20.04 is recommended.
 Be aware that you might encounter problem like "jammy release not found" while installing CARLA in Ubuntu 22.04.
