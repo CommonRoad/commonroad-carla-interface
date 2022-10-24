@@ -20,13 +20,15 @@ setuptools.setup(
     install_requires=[
         "numpy>=1.2",
         "pygame>=2.1.2",
-        "commonroad-io>=2022.1",
+        "commonroad-io==2022.1",
         "imageio~=2.9.0",
         "scipy>=1.2.0",
         "carla>=0.9.13",
-        "typer >= 0.4.0",
-        "moviepy >= 1.0.3",
+        "moviepy ~= 1.0.3",
         "lxml>=4.8.0",
-        "omegaconf>=2.1.2",
+        "omegaconf~=2.1.2",
+        "typing~=3.7.4.3",
+        "typer >= 0.4.0",
+        "matplotlib~=3.5.2",
     ]
 )
