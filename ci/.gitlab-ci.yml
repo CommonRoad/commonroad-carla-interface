@@ -16,12 +16,22 @@ before_script:
   - coverage report -m --omit="*/src/*,*/tests/*" || true
 
 # static_check
+# solution based on the `.gitlab-ci.yml` file of commonroad-io and this discussion: https://forum.gitlab.com/t/ci-cd-pipeline-get-list-of-changed-files/26847
+# definition of $CI_COMMIT_BEFORE_SHA may be 0000000000000000000000000000000000000000 as stated here: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
 prospector_und_mypy:
   stage: static_check
   image: "python:3.7"
   script :
     - python -m pip install prospector[with_mypy]
-    - python -m prospector
+    - git fetch --all
+    - /bin/sh -c 
+        'if [ "$CI_MERGE_REQUEST_ID" != "" ]; then
+            git diff --name-only ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}..${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py';
+        elif [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then  
+          git diff --name-only ${CI_COMMIT_BEFORE_SHA}..${CI_COMMIT_SHA} -- '*.py';     
+        else 
+          git diff --name-only $(git merge-base origin/${CI_DEFAULT_BRANCH} origin/${CI_COMMIT_BRANCH})..${CI_COMMIT_SHA} -- '*.py';     
+        fi' | xargs -r -I {} python -m prospector {}
 
 # test
 build_test_python_3_8:
