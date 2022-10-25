@@ -5,6 +5,7 @@ doc-warnings: false
 member-warnings: true
 inherits:
   - default
+  - full_pep8
 ignore-paths:
   - docs/
 autodetect: true

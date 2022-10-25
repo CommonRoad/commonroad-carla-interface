@@ -68,8 +68,8 @@ def carlacr_starter(set_map_name: str = None,
 
         ci.setup_carla(hybrid_physics_mode=hybrid_physics_mode)
 
-        StartTime = time.time()
+        start_time = time.time()
         ci.run_scenario(clean_up=clean_up, carla_vehicles=carla_vehicles, carla_pedestrians=carla_pedestrians)
-        ExecutionTime = (time.time() - StartTime)
+        execution_time = (time.time() - start_time)
 
-        print('Execution time in seconds: ' + str(ExecutionTime))
+        print('Execution time in seconds: ' + str(execution_time))

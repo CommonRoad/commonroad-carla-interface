@@ -3,10 +3,11 @@ from math import sqrt
 from numpy import array, pi, random
 import logging
 import carla
+from commonroad.scenario.state import CustomState as State
 from commonroad.geometry.shape import Rectangle
 from commonroad.scenario.obstacle import (DynamicObstacle, ObstacleType)
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.trajectory import State, Trajectory
+from commonroad.scenario.trajectory import Trajectory
 from commonroad.prediction.prediction import TrajectoryPrediction
 
 from carlacr.helper.vehicle_dict import (vehicle_dict)
@@ -66,7 +67,7 @@ class CarlaVehicleInterface:
                 rotation = transform.rotation
                 return State(position=array([location.x, -location.y]), orientation=-((rotation.yaw * pi) / 180),
                              velocity=vel, time_step=time_step)
-            except Exception as e:   
+            except Exception as e:
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())
@@ -166,12 +167,12 @@ class CarlaVehicleInterface:
 
         # prepare the light state of the cars to spawn
         light_state = carla.VehicleLightState.NONE
-        SpawnActor = carla.command.SpawnActor
-        SetAutopilot = carla.command.SetAutopilot
-        SetVehicleLightState = carla.command.SetVehicleLightState
-        FutureActor = carla.command.FutureActor
+        spawn_actor = carla.command.SpawnActor
+        set_autopilot = carla.command.SetAutopilot
+        set_vehicle_light_state = carla.command.SetVehicleLightState
+        future_actor = carla.command.FutureActor
 
         # spawn the cars and set their autopilot and light state all together
-        return (SpawnActor(bp, transform)
-                .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
-                .then(SetVehicleLightState(FutureActor, light_state)))
+        return (spawn_actor(bp, transform)
+                .then(set_autopilot(future_actor, True, traffic_manager.get_port()))
+                .then(set_vehicle_light_state(future_actor, light_state)))
