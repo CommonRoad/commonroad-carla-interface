@@ -3,8 +3,8 @@ import os
 import carla
 import warnings
 
-from commonroad.scenario.trajectory import State
 from carlacr.mode.carla_mode import CarlaMode
+from commonroad.scenario.state import CustomState as State
 
 
 class TestMode(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestMode(unittest.TestCase):
             replay.visualize(sleep_time=5)
 
         self.assertEqual(len(w), 0, msg="The following warnings were raised:\n" + "\n".join(
-                str(w_tmp.message) for w_tmp in w) + f"with scenario {self.scenario_file} and map {self.map_file}")
+            str(w_tmp.message) for w_tmp in w) + f"with scenario {self.scenario_file} and map {self.map_file}")
 
         if not os.path.exists(self.cwd + '/video'):
             os.mkdir('video')

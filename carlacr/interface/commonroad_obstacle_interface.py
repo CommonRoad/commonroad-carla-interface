@@ -68,8 +68,8 @@ class CommonRoadObstacleInterface:
         :return: if spawn successful the according CARLA actor else None
         """
         transform = carla.Transform(
-                carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
-                carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
+            carla.Location(x=self.init_state.position[0], y=-self.init_state.position[1], z=0.5),
+            carla.Rotation(yaw=(-(180 * self.init_state.orientation) / np.pi)))
         # # PEDESTRIAN
         if self.type == ObstacleType.PEDESTRIAN:
             obstacle_blueprint_walker = world.get_blueprint_library().find('walker.pedestrian.0002')
@@ -128,8 +128,8 @@ class CommonRoadObstacleInterface:
                     new_position = state.position
                     transform = carla.Transform(
 
-                            carla.Location(x=new_position[0], y=-new_position[1], z=actor.get_location().z),
-                            carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
+                        carla.Location(x=new_position[0], y=-new_position[1], z=actor.get_location().z),
+                        carla.Rotation(yaw=(-(180 * new_orientation) / np.pi)))
 
                     actor.set_transform(transform)
 
@@ -154,14 +154,14 @@ class CommonRoadObstacleInterface:
                 vehicle = world.get_actor(self.carla_id)
 
                 if vehicle:
-                    _PID = VehiclePIDController(vehicle,
+                    _pid = VehiclePIDController(vehicle,
                                                 config.config_carla_obstacle.args_lateral_dict,
                                                 config.config_carla_obstacle.args_long_dict)
 
                     _target = self.trajectory.position(state.time_step)
                     _speed = self.trajectory.velocity(state.time_step)
 
-                    control = _PID.run_step(_speed, _target)
+                    control = _pid.run_step(_speed, _target)
                     vehicle.apply_control(control)
 
                     # Do the lights:
@@ -191,11 +191,11 @@ class CommonRoadObstacleInterface:
 
             # Define the Ackermann control
             ackermann_control = carla.VehicleAckermannControl(
-                    steer=_steering_angle,
-                    steer_speed=_steering_angle_speed,
-                    speed=_speed,
-                    acceleration=_acceleration,
-                    jerk=_jerk
+                steer=_steering_angle,
+                steer_speed=_steering_angle_speed,
+                speed=_speed,
+                acceleration=_acceleration,
+                jerk=_jerk
             )
 
             # Set the parameters of the PID

@@ -7,7 +7,7 @@ from typing import List, Dict
 from commonroad.geometry.shape import Circle
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.trajectory import State
+from commonroad.scenario.state import CustomState as State
 from numpy import array, random
 import logging
 from carlacr.configurations.set_configs import set_configs
@@ -31,7 +31,6 @@ class CarlaPedestrianHandler:
         self.spawned = False
         self.walkers_list: List[Dict] = []
         self.actor_ids: List[str] = []
-
 
     def __str__(self):
         resp = f"numb of pedestrians: {self.numb_ped}\n"

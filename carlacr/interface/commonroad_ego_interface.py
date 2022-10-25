@@ -5,10 +5,11 @@ from math import sqrt
 import carla
 import numpy as np
 from commonroad.scenario.obstacle import Obstacle
-from commonroad.scenario.trajectory import Trajectory, State
+from commonroad.scenario.trajectory import Trajectory
 from carlacr.interface.commonroad_obstacle_interface import ApproximationType
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length,
                                          similar_by_width)
+from commonroad.scenario.state import CustomState as State
 logger = logging.getLogger(__name__)
 
 
@@ -160,7 +161,7 @@ class CommonRoadEgoInterface:
                 state = State(position=np.array([location.x, -location.y]), orientation=-((rotation.yaw * np.pi) / 180),
                               velocity=vel, time_step=time_step)
                 return state
-            except Exception as e:  
+            except Exception as e:
                 logger.debug("Following error occured while retrieving current position for:")
                 logger.debug(self)
                 logger.error(e, exc_info=sys.exc_info())

@@ -82,8 +82,8 @@ class ConfigurationBuilder:
         """
         try:
             OmegaConf.register_new_resolver(
-                    "join_paths",
-                    lambda base_path, additional_path:  # pylint: disable=unnecessary-lambda
-                    os.path.join(base_path, additional_path))
+                "join_paths",
+                lambda base_path, additional_path:  # pylint: disable=unnecessary-lambda
+                os.path.join(base_path, additional_path))
         except ValueError:
             logging.debug("Re-attempting to register join_paths resolver exception is suppressed.")
