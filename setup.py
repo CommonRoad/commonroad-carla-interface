@@ -20,7 +20,7 @@ setuptools.setup(
     install_requires=[
         "numpy>=1.2",
         "pygame>=2.1.2",
-        "commonroad-io==2022.1",
+        "commonroad-io>=2022.1",
         "imageio~=2.9.0",
         "scipy>=1.2.0",
         "carla>=0.9.13",
