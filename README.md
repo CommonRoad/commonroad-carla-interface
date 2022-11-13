@@ -192,7 +192,6 @@ For testing info please refer to folder `tests/`.
 │   │   │   ├── carla_2D_mode.yaml
 │   │   │   ├── carla_config.yaml
 │   │   │   ├── carla_pedestrians.yaml
-│   │   │   ├── general.yaml
 │   │   │   └── obstacle_interface.yaml
 │   │   ├── __init__.py
 │   │   ├── __pycache__

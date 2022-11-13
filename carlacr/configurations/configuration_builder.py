@@ -65,7 +65,7 @@ class ConfigurationBuilder:
                 try:
                     config_partial = OmegaConf.load(file_config)
                     OmegaConf.resolve(config_partial)
-                    name_file = path_file.split("/")[-1].split(".")[0]
+                    name_file = path_file.split(os.sep)[-1].split(".")[0]
 
                 except Exception as e:
                     print(e)

@@ -3,9 +3,8 @@ carla_parameters:
   port: 2000  # carla default port setting
   sleep_time: 5 # time to move your view in carla-window
 
-carla_root_path: /opt/carla-simulator/  # carla root path
-carla_path_parameters:
-  carla_path: ${join_paths:${carla_root_path},CarlaUE4.sh}  # carla path of installation
-  carla_agent_path: ${join_paths:${carla_root_path},PythonAPI/carla}  # carla path of module "agents"
-  carla_examples_path: ${join_paths:${carla_root_path},PythonAPI}  # carla path of module "examples"
+carla_root_path: /opt/carla-simulator/
+#if you are using Windows, please adapt the path to carla local installation here at carla_root_path
+
+
 
