@@ -1,6 +1,7 @@
 from typing import Union
 
 from omegaconf import ListConfig, DictConfig
+import os
 
 
 class Configuration:
@@ -59,9 +60,13 @@ class CarlaConfiguration:
         self.port = config_relevant.carla_parameters.port
         self.sleep_time = config_relevant.carla_parameters.sleep_time
         self.carla_root_path = config_relevant.carla_root_path
-        self.carla_path = config_relevant.carla_path_parameters.carla_path
-        self.carla_agent_path = config_relevant.carla_path_parameters.carla_agent_path
-        self.carla_examples_path = config_relevant.carla_path_parameters.carla_examples_path
+        if os.sep == "/":
+            self.carla_path = os.path.join(self.carla_root_path, "CarlaUE4.sh")
+
+        if os.sep == "\\":
+            self.carla_path = os.path.join(self.carla_root_path, "CarlaUE4.exe")
+        self.carla_agent_path = os.path.join(self.carla_root_path, "PythonAPI/carla")
+        self.carla_examples_path = os.path.join(self.carla_root_path, "PythonAPI")
 
 
 class GeneralConfiguration:
@@ -70,11 +75,11 @@ class GeneralConfiguration:
     """
 
     def __init__(self, config: Union[ListConfig, DictConfig]):
-        config_relevant = config.general
+        self.path_root = "." + os.sep + ".." + os.sep
+        self.scenario_path = self.path_root + "scenarios/"
+        self.map_path = self.path_root + "maps/"
 
-        self.path_root = config_relevant.path_root
-        self.map_path = config_relevant.map_path
-        self.scenario_path = config_relevant.scenario_path
+
 
 
 class CarlaPedestrianConConfiguration:
