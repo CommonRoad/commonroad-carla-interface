@@ -52,13 +52,13 @@ build_test_python_3_7:
 #    stage: build
 #    image: "python:3.7"
 #    script:
-#        - python setup.py install
+#        - poetry build
 
 #build_package_py_38:
 #    stage: build
 #    image: "python:3.8"
 #    script:
-#        - python setup.py install
+#        - poetry build
 
 docs_py_37:
     image: "python:3.7"

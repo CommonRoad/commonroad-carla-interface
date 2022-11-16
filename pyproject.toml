@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "CommonRoad-Carla-Interface"
+version = "0.0.1"
+description = "Interface between CommonRoad and the traffic simulator CARLA."
+authors = ["Cyber-Physical Systems Group, Technical University of Munich"]
+readme = "README.md"
+packages = [
+    {include = "carlacr/*"},
+]
+
+classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+numpy = ">=1.2"
+pygame = ">=2.1.2"
+commonroad-io = ">=2022.1"
+imageio = "~=2.9.0"
+scipy = ">=1.2.0"
+carla = ">=0.9.13"
+moviepy = "~=1.0.3"
+lxml = ">=4.8.0"
+omegaconf = "~=2.1.2"
+typing = "~=3.7.4.3"
+typer = ">=0.4.0"
+matplotlib = "~=3.5.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

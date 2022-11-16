@@ -170,6 +170,20 @@ Afterward run:
 ```
 cd docs && make html
 ```
+
+## Build
+
+to build the project from source first install poetry with
+```zsh
+curl -sSL https://install.python-poetry.org | python3 -
+```
+Afterward run:
+``` 
+poetry build
+```
+### Notes
+if you created a new package with a `__init__.py` you have too add it in the `pyproject.toml`
+
 ## Tests
 
 For testing info please refer to folder `tests/`.
