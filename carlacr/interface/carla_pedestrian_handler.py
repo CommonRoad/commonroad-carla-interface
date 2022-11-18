@@ -11,16 +11,17 @@ from commonroad.scenario.state import CustomState as State
 from numpy import array, random
 import logging
 from carlacr.configurations.set_configs import set_configs
+
 logger = logging.getLogger(__name__)
 
 
 class CarlaPedestrianHandler:
-    """
-    Creates and controlls walker in CARLA
-    """
+    """Creates and controlls walker in CARLA."""
 
     def __init__(self, cr_scenario: Scenario, carla_client: carla.Client, carla_pedestrians: int):
         """
+        Initializes the Carla Pedestrian Handlers with the given parameters.
+
         :param cr_scenario: CommonRoad scenario object
         :param carla_client: carla.Client() object connected to the simulation
         :param carla_pedestrians: maximum number of walkers that should be created
@@ -33,6 +34,7 @@ class CarlaPedestrianHandler:
         self.actor_ids: List[str] = []
 
     def __str__(self):
+        """Gives a description as String of the characteristics of the Carla Pedestrian handler."""
         resp = f"numb of pedestrians: {self.numb_ped}\n"
         resp += f"walkers_list: {self.walkers_list}\n"
         resp += f"actor_ids: {self.actor_ids}\n"
@@ -41,7 +43,8 @@ class CarlaPedestrianHandler:
 
     def get_cr_dyn_obs_list(self) -> List[DynamicObstacle]:
         """
-        Returns list containing all spawned walkers as CommonRoad dynamic obstacles
+        Returns list containing all spawned walkers as CommonRoad dynamic obstacles.
+
         :return: list of dynamic obstacles generated from spawned walkers
         """
         cr_dyn_obs_list = []
@@ -70,7 +73,7 @@ class CarlaPedestrianHandler:
 
     def spawn(self):
         """
-        Spawns self.numb_ped of pedestrians in CARLA (if not already spawned)
+        Spawns self.numb_ped of pedestrians in CARLA (if not already spawned).
 
         Based on CARLAs PythonAPI example: PythonAPI/examples/spawn_npc.py
         Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
@@ -173,9 +176,7 @@ class CarlaPedestrianHandler:
             self.spawned = True
 
     def destroy(self):
-        """
-        Destroys all spawned walker in CARLA
-        """
+        """Destroys all spawned walker in CARLA."""
         # stop walker controllers (list is [controller, actor, controller, actor ...])
         for i in range(0, len(self.actor_ids), 2):
             try:

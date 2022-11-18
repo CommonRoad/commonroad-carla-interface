@@ -9,15 +9,15 @@ from carlacr.configurations.configuration import Configuration
 
 
 class ConfigurationBuilder:
-    """
-    Class which is used to build a Configuration instance.
-    """
+    """Class which is used to build a Configuration instance."""
+
     path_config: str = ""
     path_config_default: str = ""
 
     @classmethod
     def set_path_to_config(cls, path_config: str, dir_configs_default: str = "defaults"):
-        """Sets the path to the directory containing configurations.
+        """
+        Sets the path to the directory containing configurations.
 
         Args:
             path_config (str): root folder of configurations
@@ -30,17 +30,17 @@ class ConfigurationBuilder:
 
     @classmethod
     def build_configuration(cls) -> Configuration:
-
-        """Builds configuration from default files.
+        """
+        Builds configuration from default files.
 
         Steps:
             1. Load default files
             2. Build Configuration object
 
-        Returns:
+        Return:
             Configuration: configuration containing all relevant information
-        """
 
+        """
         # default configurations
         config_default = cls.construct_default_config()
 
@@ -54,10 +54,11 @@ class ConfigurationBuilder:
     @classmethod
     def construct_default_config(cls) -> Union[ListConfig, DictConfig]:
         """
-        Constructs default configuration by accumulating yaml files.
+        Constructs default configuration.
+
+        Accumulates yaml files.
         Collects all default config files ending with .yaml under path_config_default.
         """
-
         config_default = OmegaConf.create()
         ConfigurationBuilder.register_join_paths_resolver()
         for path_file in glob.glob(cls.path_config_default + "/*.yaml"):
@@ -71,15 +72,13 @@ class ConfigurationBuilder:
                     print(e)
 
                 else:
-                    config_default[name_file] = config_partial  # pylint: disable=unsupported-assignment-operation
+                    config_default[name_file] = config_partial
 
         return config_default
 
     @classmethod
     def register_join_paths_resolver(cls):
-        """
-        Registers Python functions to yaml configuration files using omega.conf's functionality.
-        """
+        """Registers Python functions to yaml configuration files using omega.conf's functionality."""
         try:
             OmegaConf.register_new_resolver(
                 "join_paths",

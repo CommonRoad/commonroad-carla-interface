@@ -17,15 +17,8 @@ def visualize(scenario_file: str = typer.Argument(..., help="Path to scenario fi
               map_file: str = typer.Argument(..., help="Path to map file"),
               veh_id: int = typer.Option(-1, help="id of the vehicle"),
               saving_video: str = typer.Option(None, help="path to save the video file"),
-              # video_name: str = typer.Option(
-              #     None,
-              #     help="name to video file"
-              # ),
-              # asMP4: bool = typer.Option(
-              #     False,
-              #     help="as MP4 or gif"
-              # )
               ):
+    """Generates visualization in Carla for Commonroad scenario and map."""
     start_time = time.time()
     replay = CarlaMode(cr_scenario_path=scenario_file, open_drive_map_path=map_file)
     if veh_id != -1:

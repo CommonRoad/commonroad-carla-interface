@@ -27,15 +27,15 @@ except IndexError:
 
 
 class CarlaMode:
+    """Set Up Visualization of Scenario and Map in Carla."""
+
     def __init__(self,
                  open_drive_map_path: str,
                  cr_scenario_path=None,
                  cr_scenario: Scenario = None,
                  vehicle_id: int = -1):
-
         """
-        scenario and a map will have a visualization in carla.
-        This API can set up map, scenario.
+        Scenario and a map will have a visualization in carla. This API can set up map, scenario.
 
         :param open_drive_map_path: full path & filename
         to the according OpenDRIVE map for the scenario
@@ -45,7 +45,6 @@ class CarlaMode:
         if None using dt from CommonRoad scenario
         :param vehicle_id: id of the vehicle
         """
-
         self.carla_client = carla.Client("localhost", 2000)
         self.scenario = Scenario(dt=0.1)
         if cr_scenario:
@@ -70,6 +69,8 @@ class CarlaMode:
                      video_name: str = "test",
                      video_as_mp4: bool = False):
         """
+        Save video of visualization.
+
         :param create_video: flag for creating video
         :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will be
         created in to save the images used for the gif
@@ -83,7 +84,7 @@ class CarlaMode:
 
     def set_carla_client(self, host: str, port: int):
         """
-        set up carla client view
+        Set up carla client view.
 
         :param host: host address
         :param port: port number
@@ -92,6 +93,11 @@ class CarlaMode:
         self.carla_interface.client = self.carla_client
 
     def set_ego_vehicle_by_id(self, veh_id: int):
+        """
+        Set up ego_vehicle view by id.
+
+        :param veh_id: id of CommonRoad vehicle
+        """
         vehicle = self.obstacle_by_id(veh_id)
         if not vehicle:
             raise ValueError("There are no vehicle with the given id")
@@ -99,7 +105,7 @@ class CarlaMode:
 
     def set_ego_vehicle(self, ego_vehicle: DynamicObstacle):
         """
-        set up ego_vehicle view
+        Set up ego_vehicle view.
 
         :param ego_vehicle: CommonRoad vehicle
         """
@@ -111,18 +117,17 @@ class CarlaMode:
 
     def obstacle_by_id(self, veh_id: int):
         """
-        find vehicle in scenario with commonroad ID
+        Find vehicle in scenario with commonroad ID.
 
         :param veh_id: commonroad id of the vehicle
         :return: the vehicle if found else return None
         """
-
         return self.carla_interface.scenario.obstacle_by_id(veh_id)
 
     def create_dynamic_obstacles_ego(self, initial_state: State,
                                      trajectory: Trajectory = None) -> DynamicObstacle:
         """
-        create CommonRoad moving dynamic obstacle
+        Create CommonRoad moving dynamic obstacle.
 
         :param initial_state: initial state of the dynamic obstacle
         :param trajectory: trajectory of the dynamic obstacle
@@ -143,8 +148,7 @@ class CarlaMode:
 
     def visualize(self, sleep_time: int = 10, time_step_delta_real=None, carla_vehicles: int = 0):
         """
-        visualize scenario with ego vehicle view if
-        ego vehicle != None else run scenario without ego vehicle
+        Visualize scenario with ego vehicle view if ego vehicle != None else run scenario without ego vehicle.
 
         :param carla_vehicles: number of carla vehicles
         :param sleep_time: time to move your view in carla-window
@@ -158,9 +162,7 @@ class CarlaMode:
         self._run_scenario(time_step_delta_real, carla_vehicles=carla_vehicles)
 
     def traffic_generate(self, time_steps, carla_vehicles, sleep_time: int = 0):
-        """
-        This function allows carla traffic auto generation on a map and create a scenario
-        """
+        """Allows carla traffic auto generation on a map and create a scenario."""
         self.carla_interface.load_map()
         time.sleep(sleep_time)
         self.carla_interface.setup_carla(self.time_step_delta)
@@ -170,6 +172,7 @@ class CarlaMode:
     @staticmethod
     def saving_scenario(file_path, planning_problem_set=PlanningProblemSet(),
                         author=None, affiliation=None, source=None, tags=None):
+        """Save Scenario to file_path."""
         tags = {Tag.CRITICAL, Tag.INTERSTATE}
         fw = CommonRoadFileWriter(Scenario(dt=0.1), planning_problem_set,
                                   author, affiliation, source, tags)
@@ -178,7 +181,8 @@ class CarlaMode:
     @staticmethod
     def carla_2d_mode():
         """
-        Set all necessary parameters for no_rendering_mode.py
+        Set all necessary parameters for no_rendering_mode.py.
+
         Details please see help
         :return: None
         """
@@ -219,7 +223,7 @@ class CarlaMode:
 
     def _run_scenario(self, time_step_delta_real, carla_vehicles):
         """
-        run scenario with current setting
+        Run scenario with current setting.
 
         :param time_step_delta_real: sets the time
         that will be waited in real time between the time steps,

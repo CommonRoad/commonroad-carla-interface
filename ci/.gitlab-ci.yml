@@ -21,17 +21,17 @@ before_script:
 prospector_und_mypy:
   stage: static_check
   image: "python:3.7"
-  script :
+  script:
     - python -m pip install prospector[with_mypy]
     - git fetch --all
-    - /bin/sh -c 
-        'if [ "$CI_MERGE_REQUEST_ID" != "" ]; then
-            git diff --name-only ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}..${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py';
-        elif [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then  
-          git diff --name-only ${CI_COMMIT_BEFORE_SHA}..${CI_COMMIT_SHA} -- '*.py';     
-        else 
-          git diff --name-only $(git merge-base origin/${CI_DEFAULT_BRANCH} origin/${CI_COMMIT_BRANCH})..${CI_COMMIT_SHA} -- '*.py';     
-        fi' | xargs -r -I {} python -m prospector {}
+    - /bin/sh -c
+      'if [ "$CI_MERGE_REQUEST_ID" != "" ]; then
+      git diff --name-only ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}..${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py';
+      elif [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+      git diff --name-only ${CI_COMMIT_BEFORE_SHA}..${CI_COMMIT_SHA} -- '*.py';
+      else
+      git diff --name-only $(git merge-base origin/${CI_DEFAULT_BRANCH} origin/${CI_COMMIT_BRANCH})..${CI_COMMIT_SHA} -- '*.py';
+      fi' | xargs -r -I {} python -m prospector {}
 
 # test
 build_test_python_3_8:
@@ -61,21 +61,21 @@ build_test_python_3_7:
 #        - poetry build
 
 docs_py_37:
-    image: "python:3.7"
-    stage: build
-    script:
-        - pip install -r ./docs/doc_requirements.txt
-        - cd docs && bash ./setup.sh
-    artifacts:
-      paths :
-        - ./docs/build/
+  image: "python:3.7"
+  stage: build
+  script:
+    - pip install -r ./docs/doc_requirements.txt
+    - cd docs && bash ./setup.sh
+  artifacts:
+    paths:
+      - ./docs/build/
 
 docs_py_38:
-    image: "python:3.8"
-    stage: build
-    script:
-        - pip install -r ./docs/doc_requirements.txt
-        - cd docs && bash ./setup.sh
-    artifacts:
-      paths :
-        - ./docs/build/
+  image: "python:3.8"
+  stage: build
+  script:
+    - pip install -r ./docs/doc_requirements.txt
+    - cd docs && bash ./setup.sh
+  artifacts:
+    paths:
+      - ./docs/build/

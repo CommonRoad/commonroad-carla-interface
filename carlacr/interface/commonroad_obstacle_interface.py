@@ -19,6 +19,8 @@ SpawnActor = carla.command.SpawnActor
 
 
 class ApproximationType(Enum):
+    """Approximation type with fix length, width and area."""
+
     LENGTH = 0
     WIDTH = 1
     AREA = 2
@@ -26,12 +28,14 @@ class ApproximationType(Enum):
 
 class CommonRoadObstacleInterface:
     """
-    One to one representation of a CommonRoad obstacle to be worked with in CARLA
+    One to one representation of a CommonRoad obstacle to be worked with in CARLA.
+
     (Caution: only vehicles are currently supported, basic setup for pedestrians in comments)
     """
 
     def __init__(self, cr_obstacle: Obstacle):
         """
+        Initializer of the obstacle.
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
@@ -115,11 +119,11 @@ class CommonRoadObstacleInterface:
 
     def update_position_by_time(self, world: carla.World, state: State):
         """
-        Tries to update the position of the obstacle and sets lights
+        Tries to update the position of the obstacle and sets lights.
+
         :param world: the CARLA world object
         :param state:state at the time step
         """
-
         try:
             if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
                 actor = world.get_actor(self.carla_id)
@@ -141,14 +145,14 @@ class CommonRoadObstacleInterface:
 
     def update_position_by_control(self, world: carla.World, state: State):
         """
-        This function controls the obstacle vehicle to drive along the planned route (for one step) and sets the lights.
+        Function controls the obstacle vehicle to drive along the planned route (for one step) and sets the lights.
+
         From the motion planner of the autonomous vehicle a CommonRoad trajectory is expected. From the trajectory the
         desired velocity and the waypoint(position) can be extracted.
 
         :param world: the CARLA world object
         :param state: state at the time step
         """
-
         try:
             if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
                 vehicle = world.get_actor(self.carla_id)
@@ -174,13 +178,12 @@ class CommonRoadObstacleInterface:
             raise e
 
     def update_with_ackermann_control(self, world: carla.World, state: State):
-        """"
-        Prepare to update the position with ackermann controller (version 0.9.14+ required)
+        """
+        Prepare to update the position with ackermann controller (version 0.9.14+ required).
 
         :param world: the CARLA world object
         :param state:state at the time step
         """
-
         vehicle = world.get_actor(self.carla_id)
         try:
             _steering_angle = self.trajectory.steering_angle(state.time_step)
@@ -213,7 +216,7 @@ class CommonRoadObstacleInterface:
 
     def destroy_carla_obstacle(self, world):
         """
-        Destroys vehicle in CARLA
+        Destroys vehicle in CARLA.
 
         :param world: the CARLA world object
         """
@@ -223,6 +226,12 @@ class CommonRoadObstacleInterface:
                 actor.destroy()
 
     def _set_up_lights(self, vehicle, state: State = None, sig=None):
+        """
+        Sets up the lights of the Obstacle.
+
+        :param state: state at the time step
+        :param sig: signals of the Obstacle
+        """
         # vehicle = world.get_actor(self.carla_id)
         z = carla.VehicleLightState.NONE
         vehicle.set_light_state(z)
@@ -241,6 +250,7 @@ class CommonRoadObstacleInterface:
             vehicle.set_light_state(carla.VehicleLightState(z))
 
     def __str__(self):
+        """Gives a description as String of the characteristics of the Obstacle."""
         resp = f"commonroad_id: {self.commonroad_id}\n"
         resp += f"carla_id: {self.carla_id}\n"
         resp += f"is_spawned: {self.is_spawned}\n"
