@@ -24,7 +24,7 @@ Replaying Mode can replay, saving video of a scenerio in carla
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: CarlaReplayMode
-   :members:
+:members:
 
 
 Carla Motion Planner Mode

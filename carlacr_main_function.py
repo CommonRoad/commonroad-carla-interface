@@ -15,7 +15,8 @@ def carlacr_starter(set_map_name: str = None,
                     set_motionplaner: str = None,
                     set_offscreen_mode: bool = False):
     """
-    start carla interface with 3D mode or offscreen mode
+    Start carla interface with 3D mode or offscreen mode.
+
     :param set_map_name: name of map file
     :param set_scenario_name: name of scenario name
     :param set_hybrid_physics_mode: Parameter for ci.setup_carla(hybrid_physics_mode=False)

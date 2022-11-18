@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class CommonRoadEgoInterface:
-    """
-    Creates and controls the ego-vehicle in CARLA
-    """
+    """Creates and controls the ego-vehicle in CARLA."""
 
     def __init__(self, client: carla.Client, trajectory: Trajectory,
                  initial_state: Obstacle.initial_state, size: Tuple[float, float, float] = None):
         """
+        Constructor for ego-vehicle Interface.
+
         :param trajectory: CommonRoad trajectory for the ego-vehicle
         :param initial_state: initial_state of commonroad obstacle when commonroad obstacle used as ego vehicle
         """
@@ -41,9 +41,7 @@ class CommonRoadEgoInterface:
 
         :param world: the CARLA world object
         :param physics: if physics should be enabled for the ego-vehicle
-        :param create_gif: True if a GIF should be created
-        :param path: base path of the directory where the GIF should be stored
-        :param approx_type:based on what approximation of the vehicle size the blue print should be selected
+        :param approx_type:based on what approximation of the vehicle size the blueprint should be selected
         :return: if spawn successful the according CARLA actor else None
         """
         ego_transform = carla.Transform(
@@ -86,7 +84,7 @@ class CommonRoadEgoInterface:
 
     def set_trajectory(self, trajectory: Trajectory):
         """
-        Sets trajectory for the ego-vehicle
+        Sets trajectory for the ego-vehicle.
 
         :param trajectory: CommonRoad trajectory for the ego-vehicle
         """
@@ -98,7 +96,7 @@ class CommonRoadEgoInterface:
 
     def update_position_by_time(self, world: carla.World, state: State):
         """
-        Tries to update the position of the ego-vehicle
+        Tries to update the position of the ego-vehicle.
 
         :param world: the CARLA world object
         :param state: state at the time step
@@ -124,7 +122,7 @@ class CommonRoadEgoInterface:
 
     def process_image(self, path: str, image: carla.Image):
         """
-        Process image from ego RGB camera
+        Process image from ego RGB camera.
 
         :param path: path to base folder, where in folder /img the images will be saved
         :param image: CARLA image to be saved
@@ -133,7 +131,7 @@ class CommonRoadEgoInterface:
 
     def destroy_carla_actor(self, world):
         """
-        Destroys ego-vehicle in CARLA
+        Destroys ego-vehicle in CARLA.
 
         :param world: the CARLA world object
         """
@@ -146,7 +144,7 @@ class CommonRoadEgoInterface:
 
     def get_cr_state(self, time_step=0) -> State:
         """
-        Get current CommonRoad state if spawned, else None
+        Get current CommonRoad state if spawned, else None.
 
         :return: CommonRoad state of the CARLA vehicle represented by this class
         """

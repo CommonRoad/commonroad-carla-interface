@@ -65,10 +65,7 @@ vehicle_dict: Dict[str, Dict[str, float]] = {
 
 
 def similar_by_length(length: float, width: float, height: float):
-    """
-    Returns Carla BluePrint name of closest vehicle
-    regarding length (second: width, third: height)
-    """
+    """Returns Carla BluePrint name of closest vehicle regarding length (second: width, third: height)."""
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_x': abs(length - current_best[1]['x']),
@@ -97,12 +94,7 @@ def similar_by_length(length: float, width: float, height: float):
 
 
 def similar_by_width(length: float, width: float, height: float):
-
-    """
-    Returns Carla BluePrint name of closest vehicle
-    regarding width (second: length, third: height)
-    """
-
+    """Returns Carla BluePrint name of closest vehicle regarding width (second: length, third: height)."""
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_x': abs(length - current_best[1]['x']),
@@ -131,10 +123,7 @@ def similar_by_width(length: float, width: float, height: float):
 
 
 def similar_by_area(length: float, width: float, height: float):
-    """
-    Returns Carla BluePrint name of closest vehicle
-    regarding area (= length * width) (second: height)
-    """
+    """Returns Carla BluePrint name of closest vehicle regarding area (= length * width) (second: height)."""
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_area': abs(length - current_best[1]['x']) * abs(length - current_best[1]['y']),

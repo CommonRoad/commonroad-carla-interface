@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # This module contains helper methods for the Carla-CommonRoad Interface
 def calc_max_timestep(scenario: Scenario) -> int:
     """
-    Calculates maximal time step of current scenario
+    Calculates maximal time step of current scenario.
 
     :param scenario: scenario to calculate max time step
     :return: length of scenario
@@ -25,12 +25,11 @@ def calc_max_timestep(scenario: Scenario) -> int:
 
 
 class GifCreator:
-    """
-    Handles the GIF creation
-    """
+    """Handles the GIF creation."""
 
     def __init__(self, path, gif_name):
         """
+        Initialize attributes.
 
         :param path: path of the root folder for the GIF,
         within this directory is a folder /img containing all
@@ -42,6 +41,8 @@ class GifCreator:
 
     def make_gif(self):
         """
+        Make GIF.
+
         Creates a GIF of the images provided in "path"/img
         Based on https://stackoverflow.com/a/35943809 &
         https://pythonguides.com/python-get-all-files-in-directory/
@@ -66,9 +67,7 @@ class GifCreator:
         logger.debug("GIF created!")
 
     def make_video(self):
-        """
-        Creates a video of the images using moviepy
-        """
+        """Creates a video of the images using moviepy."""
         filenames = []
         path = self.path + "/img"
 
@@ -90,6 +89,8 @@ class GifCreator:
 
     def make_video_from_gif(self):
         """
+        Make Video from GIF.
+
         Creates a video of the images provided in "path"/img
         Based on https://stackoverflow.com/a/35943809 &
         https://pythonguides.com/python-get-all-files-in-directory/

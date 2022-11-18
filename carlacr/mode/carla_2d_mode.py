@@ -1,4 +1,4 @@
-"""Parses the arguments received from commandline and runs the game loop"""
+"""Parses the arguments received from commandline and runs the game loop."""
 import argparse
 import sys
 import logging
@@ -14,9 +14,9 @@ except IndexError:
 
 
 def carla_2d_mode():
-
     """
-    Set all necessary parameters for no_rendering_mode.py
+    Set all necessary parameters for no_rendering_mode.py.
+
     Details please see help
     :return: None
     """

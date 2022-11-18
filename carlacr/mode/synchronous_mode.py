@@ -25,10 +25,10 @@ except ImportError as exc:
 
 
 class CarlaSyncMode:
-
     """
-    Context manager to synchronize output from different sensors. Synchronous
-    mode is enabled as long as we are inside this context
+    Context manager to synchronize output from different sensors.
+
+    Synchronousmode is enabled as long as we are inside this context.
 
         with CarlaSyncMode(world, sensors) as sync_mode:
             while True:
@@ -37,6 +37,7 @@ class CarlaSyncMode:
     """
 
     def __init__(self, world, *sensors, **kwargs):
+        """Constructor for Context Manager."""
         self.world = world
         self.sensors = sensors
         self.frame = None
@@ -45,6 +46,7 @@ class CarlaSyncMode:
         self._settings = None
 
     def __enter__(self):
+        """Magic Method for starting a 'with' block."""
         self._settings = self.world.get_settings()
         self.frame = self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False,
@@ -62,15 +64,14 @@ class CarlaSyncMode:
         return self
 
     def tick(self, timeout):
-        """
-        tick world
-        """
+        """Tick world."""
         self.frame = self.world.tick()
         data = [self._retrieve_data(q, timeout) for q in self._queues]
         assert all(x.frame == self.frame for x in data)
         return data
 
     def __exit__(self, *args, **kwargs):
+        """Magic Method for exiting a 'with' block."""
         self.world.apply_settings(self._settings)
 
     def _retrieve_data(self, sensor_queue, timeout):
@@ -81,6 +82,7 @@ class CarlaSyncMode:
 
 
 def draw_image(surface, image, blend=False):
+    """Draw Image from surface and image."""
     array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
     array = np.reshape(array, (image.height, image.width, 4))
     array = array[:, :, :3]
@@ -92,6 +94,7 @@ def draw_image(surface, image, blend=False):
 
 
 def get_font():
+    """Get Font."""
     fonts = [pygame.font.get_fonts()]
     default_font = 'ubuntumono'
     font = default_font if default_font in fonts else fonts[0]
@@ -100,6 +103,7 @@ def get_font():
 
 
 def should_quit():
+    """Reacts to Quit Event."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return True
@@ -110,6 +114,7 @@ def should_quit():
 
 
 def main():
+    """Main method of Context Manager for Synchrous Mode."""
     actor_list = []
     pygame.init()
 

@@ -21,14 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class CarlaInterface:
-    """
-    Main class of the CommonRoad-CARLA-Interface
-    """
+    """Main class of the CommonRoad-CARLA-Interface."""
 
     def __init__(self, open_drive_map_path: str, carla_client: carla.Client, cr_scenario_file_path: str = None,
                  cr_scenario: Scenario = None):
         """
-        Constructor of CarlaInterface
+        Constructor of CarlaInterface.
 
         :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to the according OpenDRIVE map for the scenario
@@ -52,7 +50,8 @@ class CarlaInterface:
     def saving_video(self, create_video: bool = True, video_path=None, video_name: str = "test",
                      video_as_mp4: bool = False):
         """
-        Saving video of the visualization
+        Saving video of the visualization.
+
         :param create_video: flag for creating video
         :param video_path: path to a folder where the gif will be saved, additionally a folder at "gif_path"/img will
         be created in to save the images used for the gif
@@ -70,7 +69,8 @@ class CarlaInterface:
 
     def setup_carla(self, time_step_delta: int = None, tm_port=8000, hybrid_physics_mode=False):
         """
-        Configures CARLA (self.client)
+        Configures CARLA (self.client).
+
         :param time_step_delta: time_step_delta within the simulation (how much time is between two time steps for
         CARLA), if None using dt from CommonRoad scenario
         :param tm_port: port of the CARLA traffic manager
@@ -98,12 +98,14 @@ class CarlaInterface:
         traffic_manager.set_synchronous_mode(True)
 
     def load_map(self):
-        """ Loads OpenDRIVE Map (self.map) into CARLA. Based on CARLAs program: PythonAPI/util/config.py
-            # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-            # Barcelona (UAB).
-            #
-            # This work is licensed under the terms of the MIT license.
-            # For a copy, see <https://opensource.org/licenses/MIT>.
+        """
+        Loads OpenDRIVE Map (self.map) into CARLA. Based on CARLAs program: PythonAPI/util/config.py.
+
+        # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
+        # Barcelona (UAB).
+        #
+        # This work is licensed under the terms of the MIT license.
+        # For a copy, see <https://opensource.org/licenses/MIT>.
         """
         if os.path.exists(self.map):
             with open(self.map, encoding='utf-8') as od_file:
@@ -128,16 +130,14 @@ class CarlaInterface:
         return None
 
     def _calc_max_timestep(self) -> int:
-        """
-        Calculates maximal time step of current scenario
-        """
+        """Calculates maximal time step of current scenario."""
         self.max_timestep = calc_max_timestep(self.scenario)
         return self.max_timestep
 
     def _run_scenario_default(self, clean_up=True, time_step_delta_real=0.05, carla_vehicles=0, carla_pedestrians=0,
                               scenario_time_steps: int = 0):
         """
-        Runs the CommonRoad Scenario in CARLA default
+        Runs the CommonRoad Scenario in CARLA default.
 
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the time steps,
@@ -226,7 +226,8 @@ class CarlaInterface:
     def run_scenario_with_ego_vehicle(self, time_step_delta_real, ego_vehicle: DynamicObstacle, carla_vehicles=0,
                                       carla_pedestrians=0, clean_up=True):
         """
-        Run scenario with ego vehicle setting
+        Run scenario with ego vehicle setting.
+
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps,
         if None the dt of the scenario will be used
@@ -341,6 +342,7 @@ class CarlaInterface:
                      ego_vehicle=None, scenario_time_steps: int = 0):
         """
         Runs the CommonRoad Scenario in CARLA.
+
         :param clean_up: if True destroys all created actors in the CARLA simulation
         :param time_step_delta_real: sets the time that will be waited in real time between the timesteps,
         if None the dt of the scenario will be used
@@ -376,7 +378,7 @@ class CarlaInterface:
                         interface_obstacles: List[CommonRoadObstacleInterface], carla_controlled_obstacles: List[int],
                         pedestrian_handler: Union[None, CarlaPedestrianHandler]):
         """
-        Clean up all carla objects
+        Clean up all carla objects.
 
         :param ego_interface_list: list of CommonRoadEgoInterface object
         :param interface_obstacles: list of CommonRoadObstacleInterface object
@@ -395,8 +397,7 @@ class CarlaInterface:
                                       carla_interface_obstacles: List[Tuple], curr_time_step: int,
                                       mode: str = "by-time"):
         """
-        Control CommonRoad obstacles, try to spawn, update position and destroy regarding actor in carla if out of
-        scenario
+        Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
 
         :param interface_obstacles: list of CommonRoadObstacleInterface object
         :param carla_interface_obstacles: list of tuple (interface object,actor)
@@ -438,7 +439,7 @@ class CarlaInterface:
                                 batch: List[carla.command.SpawnActor], carla_controlled_obstacles: List[int],
                                 carla_pedestrians: int) -> CarlaPedestrianHandler:
         """
-        Create random vehicles on carla
+        Create random vehicles on carla.
 
         :param carla_vehicles: number of carla auto-generated vehicles
         :param carla_contr_obs_classes: list of CarlaVehicleInterface object
@@ -470,7 +471,7 @@ class CarlaInterface:
     def _control_carla_obstacles(self, carla_contr_obs_classes: List[CarlaVehicleInterface], current_time_step: int,
                                  carla_contr_dynamic_obs: List[DynamicObstacle]):
         """
-        Control auto-generated carla vehicle. Update new state to regarding commonroad dynamic obstacle
+        Control auto-generated carla vehicle. Update new state to regarding commonroad dynamic obstacle.
 
         :param carla_contr_obs_classes: list of CarlaVehicleInterface object
         :param current_time_step:
@@ -485,7 +486,7 @@ class CarlaInterface:
     def _create_ego_vehicle(self, ego_vehicle: DynamicObstacle, ego_interface_list: List[CommonRoadEgoInterface],
                             carla_interface_obstacles: List) -> CommonRoadEgoInterface:
         """
-        Create ego vehicle from DynamicObstacle
+        Create ego vehicle from DynamicObstacle.
 
         :param ego_vehicle: DynamicObstacle  will be used as ego_vehicle
         :param ego_interface_list: list of DynamicObstacle that will be used as ego
@@ -511,7 +512,7 @@ class CarlaInterface:
                               carla_controlled_obstacles: List[int],
                               pedestrian_handler: Union[None, CarlaPedestrianHandler]):
         """
-        Handle error ending simulation
+        Handle error ending simulation.
 
         :param clean_up: clean up flag
         :param ego_interface_list: list of DynamicObstacle that will be used as ego
@@ -532,9 +533,7 @@ class CarlaInterface:
         sys.exit(0)
 
     def _create_video(self):
-        """
-        create gif for carla visualization
-        """
+        """Create gif for carla visualization."""
         # Create GIF
         if self.create_video:
             gc = GifCreator(self.video_path, self.video_name)
@@ -545,7 +544,7 @@ class CarlaInterface:
 
     def _wait_for_carla_vehicle(self, time_between_ticks):
         """
-        wait some time for update the visualization
+        Wait some time for update the visualization.
 
         :param time_between_ticks: time to wait before trigger tick() in carla
         """
@@ -558,7 +557,7 @@ class CarlaInterface:
 
     def _update_vehicle_to_scenario(self, carla_contr_obs_classes: List[CarlaVehicleInterface]):
         """
-        update all vehicles created by carla vehicles auto_generation to our current scenario
+        Update all vehicles created by carla vehicles auto_generation to our current scenario.
 
         :param carla_contr_obs_classes: list of CarlaVehicleInterface object
         """

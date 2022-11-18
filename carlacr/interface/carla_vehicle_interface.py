@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 class CarlaVehicleInterface:
     """
-    A InterfaceObstacle is a intermediate obstacle representation to
-    help translate between CR-Obstacles and CARLA-Obstacles
+    Vehicle Interfaca between Carla and CR.
+
     Based on CARLAs PythonAPI example: PythonAPI/examples/spawn_npc.py
     Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
     Barcelona (UAB).
@@ -28,6 +28,7 @@ class CarlaVehicleInterface:
 
     def __init__(self, cr_scenario: Scenario, carla_client: carla.Client, traffic_manager_port: int = 8000):
         """
+        Constructor for Carla Vehicle Interface.
 
         :param cr_scenario: CommonRoad scenario object
         :param carla_client: carla.Client() object connected to the simulation
@@ -43,6 +44,7 @@ class CarlaVehicleInterface:
         self.dynamic_obstacle: DynamicObstacle = None
 
     def __str__(self):
+        """Get string representation of Vehicle Interface."""
         resp = f"commonroad_id: {self.commonroad_id}\n"
         resp += f"carla_id: {self.carla_id}\n"
         resp += f"is_spawned: {self.is_spawned}\n"
@@ -51,7 +53,7 @@ class CarlaVehicleInterface:
 
     def get_cr_state(self, time_step=0) -> State:
         """
-        Get current CommonRoad state if spawned, else None
+        Get current CommonRoad state if spawned, else None.
 
         :return: CommonRoad state of the CARLA vehicle represented by this class
         """
@@ -76,11 +78,12 @@ class CarlaVehicleInterface:
             return None
 
     def get_cr_dynamic_obstacle(self):
+        """Getter for CR Dynamic Obstacle."""
         return self.dynamic_obstacle
 
     def create_cr_dynamic_obstacle(self) -> DynamicObstacle:
         """
-        Returns a CommonRoad DynamicObstacle from this CARLA Vehicle
+        Returns a CommonRoad DynamicObstacle from this CARLA Vehicle.
 
         :return: CommonRoad dynamic obstacle of the CARLA vehicle represented by this class
         """
@@ -105,7 +108,7 @@ class CarlaVehicleInterface:
 
     def update_after_spawn(self, spawned=True, cr_id=None, actor_id=None):
         """
-        Stores assigned CommonRoad & CARLA Id in the class and sets is_spawned flag
+        Stores assigned CommonRoad & CARLA Id in the class and sets is_spawned flag.
 
         :param spawned: sets is_spawned flag
         :param cr_id: sets CommonRoad id for the class
@@ -116,8 +119,9 @@ class CarlaVehicleInterface:
         self.carla_id = actor_id
 
     def get_spawnable(self, random_vehicle=True, blue_print=None, spawn_point=None) -> carla.command.SpawnActor:
-
         """
+        Get a Spawnable Actor.
+
         :param random_vehicle: if true a random blue print & random spawn point will be used to create a spawnable
         :param blue_print: blue print to be used to create the vehicle
         :param spawn_point: spawn point to be used to spawn the vehicle
