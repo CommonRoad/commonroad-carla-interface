@@ -7,7 +7,12 @@ inherits:
   - full_pep8
 ignore-paths:
   - docs/
-autodetect: true
+  - ci/
+  - example_videos/
+  - maps/
+  - scenarios/
+  - tutorials
+autodetect: false
 max-line-length: 120
 
 pycodestyle:

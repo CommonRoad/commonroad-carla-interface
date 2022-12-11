@@ -79,12 +79,11 @@ class CarlaConfiguration:
 class GeneralConfiguration:
     """Class holding general configuration (root path, output path, ...)."""
 
-    def __init__(self, config: Union[ListConfig, DictConfig]):
+    def __init__(self):
         """Initializes general configuration attributes."""
         self.path_root = "." + os.sep + ".." + os.sep
         self.scenario_path = self.path_root + "scenarios/"
         self.map_path = self.path_root + "maps/"
-
 
 
 class CarlaPedestrianConConfiguration:

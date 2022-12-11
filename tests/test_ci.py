@@ -8,9 +8,10 @@ from commonroad.scenario.state import CustomState as State
 
 
 class TestMode(unittest.TestCase):
+    """Class for testing different modes."""
+
     def setUp(self) -> None:
         """Tests the setUp with a test map."""
-
         self.cwd = os.path.dirname(os.path.abspath(__file__))
         self.map_file = 'maps/DEU_Test-1_1_T-1.xodr'
         self.scenario_file = 'scenarios/DEU_Test-1_1_T-1.xml'
@@ -18,7 +19,6 @@ class TestMode(unittest.TestCase):
 
     def test_without_mpl(self):
         """Tests Carla without a given or test map."""
-
         replay = CarlaMode(open_drive_map_path=self.cwd + "/../" + self.map_file,
                            cr_scenario_path=self.cwd + "/../" + self.scenario_file)
 
@@ -31,7 +31,6 @@ class TestMode(unittest.TestCase):
 
     def test_ego_vehicle(self):
         """Tests the ego vehicle."""
-
         replay = CarlaMode(open_drive_map_path=self.cwd + "/../" + self.map_file,
                            cr_scenario_path=self.cwd + "/../" + self.scenario_file)
 
@@ -81,7 +80,6 @@ class TestMode(unittest.TestCase):
 
     def test_traffic_generation(self, map_file: str = 'maps/DEU_Test-1_1_T-1.xodr'):
         """Tests the traffic generation with a given Map."""
-
         traffic_generation = CarlaMode(open_drive_map_path=self.cwd + "/../" + self.map_file,
                                        cr_scenario_path=self.cwd + "/../" + self.scenario_file)
 
