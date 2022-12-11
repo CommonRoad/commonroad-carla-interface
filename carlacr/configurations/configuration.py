@@ -12,7 +12,7 @@ class Configuration:
         self.config_carla = CarlaConfiguration(config)
         self.config_carla_pedestrian = CarlaPedestrianConConfiguration(config)
         self.config_carla_2d = CarlaConfig2d(config)
-        self.config_general = GeneralConfiguration(config)
+        self.config_general = GeneralConfiguration()
         self.config_carla_obstacle = ObstacleConfiguration(config)
 
     @property
