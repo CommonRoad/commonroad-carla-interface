@@ -41,7 +41,7 @@ class CarlaInterface:
             self.scenario = cr_scenario
 
         self.client = carla_client
-        self.create_video: bool = False
+        self.video_creation: bool = False
         self.video_path: Union[str, None] = None
         self.video_name: Union[str, None] = None
         self.video_asMP4: bool = False
@@ -62,7 +62,7 @@ class CarlaInterface:
         if create_video:
             if not os.path.exists(video_path):
                 raise AttributeError("video path not found")
-        self.create_video = create_video
+        self.video_creation = create_video
         self.video_path = video_path
         self.video_name = video_name
         self.video_asMP4 = video_as_mp4
@@ -129,7 +129,7 @@ class CarlaInterface:
         logging.error('file not found.')
         return None
 
-    def _calc_max_timestep(self) -> int:
+    def calc_max_timestep(self) -> int:
         """Calculates maximal time step of current scenario."""
         self.max_timestep = calc_max_timestep(self.scenario)
         return self.max_timestep
@@ -176,18 +176,18 @@ class CarlaInterface:
             interface_obstacles.append(obs)
 
         i = 0  # time-step counter
-        max_timesteps = max(self._calc_max_timestep(), scenario_time_steps)
+        max_timesteps = max(self.calc_max_timestep(), scenario_time_steps)
         while i <= max_timesteps:
             try:  # Simulation
                 # CommonRoad controlled:
-                self._control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
+                self.control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
 
                 # CARLA controlled:
                 if not carla_controlled_imported:
-                    pedestrian_handler = self._create_carla_obstacles(carla_vehicles, carla_contr_obs_classes, batch,
-                                                                      carla_controlled_obstacles, carla_pedestrians)
+                    pedestrian_handler = self.create_carla_obstacles(carla_vehicles, carla_contr_obs_classes, batch,
+                                                                     carla_controlled_obstacles, carla_pedestrians)
                     carla_controlled_imported = True
-                    self._wait_for_carla_vehicle(time_between_ticks)
+                    self.wait_for_carla_vehicle(time_between_ticks)
                     self._control_carla_obstacles(carla_contr_obs_classes, i, carla_contr_dynamic_obs)
 
                 else:
@@ -206,8 +206,8 @@ class CarlaInterface:
                 world.apply_settings(settings)
                 # clean up
                 if clean_up:
-                    self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
-                                         pedestrian_handler)
+                    self.clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
+                                        pedestrian_handler)
                 sys.exit(0)
             except Exception as e:
                 logger.error(e, exc_info=sys.exc_info())
@@ -220,8 +220,7 @@ class CarlaInterface:
         self._update_vehicle_to_scenario(carla_contr_obs_classes)
         # clean up
         if clean_up:
-            self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
-                                 pedestrian_handler)
+            self.clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles, pedestrian_handler)
 
     def run_scenario_with_ego_vehicle(self, time_step_delta_real, ego_vehicle: DynamicObstacle, carla_vehicles=0,
                                       carla_pedestrians=0, clean_up=True):
@@ -272,11 +271,11 @@ class CarlaInterface:
             interface_obstacles.append(obs)
 
         i = 0  # time-step counter
-        max_timesteps = self._calc_max_timestep()
+        max_timesteps = self.calc_max_timestep()
         logger.debug(max_timesteps)
         # Create ego
-        ego = self._create_ego_vehicle(ego_vehicle=ego_vehicle, ego_interface_list=ego_interface_list,
-                                       carla_interface_obstacles=carla_interface_obstacles)
+        ego = self.create_ego_vehicle(ego_vehicle=ego_vehicle, ego_interface_list=ego_interface_list,
+                                      carla_interface_obstacles=carla_interface_obstacles)
 
         with CarlaSyncMode(world, ego.actor_list[0], fps=30) as sync_mode:
             while i <= max_timesteps:
@@ -285,7 +284,7 @@ class CarlaInterface:
                     return
                 clock.tick()
                 snapshot, image_rgb = sync_mode.tick(timeout=2.0)
-                if self.create_video and self.video_path:
+                if self.video_creation and self.video_path:
                     image_rgb.save_to_disk('%s/img/%.6d.jpg' % (self.video_path, image_rgb.frame))
                 try:  # Simulation
                     # Ego Vehicle
@@ -306,15 +305,14 @@ class CarlaInterface:
                     pygame.display.flip()
 
                     # CommonRoad controlled:
-                    self._control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
+                    self.control_commonroad_obstacles(interface_obstacles, carla_interface_obstacles, i)
 
                     # CARLA controlled:
                     if not carla_controlled_imported:
-                        pedestrian_handler = self._create_carla_obstacles(carla_vehicles, carla_contr_obs_classes,
-                                                                          batch, carla_controlled_obstacles,
-                                                                          carla_pedestrians)
+                        pedestrian_handler = self.create_carla_obstacles(carla_vehicles, carla_contr_obs_classes, batch,
+                                                                         carla_controlled_obstacles, carla_pedestrians)
                         carla_controlled_imported = True
-                        self._wait_for_carla_vehicle(time_between_ticks)
+                        self.wait_for_carla_vehicle(time_between_ticks)
 
                     # advance time:
                     logger.debug("Timestep: %s", str(i))
@@ -322,21 +320,21 @@ class CarlaInterface:
                     time.sleep(time_between_ticks)
                     i += 1
                 except KeyboardInterrupt:
-                    self._end_simulation_error(clean_up=clean_up, ego_interface_list=ego_interface_list,
-                                               interface_obstacles=interface_obstacles,
-                                               carla_controlled_obstacles=carla_controlled_obstacles,
-                                               pedestrian_handler=pedestrian_handler)
+                    self.end_simulation_error(clean_up=clean_up, ego_interface_list=ego_interface_list,
+                                              interface_obstacles=interface_obstacles,
+                                              carla_controlled_obstacles=carla_controlled_obstacles,
+                                              pedestrian_handler=pedestrian_handler)
                 except Exception as e:
                     logger.error(e, exc_info=sys.exc_info())
         # Create video
-        self._create_video()
+        self.video_creation()
         settings = world.get_settings()
         # Stop synchronous mode to be able to investigate CARLA without a Script running
         settings.synchronous_mode = False
         world.apply_settings(settings)
 
         # clean up
-        self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles, pedestrian_handler)
+        self.clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles, pedestrian_handler)
 
     def run_scenario(self, clean_up=True, time_step_delta_real=None, carla_vehicles=0, carla_pedestrians=0,
                      ego_vehicle=None, scenario_time_steps: int = 0):
@@ -362,7 +360,7 @@ class CarlaInterface:
             self.video_path += video_folder
 
         else:
-            if self.create_video and not ego_vehicle:
+            if self.video_creation and not ego_vehicle:
                 logger.debug("GIFs can only be created with default mode or when a ego_vehicle is provided!")
             if ego_vehicle:
                 self.run_scenario_with_ego_vehicle(time_step_delta_real=time_step_delta_real, ego_vehicle=ego_vehicle,
@@ -374,9 +372,9 @@ class CarlaInterface:
         if self.video_path:
             self.video_path = self.video_path[:len(self.video_path) - len(video_folder)]
 
-    def _clean_up_carla(self, ego_interface_list: List[CommonRoadEgoInterface],
-                        interface_obstacles: List[CommonRoadObstacleInterface], carla_controlled_obstacles: List[int],
-                        pedestrian_handler: Union[None, CarlaPedestrianHandler]):
+    def clean_up_carla(self, ego_interface_list: List[CommonRoadEgoInterface],
+                       interface_obstacles: List[CommonRoadObstacleInterface], carla_controlled_obstacles: List[int],
+                       pedestrian_handler: Union[None, CarlaPedestrianHandler]):
         """
         Clean up all carla objects.
 
@@ -393,9 +391,9 @@ class CarlaInterface:
         if pedestrian_handler:
             pedestrian_handler.destroy()
 
-    def _control_commonroad_obstacles(self, interface_obstacles: List[CommonRoadObstacleInterface],
-                                      carla_interface_obstacles: List[Tuple], curr_time_step: int,
-                                      mode: str = "by-time"):
+    def control_commonroad_obstacles(self, interface_obstacles: List[CommonRoadObstacleInterface],
+                                     carla_interface_obstacles: List[Tuple], curr_time_step: int,
+                                     mode: str = "by-time"):
         """
         Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
 
@@ -435,9 +433,9 @@ class CarlaInterface:
         for obs in deleted_obs:
             interface_obstacles.remove(obs)
 
-    def _create_carla_obstacles(self, carla_vehicles: int, carla_contr_obs_classes: List[CarlaVehicleInterface],
-                                batch: List[carla.command.SpawnActor], carla_controlled_obstacles: List[int],
-                                carla_pedestrians: int) -> CarlaPedestrianHandler:
+    def create_carla_obstacles(self, carla_vehicles: int, carla_contr_obs_classes: List[CarlaVehicleInterface],
+                               batch: List[carla.command.SpawnActor], carla_controlled_obstacles: List[int],
+                               carla_pedestrians: int) -> CarlaPedestrianHandler:
         """
         Create random vehicles on carla.
 
@@ -483,8 +481,8 @@ class CarlaInterface:
             elif obs.commonroad_id:
                 carla_contr_dynamic_obs.append(obs.create_cr_dynamic_obstacle())
 
-    def _create_ego_vehicle(self, ego_vehicle: DynamicObstacle, ego_interface_list: List[CommonRoadEgoInterface],
-                            carla_interface_obstacles: List) -> CommonRoadEgoInterface:
+    def create_ego_vehicle(self, ego_vehicle: DynamicObstacle, ego_interface_list: List[CommonRoadEgoInterface],
+                           carla_interface_obstacles: List) -> CommonRoadEgoInterface:
         """
         Create ego vehicle from DynamicObstacle.
 
@@ -507,10 +505,10 @@ class CarlaInterface:
             logger.error(e, exc_info=sys.exc_info())
         return ego
 
-    def _end_simulation_error(self, clean_up, ego_interface_list: List[CommonRoadEgoInterface],
-                              interface_obstacles: List[CommonRoadObstacleInterface],
-                              carla_controlled_obstacles: List[int],
-                              pedestrian_handler: Union[None, CarlaPedestrianHandler]):
+    def end_simulation_error(self, clean_up, ego_interface_list: List[CommonRoadEgoInterface],
+                             interface_obstacles: List[CommonRoadObstacleInterface],
+                             carla_controlled_obstacles: List[int],
+                             pedestrian_handler: Union[None, CarlaPedestrianHandler]):
         """
         Handle error ending simulation.
 
@@ -520,7 +518,7 @@ class CarlaInterface:
         :param carla_controlled_obstacles: list of actor_id in same position as carla_contr_obs_classes as  object
         :param pedestrian_handler: CarlaPedestrianHandler object
         """
-        self._create_video()
+        self.video_creation()
 
         settings = self.client.get_world().get_settings()
         # Stop synchronous mode to be able to investigate CARLA without a Script running
@@ -528,21 +526,20 @@ class CarlaInterface:
         self.client.get_world().apply_settings(settings)
         # clean up
         if clean_up:
-            self._clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles,
-                                 pedestrian_handler)
+            self.clean_up_carla(ego_interface_list, interface_obstacles, carla_controlled_obstacles, pedestrian_handler)
         sys.exit(0)
 
-    def _create_video(self):
+    def create_video(self):
         """Create gif for carla visualization."""
         # Create GIF
-        if self.create_video:
+        if self.video_creation:
             gc = GifCreator(self.video_path, self.video_name)
             if self.video_asMP4:
                 gc.make_video()
             else:
                 gc.make_gif()
 
-    def _wait_for_carla_vehicle(self, time_between_ticks):
+    def wait_for_carla_vehicle(self, time_between_ticks):
         """
         Wait some time for update the visualization.
 
