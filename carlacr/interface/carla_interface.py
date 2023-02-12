@@ -30,8 +30,9 @@ class CarlaInterface:
         """
         Constructor of CarlaInterface.
 
-        :param cr_scenario_file_path: full path & filename to a CommonRoad XML-file
         :param open_drive_map_path: full path & filename to OpenDRIVE map for the simulation or name of CARLA default
+        :param cr_scenario_file_path: path to CommonRoad scenario file
+        :param config: CARLA config dataclass.
         map
         """
         self._client = carla.Client(config.host, config.port)
