@@ -20,29 +20,25 @@ pycodestyle:
 
 pydocstyle:
   disable:
-    - D100 #  exception should be removed
     - D104 # Missing docstring in public package
     - D203 # 1 blank line required before class docstring (Conflict with D211)
+    - D205 # 1 blank line required between summary line and description
     - D212 # Multi-line docstring summary should start at the first line (Conflict with 213)
     - D407 # Missing dashed underline after section
+    - D415 # First line should end with a period, question mark, or exclamation point
 
 pyflakes:
   run: true
 
 mccabe:
-  disable:
-    - MC0001 # mccabe: MC0001 / CarlaPedestrianHandler.spawn is too complex (17), exception should be removed
+  run: true
 
 pylint:
   disable:
     - import-error
-    - too-many-branches
     - too-many-arguments
     - too-many-locals
-    - too-many-statements
-    - consider-using-f-string
     - missing-module-docstring
-    - unsupported-assignment-operation
 
 mypy:
   run: true
