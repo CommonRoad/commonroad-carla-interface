@@ -9,7 +9,6 @@ from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, sim
 
 from carlacr.configurations.set_configs import set_configs
 from agents.navigation.controller import VehiclePIDController
-# pycharm might suggest "unresolved reference" here, false alarm
 
 config = set_configs()
 
