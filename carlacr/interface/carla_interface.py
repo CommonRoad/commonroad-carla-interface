@@ -46,12 +46,14 @@ class CarlaInterface:
         self._init_carla_traffic_manager()
 
     def __del__(self):
+        """Kill CARLA server in case it was started by the CARLA-Interface."""
         if self._carla_pid is not None:
             logger.info("Killing CARLA server.")
             os.killpg(os.getpgid(self._carla_pid.pid), signal.SIGTERM)
             time.sleep(self._config.sleep_time)
 
     def _start_carla_server(self):
+        """Start CARLA server in desired operating mode (3D/offscreen)."""
         path_to_carla = self._find_carla_executable()
         logger.info("Start CARLA server.")
         if self._config.offscreen_mode:
@@ -64,6 +66,10 @@ class CarlaInterface:
         time.sleep(self._config.sleep_time)
 
     def _find_carla_executable(self) -> str:
+        """Searches for CARLA executable in provided paths.
+
+        :returns Path to CARLa executable as string.
+        """
         logger.info("Search CARLA server executable.")
         for default_path in self._config.default_carla_paths:
             path = os.path.join(default_path.replace("/~", os.path.expanduser("~")), "CarlaUE4.sh")
@@ -72,9 +78,7 @@ class CarlaInterface:
         raise FileNotFoundError("CARLA executable not found.")
 
     def _init_carla_world(self):
-        """
-        Configures CARLA.
-        """
+        """Configures CARLA world."""
         self._client.set_timeout(self._config.simulation.client_init_timeout)
         world = self._client.get_world()
         # Synchrony:
@@ -87,6 +91,7 @@ class CarlaInterface:
         world.apply_settings(settings)
 
     def _init_carla_traffic_manager(self):
+        """Configures CARLA traffic manager."""
         traffic_manager = self._client.get_trafficmanager(self._config.simulation.tm_port)
         traffic_manager.set_global_distance_to_leading_vehicle(
                 self._config.simulation.global_distance_to_leading_vehicle)
