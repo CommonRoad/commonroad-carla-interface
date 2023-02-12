@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-or_map = "four_way_crossing.xodr"
+or_map = "/media/sebastian/TUM/06_code/internal/carla-interface/maps/four_way_crossing.xodr"
+# or_map = "Town"
 cr_scenario = "four_way_crossing_Modi"
 try:
     ci = CarlaInterface(or_map, cr_scenario)
