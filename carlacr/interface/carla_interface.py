@@ -34,7 +34,6 @@ class CarlaInterface:
         :param open_drive_map_path: full path & filename to OpenDRIVE map for the simulation or name of CARLA default
         map
         """
-        self._map = open_drive_map_path
         self._client = carla.Client(config.host, config.port)
         self._cr_path = cr_scenario_file_path
         self._config = config
@@ -44,6 +43,7 @@ class CarlaInterface:
             self._start_carla_server()
         self._init_carla_world()
         self._init_carla_traffic_manager()
+        self._load_map(open_drive_map_path)
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -99,37 +99,35 @@ class CarlaInterface:
         traffic_manager.set_hybrid_physics_mode(self._config.simulation.hybrid_physics_mode)
         traffic_manager.set_synchronous_mode(self._config.simulation.synchronous)
 
-    def load_map(self):
+    def _load_map(self, open_drive_map_path: str):
         """
-        Loads OpenDRIVE Map (self.map) into CARLA. Based on CARLAs program: PythonAPI/util/config.py.
+        Loads OpenDRIVE map into CARLA.
 
-        # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-        # Barcelona (UAB).
-        #
-        # This work is licensed under the terms of the MIT license.
-        # For a copy, see <https://opensource.org/licenses/MIT>.
+        Based on provided CARLA code: https://github.com/carla-simulator/carla/blob/master/PythonAPI/util/config.py
+        Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
+        Barcelona (UAB).
+        This work is licensed under the terms of the MIT license.
+        For a copy, see <https://opensource.org/licenses/MIT>.
         """
-        if os.path.exists(self._map):
-            with open(self._map, encoding='utf-8') as od_file:
+        if os.path.exists(open_drive_map_path):
+            logger.info(f"Load OpenDRIVE map: {os.path.basename(open_drive_map_path)}")
+            with open(open_drive_map_path, encoding='utf-8') as od_file:
                 try:
-                    # pass
                     data = od_file.read()
                 except OSError:
-                    logger.error('file could not be readed.')
+                    logger.error(f"Failed load OpenDRIVE map: {os.path.basename(open_drive_map_path)}")
                     sys.exit()
-            logger.debug('load opendrive map %r.', os.path.basename(self._map))
-            vertex_distance = 2.0  # in meters
-            max_road_length = 500.0  # in meters
-            wall_height = 1.0  # in meters
-            extra_width = 0.6  # in meters
+            logger.info(f"Loaded OpenDRIVE map: {os.path.basename(open_drive_map_path)} successfully.")
 
-            world = self._client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
-                    vertex_distance=vertex_distance, max_road_length=max_road_length, wall_height=wall_height,
-                    additional_width=extra_width, smooth_junctions=True, enable_mesh_visibility=True))
-            return world
+            self._client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
+                    vertex_distance=self._config.map.vertex_distance,
+                    max_road_length=self._config.map.max_road_length,
+                    wall_height=self._config.map.wall_height,
+                    additional_width=self._config.map.extra_width,
+                    smooth_junctions=True,
+                    enable_mesh_visibility=True,
+                    enable_pedestrian_navigation=True))
 
-        logging.error('file not found.')
-        return None
     #
     # def calc_max_timestep(self) -> int:
     #     """Calculates maximal time step of current scenario."""

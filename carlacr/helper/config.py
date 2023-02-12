@@ -99,9 +99,16 @@ class Mode2dParams(BaseParam):
     res: str = '1280x720'  # window resolution (default: 1280x720)
     filter: str = 'vehicle.*'  # actor filter (default: "vehicle.*")
 
+class MapParams(BaseParam):
+    vertex_distance: float = 2.0  # in meters
+    max_road_length: float = 500.0  # in meters
+    wall_height: float = 1.0  # in meters
+    extra_width: float = 0.6  # in meters
+
 @dataclass
 class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     control: ControlParams = field(default_factory=ControlParams)
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
+    map: MapParams = field(default_factory=MapParams)
