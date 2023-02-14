@@ -4,6 +4,13 @@ from dataclasses import dataclass, field
 import pathlib
 from typing import Dict, Union, List
 from omegaconf import OmegaConf
+from enum import Enum
+
+class ApproximationType(Enum):
+    """Approximation type with fix length, width and area."""
+    LENGTH = 0
+    WIDTH = 1
+    AREA = 2
 
 def _dict_to_params(dict_params: Dict, cls):
     """
@@ -32,6 +39,7 @@ class BaseParam:
         "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
         "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/"])
     offscreen_mode: bool = False
+    carla_map = "Town01"
 
     def __getitem__(self, item):
         try:
@@ -71,6 +79,7 @@ class SimulationParams(BaseParam):
     client_init_timeout: float = 10.0
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
+    cr_scenario_file_path = ""
 
 @dataclass
 class ControlParams(BaseParam):
@@ -93,6 +102,8 @@ class ControlParams(BaseParam):
 class ObstacleParams(BaseParam):
     percentage_pedestrians_running: float =  0  # how many pedestrians will run
     percentage_pedestrians_crossing: float = 0  # how many pedestrians will walk through the road
+    approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle size the blueprint should be selected
+    physics: bool = True  #  if physics should be enabled for the vehicle
 
 class Mode2dParams(BaseParam):
     description: str = "CARLA No Rendering Mode Visualizer"

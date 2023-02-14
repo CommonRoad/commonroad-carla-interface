@@ -13,7 +13,7 @@ or_map = "/media/sebastian/TUM/06_code/internal/carla-interface/maps/four_way_cr
 # or_map = "Town"
 cr_scenario = "four_way_crossing_Modi"
 try:
-    ci = CarlaInterface(or_map, cr_scenario)
+    ci = CarlaInterface()
 except Exception as e:
     print(e)
 
