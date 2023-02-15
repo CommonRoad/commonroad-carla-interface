@@ -6,11 +6,13 @@ from typing import Dict, Union, List
 from omegaconf import OmegaConf
 from enum import Enum
 
+
 class ApproximationType(Enum):
     """Approximation type with fix length, width and area."""
     LENGTH = 0
     WIDTH = 1
     AREA = 2
+
 
 def _dict_to_params(dict_params: Dict, cls):
     """
@@ -70,6 +72,7 @@ class BaseParam:
                                                                         not key.startswith("_")})
         OmegaConf.save(OmegaConf.create(dict_cfg), file_path, resolve=True)
 
+
 @dataclass
 class SimulationParams(BaseParam):
     time_step: float =  0.1
@@ -80,6 +83,7 @@ class SimulationParams(BaseParam):
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
     cr_scenario_file_path = ""
+
 
 @dataclass
 class ControlParams(BaseParam):
@@ -98,17 +102,22 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_ki: float = 0.0
     ackermann_pid_accel_kd: float = 0.01
 
+
 @dataclass
 class ObstacleParams(BaseParam):
-    percentage_pedestrians_running: float =  0  # how many pedestrians will run
+    percentage_pedestrians_running: float = 0  # how many pedestrians will run
     percentage_pedestrians_crossing: float = 0  # how many pedestrians will walk through the road
-    approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle size the blueprint should be selected
-    physics: bool = True  #  if physics should be enabled for the vehicle
+    approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle
+    # size the blueprint should be selected
+    physics: bool = True  # if physics should be enabled for the vehicle
+    control: ControlParams = field(default_factory=ControlParams)
+
 
 class Mode2dParams(BaseParam):
     description: str = "CARLA No Rendering Mode Visualizer"
     res: str = '1280x720'  # window resolution (default: 1280x720)
     filter: str = 'vehicle.*'  # actor filter (default: "vehicle.*")
+
 
 class MapParams(BaseParam):
     vertex_distance: float = 2.0  # in meters
@@ -116,10 +125,10 @@ class MapParams(BaseParam):
     wall_height: float = 1.0  # in meters
     extra_width: float = 0.6  # in meters
 
+
 @dataclass
 class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
-    control: ControlParams = field(default_factory=ControlParams)
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
     map: MapParams = field(default_factory=MapParams)

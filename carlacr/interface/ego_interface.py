@@ -3,10 +3,11 @@ import logging
 import carla
 from agents.navigation.controller import VehiclePIDController
 
-from commonroad.scenario.obstacle import Obstacle, ObstacleRole, ObstacleType
+from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole
 from commonroad.scenario.trajectory import State
 
 from carlacr.interface.vehicle_interface import VehicleInterface
+from carlacr.helper.config import ObstacleParams
 
 logger = logging.getLogger(__name__)
 
@@ -14,17 +15,19 @@ logger = logging.getLogger(__name__)
 class EgoInterface(VehicleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: Obstacle):
+    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
         """
         Initializer of the obstacle.
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
-        super().__init__(cr_obstacle)
-        # _args = config.config_carla_obstacle
-        # self.ackermann_settings = carla.AckermannControllerSettings(speed_kp=_args.speed_kp, speed_ki=_args.speed_ki,
-        #                                                             speed_kd=_args.speed_kd,accel_kp=_args.accel_kp,
-        #                                                             accel_ki=_args.accel_ki, accel_kd=_args.accel_kd)
+        super().__init__(cr_obstacle, config)
+        self.ackermann_settings = carla.AckermannControllerSettings(speed_kp=config.control.ackermann_pid_speed_kp,
+                                                                    speed_ki=config.control.ackermann_pid_speed_ki,
+                                                                    speed_kd=config.control.ackermann_pid_speed_kd,
+                                                                    accel_kp=config.control.ackermann_pid_accel_kp,
+                                                                    accel_ki=config.control.ackermann_pid_accel_ki,
+                                                                    accel_kd=config.control.ackermann_pid_accel_kd)
 
     def update_position_by_control(self, world: carla.World, state: State):
         """
@@ -37,16 +40,17 @@ class EgoInterface(VehicleInterface):
         :param state: state at the time step
         """
         try:
-            if self.is_spawned & (self.role == ObstacleRole.DYNAMIC) & (self.trajectory is not None):
-                vehicle = world.get_actor(self.carla_id)
+            if self._is_spawned and self._cr_base.obstacle_role == ObstacleRole.DYNAMIC and \
+                    self._cr_base.prediction.trajectory is not None:
+                vehicle = world.get_actor(self._carla_id)
 
                 if vehicle:
                     _pid = VehiclePIDController(vehicle,
-                                                config.config_carla_obstacle.args_lateral_dict,
-                                                config.config_carla_obstacle.args_long_dict)
+                                                self._config.control.args_lateral_dict,
+                                                self._config.config_carla_obstacle.args_long_dict)
 
-                    _target = self.trajectory.position(state.time_step)
-                    _speed = self.trajectory.velocity(state.time_step)
+                    _target = self._cr_base.state_at_time(state.time_step).position
+                    _speed = self._cr_base.state_at_time(state.time_step).velocity
 
                     control = _pid.run_step(_speed, _target)
                     vehicle.apply_control(control)
