@@ -11,7 +11,7 @@ from carlacr.helper.config import ObstacleParams
 logger = logging.getLogger(__name__)
 
 
-def transform_obstacle(state: State, z_position: float = 0.5):
+def create_carla_transform(state: State, z_position: float = 0.5):
     transform = carla.Transform(
             carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
             carla.Rotation(yaw=(-(180 * state.orientation) / np.pi)))
@@ -58,7 +58,7 @@ class ObstacleInterface:
                     (self._cr_base.prediction.trajectory is not None):
                 actor = world.get_actor(self._carla_id)
                 if actor:
-                    transform = transform_obstacle(state, actor.get_location().z)
+                    transform = create_carla_transform(state, actor.get_location().z)
                     actor.set_transform(transform)
                 else:
                     logger.debug("Could not find actor")

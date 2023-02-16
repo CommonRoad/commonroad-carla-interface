@@ -5,15 +5,9 @@ import subprocess
 import time
 import signal
 from enum import Enum
-from datetime import date, datetime
-from typing import List, Tuple, Union
 import logging
-import pygame
 
-from commonroad.common.file_reader import CommonRoadFileReader
-from commonroad.scenario.obstacle import ObstacleRole, DynamicObstacle
 from commonroad.scenario.scenario import Scenario
-from commonroad.prediction.prediction import TrajectoryPrediction
 
 from carlacr.helper.config import CarlaParams
 from carlacr.interface.vehicle_interface import VehicleInterface

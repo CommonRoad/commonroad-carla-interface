@@ -6,7 +6,7 @@ from commonroad.scenario.trajectory import State
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
 from carlacr.helper.config import ObstacleParams, ApproximationType
-from carlacr.interface.obstacle_interface import ObstacleInterface, transform_obstacle
+from carlacr.interface.obstacle_interface import ObstacleInterface, create_carla_transform
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class VehicleInterface(ObstacleInterface):
         :param world: the CARLA world object
         :return: if spawn successful the according CARLA actor else None
         """
-        transform = transform_obstacle(self._cr_base.initial_state)
+        transform = create_carla_transform(self._cr_base.initial_state)
 
         if self._cr_base.obstacle_type in \
                 [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,

@@ -5,7 +5,7 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
 from carlacr.helper.config import ObstacleParams
-from carlacr.interface.obstacle_interface import ObstacleInterface, transform_obstacle
+from carlacr.interface.obstacle_interface import ObstacleInterface, create_carla_transform
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class PedestrianInterface(ObstacleInterface):
         :param world: the CARLA world object
         :return: if spawn successful the according CARLA actor else None
         """
-        transform = transform_obstacle(self._cr_base.initial_state)
+        transform = create_carla_transform(self._cr_base.initial_state)
         obstacle_blueprint_walker = world.get_blueprint_library().find('walker.pedestrian.0002')
         try:
             obstacle = world.spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
