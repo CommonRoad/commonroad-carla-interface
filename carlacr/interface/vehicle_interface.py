@@ -22,13 +22,15 @@ class VehicleInterface(ObstacleInterface):
         """
         super().__init__(cr_obstacle, config)
 
-    def spawn(self, world: carla.World) -> carla.Actor:
+    def spawn(self, world: carla.World, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 
         :param world: the CARLA world object
         :return: if spawn successful the according CARLA actor else None
         """
+        if time_step != self._cr_base.initial_state.time_step:
+            return
         transform = create_carla_transform(self._cr_base.initial_state)
 
         if self._cr_base.obstacle_type in \

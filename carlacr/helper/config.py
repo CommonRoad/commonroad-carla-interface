@@ -35,13 +35,30 @@ def _dict_to_params(dict_params: Dict, cls):
 class BaseParam:
     host: str = "localhost"  # carla host setting
     port: int = 2000  # carla default port setting
-    sleep_time: float = 5.0  # time to move your view in carla-window
+    sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
     default_carla_paths: List[str] = field(default_factory=lambda: [
         "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
         "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/"])
     offscreen_mode: bool = False
     carla_map = "Town01"
+    client_init_timeout: float = 30.0
+    __initialized: bool = field(init=False, default=False, repr=False)
+
+    def __post_init__(self):
+        self.__initialized = True
+        # Make sure that the base parameters are propagated to all sub-parameters
+        # This cannot be done in the init method, because the sub-parameters are not yet initialized.
+        # This is not a noop, as it calls the __setattr__ method.
+        # Do not remove!
+        self.host = self.host
+        self.port = self.port
+        self.sleep_time = self.sleep_time
+        self.start_carla_server = self.start_carla_server
+        self.default_carla_paths = self.default_carla_paths
+        self.offscreen_mode = self.offscreen_mode
+        self.client_init_timeout = self.client_init_timeout
+        self.carla_map = self.carla_map
 
     def __getitem__(self, item):
         try:
@@ -79,7 +96,6 @@ class SimulationParams(BaseParam):
     tm_port: int = 8000  # traffic manager port
     hybrid_physics_mode: bool = False
     synchronous: bool = True
-    client_init_timeout: float = 10.0
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
     cr_scenario_file_path = ""

@@ -3,6 +3,8 @@ import carla
 import subprocess
 import logging
 from carlacr.interface.carla_interface import CarlaInterface
+from commonroad.common.file_reader import CommonRoadFileReader
+from carlacr.helper.config import CarlaParams
 
 
 logger = logging.getLogger(__name__)
@@ -10,10 +12,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 or_map = "/media/sebastian/TUM/06_code/internal/carla-interface/maps/four_way_crossing.xodr"
+cr_map = "/media/sebastian/TUM/06_code/internal/carla-interface/scenarios/four_way_crossing.xml"
 # or_map = "Town"
-cr_scenario = "four_way_crossing_Modi"
+cr_scenario, _ = scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
+param = CarlaParams()
+param.carla_map = or_map
+# param.offscreen_mode = True
 try:
-    ci = CarlaInterface()
+    ci = CarlaInterface(param)
+    ci.replay(cr_scenario)
 except Exception as e:
     print(e)
 

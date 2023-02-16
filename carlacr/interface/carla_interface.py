@@ -6,6 +6,7 @@ import time
 import signal
 from enum import Enum
 import logging
+import numpy as np
 
 from commonroad.scenario.scenario import Scenario
 
@@ -20,6 +21,19 @@ class OperatingMode(Enum):
     REPLAY = 2
     SCENARIO_GENERATION = 3
 
+
+# This module contains helper methods for the Carla-CommonRoad Interface
+def calc_max_timestep(sc: Scenario) -> int:
+    """
+    Calculates maximal time step of current scenario.
+
+    :param sc: scenario to calculate max time step
+    :return: length of scenario
+    """
+    time_steps = [obstacle.prediction.occupancy_set[-1].time_step for obstacle in sc.dynamic_obstacles]
+    return np.max(time_steps) if time_steps else 0
+
+
 class CarlaInterface:
     """Main class of the CommonRoad-CARLA-Interface."""
 
@@ -30,15 +44,16 @@ class CarlaInterface:
         :param config: CARLA config dataclass.
         map
         """
-        self._client = carla.Client(config.host, config.port)
         self._config = config
         self._carla_pid = None
 
         if self._config.start_carla_server:
             self._start_carla_server()
+        self._client = carla.Client(self._config.host, self._config.port)
+        self._client.set_timeout(self._config.client_init_timeout)
         self._init_carla_world()
         self._init_carla_traffic_manager()
-        self._load_map(config.carla_map)
+        self._load_map(self._config.carla_map)
 
         # CR_PLANNING Mode
         self._cr_obstacles = []
@@ -66,7 +81,7 @@ class CarlaInterface:
             logger.info("CARLA server started in non-rendering mode.")
         else:
             self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
-            logger.info("CARLA server started.")
+            logger.info("CARLA server started in normal visualization mode.")
         time.sleep(self._config.sleep_time)
 
     def _find_carla_executable(self) -> str:
@@ -83,7 +98,7 @@ class CarlaInterface:
 
     def _init_carla_world(self):
         """Configures CARLA world."""
-        self._client.set_timeout(self._config.simulation.client_init_timeout)
+        logger.info("Init CARLA world.")
         world = self._client.get_world()
         # Synchrony:
         # Warning: If synchronous mode is enabled, and there is a Traffic Manager running, this must be set to sync
@@ -96,6 +111,7 @@ class CarlaInterface:
 
     def _init_carla_traffic_manager(self):
         """Configures CARLA traffic manager."""
+        logger.info("Init CARLA traffic manager.")
         traffic_manager = self._client.get_trafficmanager(self._config.simulation.tm_port)
         traffic_manager.set_global_distance_to_leading_vehicle(
                 self._config.simulation.global_distance_to_leading_vehicle)
@@ -114,6 +130,7 @@ class CarlaInterface:
         For a copy, see <https://opensource.org/licenses/MIT>.
         """
         if map_name[0:4] == "Town":
+            logger.info(f"Load CARLA default map: {map_name}")
             self._client.load_world(map_name)
         elif os.path.exists(map_name):
             logger.info(f"Load OpenDRIVE map: {os.path.basename(map_name)}")
@@ -137,8 +154,44 @@ class CarlaInterface:
 
     def set_scenario(self, sc: Scenario):
         for obs in sc.obstacles:
-            self._cr_obstacles.append(VehicleInterface(obs))
+           self._cr_obstacles.append(VehicleInterface(obs))
+        # TODO: set traffic light cycle
+        self._spawn_cr_obstacles()
 
-    def spawn_cr_obstacles(self):
+    def _spawn_cr_obstacles(self):
         for obs in self._cr_obstacles:
-            obs.spawn(self._client.get_world(), self._config.obstacle)
+            obs.spawn(self._client.get_world(), 0)
+
+    def replay(self, sc: Scenario):
+        """
+        Runs the CommonRoad Scenario in CARLA.
+
+        :param time_step_delta_real: sets the time that will be waited in real time between the time steps,
+        if None the dt of the scenario will be used
+        :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to
+        the objects defined in the scenario
+        :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
+        additional to the objects defined in the scenario
+        """
+        self.set_scenario(sc)
+        world = self._client.get_world()
+
+        for time_step in range(calc_max_timestep(sc)):
+            # CommonRoad controlled:
+            self.control_commonroad_obstacles(time_step)
+
+    def control_commonroad_obstacles(self, curr_time_step: int):
+        """
+        Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
+
+        :param interface_obstacles: list of CommonRoadObstacleInterface object
+        :param carla_interface_obstacles: list of tuple (interface object,actor)
+        :param curr_time_step: current time step of the scenario
+        :param mode: update obstacle "by-time", "by-control", or "by-ackermann-control"
+        """
+        deleted_obs = []
+        for obs in self._cr_obstacles:
+            if not obs.is_spawned:
+                obs.spawn(self.client.get_world(), curr_time_step)
+            else:
+                obs.update_position_by_time(self.client.get_world(), obs.trajectory.state_at_time_step(curr_time_step))

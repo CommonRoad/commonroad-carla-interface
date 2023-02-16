@@ -34,7 +34,7 @@ class ObstacleInterface:
         self._cr_base = cr_obstacle
         self._config = config
 
-    def spawn(self, world: carla.World) -> carla.Actor:
+    def spawn(self, world: carla.World, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 
