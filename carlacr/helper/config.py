@@ -93,12 +93,11 @@ class BaseParam:
 @dataclass
 class SimulationParams(BaseParam):
     time_step: float =  0.1
-    tm_port: int = 8000  # traffic manager port
+    tm_port: int = 8000
     hybrid_physics_mode: bool = False
     synchronous: bool = True
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
-    cr_scenario_file_path = ""
 
 
 @dataclass

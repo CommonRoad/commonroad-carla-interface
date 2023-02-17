@@ -2588,7 +2588,7 @@
     </initialState>
   </staticObstacle>
   <staticObstacle id="2077">
-    <type>pedestrian</type>
+    <type>parkedVehicle</type>
     <shape>
       <rectangle>
         <length>1.0</length>
@@ -2616,7 +2616,7 @@
     </initialState>
   </staticObstacle>
   <staticObstacle id="2078">
-    <type>pedestrian</type>
+    <type>parkedVehicle</type>
     <shape>
       <rectangle>
         <length>1.0</length>

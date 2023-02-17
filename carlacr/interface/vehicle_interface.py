@@ -1,5 +1,6 @@
 import logging
 import carla
+import math
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.scenario.trajectory import State
@@ -59,6 +60,10 @@ class VehicleInterface(ObstacleInterface):
                         if vehicle:
                             sig = self._cr_base.initial_signal_state
                             self._set_up_lights(vehicle=vehicle, sig=sig)
+                    yaw = transform.rotation.yaw * (math.pi / 180)
+                    vx = self._cr_base.initial_state.velocity * math.cos(yaw)
+                    vy = self._cr_base.initial_state.velocity * math.sin(yaw)
+                    obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
                     self._carla_id = obstacle.id
                     self._is_spawned = True
             except Exception as e:

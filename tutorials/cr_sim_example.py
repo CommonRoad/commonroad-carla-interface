@@ -12,7 +12,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 or_map = "/media/sebastian/TUM/06_code/internal/carla-interface/maps/four_way_crossing.xodr"
-cr_map = "/media/sebastian/TUM/06_code/internal/carla-interface/scenarios/four_way_crossing.xml"
+cr_map = "/media/sebastian/TUM/06_code/internal/carla-interface/scenarios/four_way_crossing_Modi.xml"
+# or_map = "/media/sebastian/TUM/06_code/internal/carla-interface/maps/DEU_Test-1_1_T-1.xodr"
+# cr_map = "/media/sebastian/TUM/06_code/internal/carla-interface/scenarios/DEU_Test-1_1_T-1.xml"
 # or_map = "Town"
 cr_scenario, _ = scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
 param = CarlaParams()

@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from typing import List
 
 import carla
 
@@ -43,8 +44,21 @@ class ObstacleInterface:
         :param physics: if physics should be enabled for the vehicle
         :return: if spawn successful the according CARLA actor else None
         """
-
         pass
+
+    @property
+    def is_spawned(self):
+        return self._is_spawned
+
+    @property
+    def carla_id(self):
+        return self._carla_id
+
+    def get_role(self):
+        return self._cr_base.obstacle_role
+
+    def state_at_time_step(self, time_step: int):
+        return self._cr_base.state_at_time(time_step)
 
     def update_position_by_time(self, world: carla.World, state: State):
         """
@@ -65,6 +79,16 @@ class ObstacleInterface:
         except Exception as e:
             logger.error("Error while updating position")
             raise e
+
+    def get_path(self) -> List[carla.Location]:
+        if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
+            return [carla.Location(x=self._cr_base.initial_state.position[0],
+                                   y=-self._cr_base.initial_state.position[1],
+                                   z=0.5)]
+        else:
+            return [carla.Location(x=state.position[0],  y=-state.position[1], z=0.5)
+                    for state in self._cr_base.prediction.trajectory.state_list]
+
 
     def destroy_carla_obstacle(self, world):
         """

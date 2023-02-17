@@ -7,11 +7,15 @@ import signal
 from enum import Enum
 import logging
 import numpy as np
+from typing import List
 
 from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 
 from carlacr.helper.config import CarlaParams
 from carlacr.interface.vehicle_interface import VehicleInterface
+from carlacr.interface.obstacle_interface import ObstacleInterface
+from carlacr.interface.pedestrian_interface import PedestrianInterface
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +34,7 @@ def calc_max_timestep(sc: Scenario) -> int:
     :param sc: scenario to calculate max time step
     :return: length of scenario
     """
-    time_steps = [obstacle.prediction.occupancy_set[-1].time_step for obstacle in sc.dynamic_obstacles]
+    time_steps = [obstacle.prediction.final_time_step for obstacle in sc.dynamic_obstacles]
     return np.max(time_steps) if time_steps else 0
 
 
@@ -56,7 +60,7 @@ class CarlaInterface:
         self._load_map(self._config.carla_map)
 
         # CR_PLANNING Mode
-        self._cr_obstacles = []
+        self._cr_obstacles: List[ObstacleInterface] = []
 
         # if carla_planning_mode
 
@@ -154,7 +158,12 @@ class CarlaInterface:
 
     def set_scenario(self, sc: Scenario):
         for obs in sc.obstacles:
-           self._cr_obstacles.append(VehicleInterface(obs))
+            if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
+                                     ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
+                self._cr_obstacles.append(VehicleInterface(obs))
+            elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
+                self._cr_obstacles.append(PedestrianInterface(obs))
+
         # TODO: set traffic light cycle
         self._spawn_cr_obstacles()
 
@@ -162,7 +171,7 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
             obs.spawn(self._client.get_world(), 0)
 
-    def replay(self, sc: Scenario):
+    def replay(self, sc: Scenario, waypoint_control = False):
         """
         Runs the CommonRoad Scenario in CARLA.
 
@@ -174,11 +183,19 @@ class CarlaInterface:
         additional to the objects defined in the scenario
         """
         self.set_scenario(sc)
-        world = self._client.get_world()
-
-        for time_step in range(calc_max_timestep(sc)):
-            # CommonRoad controlled:
-            self.control_commonroad_obstacles(time_step)
+        if not waypoint_control:
+            for time_step in range(calc_max_timestep(sc)):
+                for obs in self._cr_obstacles:
+                    if not obs.is_spawned:
+                        obs.spawn(self._client.get_world(), time_step)
+                    elif obs.get_role() == ObstacleRole.DYNAMIC:
+                        tm = self._client.get_trafficmanager()
+                        tm.set_path(self._client.get_world().get_actor(obs.carla_id), obs.get_path())
+                self._client.get_world().tick(1) # todo time step
+        else:
+            for time_step in range(calc_max_timestep(sc)):
+                logger.info(f"Replay time step: {time_step}.")
+                self.control_commonroad_obstacles(time_step)
 
     def control_commonroad_obstacles(self, curr_time_step: int):
         """
@@ -189,9 +206,8 @@ class CarlaInterface:
         :param curr_time_step: current time step of the scenario
         :param mode: update obstacle "by-time", "by-control", or "by-ackermann-control"
         """
-        deleted_obs = []
         for obs in self._cr_obstacles:
             if not obs.is_spawned:
-                obs.spawn(self.client.get_world(), curr_time_step)
+                obs.spawn(self._client.get_world(), curr_time_step)
             else:
-                obs.update_position_by_time(self.client.get_world(), obs.trajectory.state_at_time_step(curr_time_step))
+                obs.update_position_by_time(self._client.get_world(), obs.state_at_time_step(curr_time_step))
