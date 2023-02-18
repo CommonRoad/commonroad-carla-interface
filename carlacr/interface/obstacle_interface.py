@@ -60,7 +60,7 @@ class ObstacleInterface:
     def state_at_time_step(self, time_step: int):
         return self._cr_base.state_at_time(time_step)
 
-    def update_position_by_time(self, world: carla.World, state: State):
+    def waypoint_control(self, world: carla.World, state: State):
         """
         Tries to update the position of the obstacle and sets lights.
 

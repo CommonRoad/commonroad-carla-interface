@@ -43,6 +43,8 @@ class BaseParam:
     offscreen_mode: bool = False
     carla_map = "Town01"
     client_init_timeout: float = 30.0
+    sync: bool = True
+    autopilot: bool = False
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -59,6 +61,8 @@ class BaseParam:
         self.offscreen_mode = self.offscreen_mode
         self.client_init_timeout = self.client_init_timeout
         self.carla_map = self.carla_map
+        self.sync = self.sync
+        self.autopilot = self.autopilot
 
     def __getitem__(self, item):
         try:
@@ -95,7 +99,6 @@ class SimulationParams(BaseParam):
     time_step: float =  0.1
     tm_port: int = 8000
     hybrid_physics_mode: bool = False
-    synchronous: bool = True
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
 
@@ -128,17 +131,24 @@ class ObstacleParams(BaseParam):
     control: ControlParams = field(default_factory=ControlParams)
 
 
+@dataclass
 class Mode2dParams(BaseParam):
     description: str = "CARLA No Rendering Mode Visualizer"
     res: str = '1280x720'  # window resolution (default: 1280x720)
     filter: str = 'vehicle.*'  # actor filter (default: "vehicle.*")
 
 
+@dataclass
 class MapParams(BaseParam):
     vertex_distance: float = 2.0  # in meters
     max_road_length: float = 500.0  # in meters
     wall_height: float = 1.0  # in meters
     extra_width: float = 0.6  # in meters
+
+@dataclass
+class ManualControlParams(BaseParam):
+    width: float = 1280
+    height: float = 720
 
 
 @dataclass

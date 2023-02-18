@@ -1,6 +1,10 @@
 import logging
+from carla import World
+try:
+    from carla import VehicleAckermannControl, AckermannControllerSettings
+except ImportError:
+    print("TODO logging")
 
-import carla
 from agents.navigation.controller import VehiclePIDController
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole
@@ -10,6 +14,7 @@ from carlacr.interface.vehicle_interface import VehicleInterface
 from carlacr.helper.config import ObstacleParams
 
 logger = logging.getLogger(__name__)
+
 
 
 class EgoInterface(VehicleInterface):
@@ -22,14 +27,14 @@ class EgoInterface(VehicleInterface):
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
         super().__init__(cr_obstacle, config)
-        self.ackermann_settings = carla.AckermannControllerSettings(speed_kp=config.control.ackermann_pid_speed_kp,
+        self.ackermann_settings = AckermannControllerSettings(speed_kp=config.control.ackermann_pid_speed_kp,
                                                                     speed_ki=config.control.ackermann_pid_speed_ki,
                                                                     speed_kd=config.control.ackermann_pid_speed_kd,
                                                                     accel_kp=config.control.ackermann_pid_accel_kp,
                                                                     accel_ki=config.control.ackermann_pid_accel_ki,
                                                                     accel_kd=config.control.ackermann_pid_accel_kd)
 
-    def update_position_by_control(self, world: carla.World, state: State):
+    def pid_control(self, world: World, state: State):
         """
         Function controls the obstacle vehicle to drive along the planned route (for one step) and sets the lights.
 
@@ -64,7 +69,7 @@ class EgoInterface(VehicleInterface):
             logger.error("Error while updating position")
             raise e
 
-    def update_with_ackermann_control(self, world: carla.World, state: State):
+    def ackermann_control(self, world: World, state: State):
         """
         Prepare to update the position with ackermann controller (version 0.9.14+ required).
 
@@ -80,7 +85,7 @@ class EgoInterface(VehicleInterface):
             _jerk = self.trajectory.jerk(state.time_step)
 
             # Define the Ackermann control
-            ackermann_control = carla.VehicleAckermannControl(
+            ackermann_control = VehicleAckermannControl(
                 steer=_steering_angle,
                 steer_speed=_steering_angle_speed,
                 speed=_speed,
@@ -100,3 +105,6 @@ class EgoInterface(VehicleInterface):
         except Exception as e:
             logger.error("Error while updating position")
             raise e
+
+    def steering_wheel_control(self):
+        pass

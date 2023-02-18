@@ -58,6 +58,7 @@ class CarlaInterface:
         self._init_carla_world()
         self._init_carla_traffic_manager()
         self._load_map(self._config.carla_map)
+        sys.path.append(os.path.join(self._find_carla_executable(), "PythonAPI"))
 
         # CR_PLANNING Mode
         self._cr_obstacles: List[ObstacleInterface] = []
@@ -210,4 +211,4 @@ class CarlaInterface:
             if not obs.is_spawned:
                 obs.spawn(self._client.get_world(), curr_time_step)
             else:
-                obs.update_position_by_time(self._client.get_world(), obs.state_at_time_step(curr_time_step))
+                obs.waypoint_control(self._client.get_world(), obs.state_at_time_step(curr_time_step))
