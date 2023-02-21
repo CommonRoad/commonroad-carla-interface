@@ -1,8 +1,8 @@
 import logging
-from carla import World, Client
+from carla import Client
 import pygame
 
-from examples.manual_control import KeyboardControl, HUD
+from examples.manual_control import KeyboardControl, HUD, World
 
 from carlacr.helper.config import ManualControlParams
 
@@ -13,7 +13,7 @@ def manual_keyboard_control(client: Client, config: ManualControlParams):
     pygame.font.init()
     world = None
     sim_world = None
-    original_settings = None
+    # original_settings = None
 
     try:
         sim_world = client.get_world()
@@ -37,7 +37,7 @@ def manual_keyboard_control(client: Client, config: ManualControlParams):
         pygame.display.flip()
 
         hud = HUD(config.width, config.height)
-        world = World(sim_world, hud)
+        world = World(sim_world, hud, config)
         controller = KeyboardControl(world, config.autopilot)
 
         if config.sync:
@@ -58,8 +58,8 @@ def manual_keyboard_control(client: Client, config: ManualControlParams):
 
     finally:
 
-        if original_settings:
-            sim_world.apply_settings(original_settings)
+        #if original_settings:
+        #     sim_world.apply_settings(original_settings)
 
         if world and world.recording_enabled:
             client.stop_recorder()

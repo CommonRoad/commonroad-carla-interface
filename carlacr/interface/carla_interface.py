@@ -4,7 +4,6 @@ import sys
 import subprocess
 import time
 import signal
-from enum import Enum
 import logging
 import numpy as np
 from typing import List
@@ -12,18 +11,12 @@ from typing import List
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 
-from carlacr.helper.config import CarlaParams
+from carlacr.helper.config import CarlaParams, OperatingMode
 from carlacr.interface.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle_interface import ObstacleInterface
 from carlacr.interface.pedestrian_interface import PedestrianInterface
 
 logger = logging.getLogger(__name__)
-
-class OperatingMode(Enum):
-    CR_PLANNING = 0
-    CARLA_PLANNING = 1
-    REPLAY = 2
-    SCENARIO_GENERATION = 3
 
 
 # This module contains helper methods for the Carla-CommonRoad Interface
@@ -58,9 +51,10 @@ class CarlaInterface:
         self._init_carla_world()
         self._init_carla_traffic_manager()
         self._load_map(self._config.carla_map)
-        sys.path.append(os.path.join(self._find_carla_executable(), "PythonAPI"))
+        sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
         # CR_PLANNING Mode
+        # if self._config.operating_mode is OperatingMode.:
         self._cr_obstacles: List[ObstacleInterface] = []
 
         # if carla_planning_mode
@@ -78,7 +72,7 @@ class CarlaInterface:
 
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
-        path_to_carla = self._find_carla_executable()
+        path_to_carla = os.path.join(self._find_carla_distribution(), "CarlaUE4.sh")
         logger.info("Start CARLA server.")
         if self._config.offscreen_mode:
             self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'], stdout=subprocess.PIPE,
@@ -89,14 +83,14 @@ class CarlaInterface:
             logger.info("CARLA server started in normal visualization mode.")
         time.sleep(self._config.sleep_time)
 
-    def _find_carla_executable(self) -> str:
+    def _find_carla_distribution(self) -> str:
         """Searches for CARLA executable in provided paths.
 
         :returns Path to CARLa executable as string.
         """
         logger.info("Search CARLA server executable.")
         for default_path in self._config.default_carla_paths:
-            path = os.path.join(default_path.replace("/~", os.path.expanduser("~")), "CarlaUE4.sh")
+            path = default_path.replace("/~", os.path.expanduser("~"))
             if os.path.exists(path):
                 return path
         raise FileNotFoundError("CARLA executable not found.")
@@ -110,7 +104,7 @@ class CarlaInterface:
         # mode too. Read this to learn how to do it.
         # See: https://carla.readthedocs.io/en/latest/adv_synchrony_timestep/#setting-synchronous-mode
         settings = world.get_settings()
-        settings.synchronous_mode = self._config.simulation.synchronous
+        settings.synchronous_mode = self._config.simulation.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
         world.apply_settings(settings)
 
@@ -122,7 +116,7 @@ class CarlaInterface:
                 self._config.simulation.global_distance_to_leading_vehicle)
         traffic_manager.global_percentage_speed_difference(self._config.simulation.global_percentage_speed_difference)
         traffic_manager.set_hybrid_physics_mode(self._config.simulation.hybrid_physics_mode)
-        traffic_manager.set_synchronous_mode(self._config.simulation.synchronous)
+        traffic_manager.set_synchronous_mode(self._config.simulation.sync)
 
     def _load_map(self, map_name: str):
         """
@@ -197,6 +191,11 @@ class CarlaInterface:
             for time_step in range(calc_max_timestep(sc)):
                 logger.info(f"Replay time step: {time_step}.")
                 self.control_commonroad_obstacles(time_step)
+
+    def test_manual_control(self):
+        from carlacr.interface.game_interface import manual_keyboard_control
+        manual_keyboard_control(self._client, self._config.manual_control)
+
 
     def control_commonroad_obstacles(self, curr_time_step: int):
         """

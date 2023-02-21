@@ -7,6 +7,18 @@ from omegaconf import OmegaConf
 from enum import Enum
 
 
+class OperatingMode(Enum):
+    MOTION_PLANNER = 0
+    KEYBOARD = 1
+    WHEEL = 2
+    REPLAY = 3
+    SCENARIO_GENERATION = 4
+
+class ObstacleMode(Enum):
+    CARLA: 0
+    CR: 1
+
+
 class ApproximationType(Enum):
     """Approximation type with fix length, width and area."""
     LENGTH = 0
@@ -45,6 +57,7 @@ class BaseParam:
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
+    operating_mode: OperatingMode = OperatingMode.REPLAY
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -63,6 +76,7 @@ class BaseParam:
         self.carla_map = self.carla_map
         self.sync = self.sync
         self.autopilot = self.autopilot
+        self.operating_mode = self.operating_mode
 
     def __getitem__(self, item):
         try:
@@ -149,6 +163,10 @@ class MapParams(BaseParam):
 class ManualControlParams(BaseParam):
     width: float = 1280
     height: float = 720
+    rolename: str = "hero"
+    filter: str = "vehicle.*"
+    generation: str = "2"
+    gamma: float = 2.2
 
 
 @dataclass
@@ -157,3 +175,4 @@ class CarlaParams(BaseParam):
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
     map: MapParams = field(default_factory=MapParams)
+    manual_control: ManualControlParams = field(default_factory=ManualControlParams)
