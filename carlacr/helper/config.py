@@ -58,6 +58,7 @@ class BaseParam:
     sync: bool = True
     autopilot: bool = False
     operating_mode: OperatingMode = OperatingMode.REPLAY
+    birds_eye_view: bool = False
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -77,6 +78,7 @@ class BaseParam:
         self.sync = self.sync
         self.autopilot = self.autopilot
         self.operating_mode = self.operating_mode
+        self.birds_eye_view = self.birds_eye_view
 
     def __getitem__(self, item):
         try:

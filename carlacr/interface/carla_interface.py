@@ -194,7 +194,8 @@ class CarlaInterface:
 
     def test_manual_control(self):
         from carlacr.interface.game_interface import manual_keyboard_control
-        manual_keyboard_control(self._client, self._config.manual_control)
+        if self._config.birds_eye_view:
+            manual_keyboard_control(self._client, self._config.manual_control)
 
 
     def control_commonroad_obstacles(self, curr_time_step: int):

@@ -19,7 +19,8 @@ logging.basicConfig(level=logging.DEBUG)
 #cr_scenario, _ = scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
 param = CarlaParams()
 #param.carla_map = or_map
-# param.offscreen_mode = True
+param.offscreen_mode = True
+param.birds_eye_view = True
 try:
     ci = CarlaInterface(param)
     ci.test_manual_control()

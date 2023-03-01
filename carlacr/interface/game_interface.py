@@ -2,7 +2,8 @@ import logging
 from carla import Client
 import pygame
 
-from examples.manual_control import KeyboardControl, HUD, World
+# from examples.manual_control import KeyboardControl, HUD, World
+from carlacr.carla_org.manual_control import KeyboardControl, HUD, World
 
 from carlacr.helper.config import ManualControlParams
 
@@ -12,25 +13,8 @@ def manual_keyboard_control(client: Client, config: ManualControlParams):
     pygame.init()
     pygame.font.init()
     world = None
-    sim_world = None
-    # original_settings = None
-
     try:
         sim_world = client.get_world()
-        # if args.sync:
-        #     original_settings = sim_world.get_settings()
-        #     settings = sim_world.get_settings()
-        #     if not settings.synchronous_mode:
-        #         settings.synchronous_mode = True
-        #         settings.fixed_delta_seconds = 0.05
-        #     sim_world.apply_settings(settings)
-        #
-        #     traffic_manager = client.get_trafficmanager()
-        #     traffic_manager.set_synchronous_mode(True)
-        #
-        # if args.autopilot and not sim_world.get_settings().synchronous_mode:
-        #     print("WARNING: You are currently in asynchronous mode and could "
-        #           "experience some issues with the traffic simulation")
 
         display = pygame.display.set_mode((config.width, config.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0, 0, 0))
@@ -57,10 +41,6 @@ def manual_keyboard_control(client: Client, config: ManualControlParams):
             pygame.display.flip()
 
     finally:
-
-        #if original_settings:
-        #     sim_world.apply_settings(original_settings)
-
         if world and world.recording_enabled:
             client.stop_recorder()
 
