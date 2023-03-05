@@ -10,17 +10,13 @@
 # -- find carla module ---------------------------------------------------------
 # ==============================================================================
 
-import glob
-import os
-import sys
+from typing import Optional
 
-try:
-    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
-except IndexError:
-    pass
+from carlacr.interface.obstacle.ego_interface import EgoInterface
+from carlacr.helper.config import ObstacleParams
+
+from commonroad.scenario.obstacle import DynamicObstacle
+
 
 # ==============================================================================
 # -- imports -------------------------------------------------------------------
@@ -51,11 +47,12 @@ except ImportError:
 MAP_DEFAULT_SCALE = 0.1
 HERO_DEFAULT_SCALE = 1.0
 
-class KeyBoardControl2D(object):
+class KeyboardEgoInterface2D(EgoInterface):
     """Class that handles input received such as keyboard and mouse."""
 
-    def __init__(self, name):
+    def __init__(self, name: str, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams()):
         """Initializes input member variables when instance is created."""
+        super().__init__(cr_obstacle, config)
         self.name = name
         self._steer_cache = 0.0
         self.control = carla.VehicleControl()

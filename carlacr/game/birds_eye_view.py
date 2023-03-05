@@ -50,7 +50,7 @@ except IndexError:
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
 
-from carlacr.interface.control_interface import HERO_DEFAULT_SCALE
+from carlacr.interface.obstacle.keyboard import HERO_DEFAULT_SCALE
 
 import carla
 from carla import TrafficLightState as tls

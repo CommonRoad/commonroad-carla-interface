@@ -6,19 +6,24 @@ import time
 import signal
 import logging
 import numpy as np
-from typing import List
+from typing import List, Type, TypeVar
+import pygame
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 
-from carlacr.game.game_interface import manual_keyboard_control
+from carlacr.game.birds_eye_view import HUD2D
+from carlacr.game.birds_eye_view import World2D
+from carlacr.interface.obstacle.ego_interface import EgoInterface
+from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D
 from carlacr.helper.config import CarlaParams
-from carlacr.interface.vehicle_interface import VehicleInterface
-from carlacr.interface.obstacle_interface import ObstacleInterface
-from carlacr.interface.pedestrian_interface import PedestrianInterface
+from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
+from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
+from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 
 logger = logging.getLogger(__name__)
 
+EI = TypeVar('EI', bound=EgoInterface)
 
 # This module contains helper methods for the Carla-CommonRoad Interface
 def calc_max_timestep(sc: Scenario) -> int:
@@ -118,7 +123,9 @@ class CarlaInterface:
                 self._config.simulation.global_distance_to_leading_vehicle)
         traffic_manager.global_percentage_speed_difference(self._config.simulation.global_percentage_speed_difference)
         traffic_manager.set_hybrid_physics_mode(self._config.simulation.hybrid_physics_mode)
-        traffic_manager.set_synchronous_mode(self._config.simulation.sync)
+        traffic_manager.set_hybrid_physics_radius(self._config.simulation.hybrid_physics_radius)
+        traffic_manager.set_synchronous_mode(self._config.sync)
+        traffic_manager.set_random_device_seed(self._config.simulation.seed)
 
     def _load_map(self, map_name: str):
         """
@@ -192,14 +199,9 @@ class CarlaInterface:
         else:
             for time_step in range(calc_max_timestep(sc)):
                 logger.info(f"Replay time step: {time_step}.")
-                self.control_commonroad_obstacles(time_step)
+                self._control_commonroad_obstacles(time_step)
 
-    def test_manual_control(self):
-        if self._config.birds_eye_view:
-            manual_keyboard_control(self._client, self._config.manual_control)
-
-
-    def control_commonroad_obstacles(self, curr_time_step: int):
+    def _control_commonroad_obstacles(self, curr_time_step: int):
         """
         Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
 
@@ -212,4 +214,74 @@ class CarlaInterface:
             if not obs.is_spawned:
                 obs.spawn(self._client.get_world(), curr_time_step)
             else:
-                obs.waypoint_control(self._client.get_world(), obs.state_at_time_step(curr_time_step))
+                obs.control(obs.state_at_time_step(curr_time_step))
+
+    def keyboard_control(self):
+        logger.info("Start keyboard manual control.")
+
+        if self._config.birds_eye_view:
+            logger.info("Init 2D Manual Control.")
+            controller = KeyboardEgoInterface2D("2D Manual Control")
+        else:
+            logger.info("Init 3D Manual Control.")
+            controller = KeyboardEgoInterface2D("2D Manual Control")
+
+        self._run_simulation(controller)
+
+    def _run_simulation(self, ego: Type[EI]):
+
+        COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
+        COLOR_WHITE = pygame.Color(255, 255, 255)
+        pygame.init()
+        pygame.font.init()
+        world = None
+        try:
+            sim_world = self._client.get_world()
+
+            display = pygame.display.set_mode(
+                    (self._config.keyboard_control.width, self._config.keyboard_control.height),
+                    pygame.HWSURFACE | pygame.DOUBLEBUF)
+
+            pygame.display.set_caption(self._config.keyboard_control.description)  # Place a title to game window
+
+            # Show loading screen
+            font = pygame.font.Font(pygame.font.get_default_font(), 20)
+            text_surface = font.render('Rendering map...', True, COLOR_WHITE)
+            display.blit(text_surface, text_surface.get_rect(
+                    center=(self._config.keyboard_control.width / 2, self._config.keyboard_control.height / 2)))
+            display.fill((0, 0, 0))
+            pygame.display.flip()
+
+            if self._config.birds_eye_view:
+                logger.info("Init 2D.")
+                hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
+                world = World2D("CARLA 2D", self._config.keyboard_control)
+
+                # For each module, assign other modules that are going to be used inside that module
+                logger.info("Register 2D.")
+                ego.start(hud, world)
+                hud.start()
+                world.start(hud, sim_world)
+
+                # Game loop
+                clock = pygame.time.Clock()
+                logger.info("Loop 2D.")
+                while True:
+                    clock.tick_busy_loop(60)
+
+                    # Tick all modules
+                    world.tick(clock)
+                    hud.tick(clock)
+                    ego.tick(clock)
+
+                    # Render all modules
+                    display.fill(COLOR_ALUMINIUM_4)
+                    world.render(display)
+                    hud.render(display)
+
+                    pygame.display.flip()
+
+
+        finally:
+            if world is not None:
+                world.destroy()

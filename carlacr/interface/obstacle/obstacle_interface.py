@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from typing import List
+from abc import ABC
 
 import carla
 
@@ -19,7 +20,7 @@ def create_carla_transform(state: State, z_position: float = 0.5):
     return transform
 
 
-class ObstacleInterface:
+class ObstacleInterface(ABC):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
@@ -28,12 +29,15 @@ class ObstacleInterface:
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
-        self._commonroad_id = cr_obstacle.obstacle_id
         self._carla_id = None
         self._is_spawned = False
-        self._spawn_timestep = cr_obstacle.initial_state.time_step
-        self._cr_base = cr_obstacle
         self._config = config
+        self._world = None
+        if cr_obstacle is not None:
+            self._commonroad_id = cr_obstacle.obstacle_id
+            self._spawn_timestep = cr_obstacle.initial_state.time_step
+            self._cr_base = cr_obstacle
+
 
     def spawn(self, world: carla.World, time_step: int):
         """
@@ -60,25 +64,13 @@ class ObstacleInterface:
     def state_at_time_step(self, time_step: int):
         return self._cr_base.state_at_time(time_step)
 
-    def waypoint_control(self, world: carla.World, state: State):
+    def control(self, state: State):
         """
         Tries to update the position of the obstacle and sets lights.
 
-        :param world: the CARLA world object
         :param state:state at the time step
         """
-        try:
-            if self._is_spawned & (self._cr_base.obstacle_role == ObstacleRole.DYNAMIC) and \
-                    (self._cr_base.prediction.trajectory is not None):
-                actor = world.get_actor(self._carla_id)
-                if actor:
-                    transform = create_carla_transform(state, actor.get_location().z)
-                    actor.set_transform(transform)
-                else:
-                    logger.debug("Could not find actor")
-        except Exception as e:
-            logger.error("Error while updating position")
-            raise e
+        pass
 
     def get_path(self) -> List[carla.Location]:
         if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
@@ -112,3 +104,46 @@ class ObstacleInterface:
         resp += f"role: {self._cr_base.obstacle_role}"
         resp += f"type: {self._cr_base.obstacle_type}\n"
         return resp
+
+
+class WaypointObstacleInterface(ObstacleInterface):
+    """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
+
+    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
+        """
+        Initializer of the obstacle.
+
+        :param cr_obstacle: the underlying CommonRoad obstacle
+        """
+        super().__init__(cr_obstacle, config)
+
+    def spawn(self, world: carla.World, time_step: int):
+        """
+        Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
+
+        :param world: the CARLA world object
+        :param config: obstacle-related configuration
+        :param physics: if physics should be enabled for the vehicle
+        :return: if spawn successful the according CARLA actor else None
+        """
+        pass
+
+    def control(self, state: State):
+        """
+        Tries to update the position of the obstacle and sets lights.
+
+        :param world: the CARLA world object
+        :param state:state at the time step
+        """
+        try:
+            if self._is_spawned & (self._cr_base.obstacle_role == ObstacleRole.DYNAMIC) and \
+                    (self._cr_base.prediction.trajectory is not None):
+                actor = self._world.get_actor(self._carla_id)
+                if actor:
+                    transform = create_carla_transform(state, actor.get_location().z)
+                    actor.set_transform(transform)
+                else:
+                    logger.debug("Could not find actor")
+        except Exception as e:
+            logger.error("Error while updating position")
+            raise e

@@ -117,7 +117,8 @@ class SimulationParams(BaseParam):
     hybrid_physics_mode: bool = False
     global_percentage_speed_difference: float = 0.0
     global_distance_to_leading_vehicle: float = 1.0
-
+    hybrid_physics_radius: float = 70.0
+    seed: int = 0
 
 @dataclass
 class ControlParams(BaseParam):
@@ -162,14 +163,14 @@ class MapParams(BaseParam):
     extra_width: float = 0.6  # in meters
 
 @dataclass
-class ManualControlParams(BaseParam):
+class KeyboardControlParams(BaseParam):
     width: float = 1280
     height: float = 720
     rolename: str = "hero"
     filter: str = "vehicle.*"
     generation: str = "2"
     gamma: float = 2.2
-    description: str = "test"
+    description: str = "Keyboard Control"
     show_triggers: bool = True
     show_connections: bool = True
     show_spawn_points: bool = True
@@ -181,4 +182,4 @@ class CarlaParams(BaseParam):
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
     map_params: MapParams = field(default_factory=MapParams)
-    manual_control: ManualControlParams = field(default_factory=ManualControlParams)
+    keyboard_control: KeyboardControlParams = field(default_factory=KeyboardControlParams)
