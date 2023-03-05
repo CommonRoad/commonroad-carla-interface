@@ -5,12 +5,12 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
 from carlacr.helper.config import ObstacleParams
-from carlacr.interface.obstacle.obstacle_interface import WaypointObstacleInterface, create_carla_transform
+from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface, create_carla_transform
 
 logger = logging.getLogger(__name__)
 
 
-class PedestrianInterface(WaypointObstacleInterface):
+class PedestrianInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
@@ -28,6 +28,7 @@ class PedestrianInterface(WaypointObstacleInterface):
         :param world: the CARLA world object
         :return: if spawn successful the according CARLA actor else None
         """
+        self._world = world
         if time_step != self._cr_base.initial_state.time_step:
             return
         transform = create_carla_transform(self._cr_base.initial_state)

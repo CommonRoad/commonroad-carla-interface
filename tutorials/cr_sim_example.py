@@ -23,7 +23,7 @@ param.offscreen_mode = False
 
 try:
     ci = CarlaInterface(param)
-    ci.replay(cr_scenario)
+    ci.replay(cr_scenario, True)
 except Exception as e:
     print(e)
 

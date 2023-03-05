@@ -68,9 +68,21 @@ class ObstacleInterface(ABC):
         """
         Tries to update the position of the obstacle and sets lights.
 
+        :param world: the CARLA world object
         :param state:state at the time step
         """
-        pass
+        try:
+            if self._is_spawned & (self._cr_base.obstacle_role == ObstacleRole.DYNAMIC) and \
+                    (self._cr_base.prediction.trajectory is not None):
+                actor = self._world.get_actor(self._carla_id)
+                if actor:
+                    transform = create_carla_transform(state, actor.get_location().z)
+                    actor.set_transform(transform)
+                else:
+                    logger.debug("Could not find actor")
+        except Exception as e:
+            logger.error("Error while updating position")
+            raise e
 
     def get_path(self) -> List[carla.Location]:
         if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
@@ -105,45 +117,3 @@ class ObstacleInterface(ABC):
         resp += f"type: {self._cr_base.obstacle_type}\n"
         return resp
 
-
-class WaypointObstacleInterface(ObstacleInterface):
-    """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
-
-    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
-        """
-        Initializer of the obstacle.
-
-        :param cr_obstacle: the underlying CommonRoad obstacle
-        """
-        super().__init__(cr_obstacle, config)
-
-    def spawn(self, world: carla.World, time_step: int):
-        """
-        Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
-
-        :param world: the CARLA world object
-        :param config: obstacle-related configuration
-        :param physics: if physics should be enabled for the vehicle
-        :return: if spawn successful the according CARLA actor else None
-        """
-        pass
-
-    def control(self, state: State):
-        """
-        Tries to update the position of the obstacle and sets lights.
-
-        :param world: the CARLA world object
-        :param state:state at the time step
-        """
-        try:
-            if self._is_spawned & (self._cr_base.obstacle_role == ObstacleRole.DYNAMIC) and \
-                    (self._cr_base.prediction.trajectory is not None):
-                actor = self._world.get_actor(self._carla_id)
-                if actor:
-                    transform = create_carla_transform(state, actor.get_location().z)
-                    actor.set_transform(transform)
-                else:
-                    logger.debug("Could not find actor")
-        except Exception as e:
-            logger.error("Error while updating position")
-            raise e

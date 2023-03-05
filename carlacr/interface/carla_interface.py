@@ -83,10 +83,10 @@ class CarlaInterface:
         if self._config.offscreen_mode:
             self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'], stdout=subprocess.PIPE,
                                                preexec_fn=os.setsid)
-            logger.info("CARLA server started in off-screen mode.")
+            logger.info(f"CARLA server started in off-screen mode using PID {self._carla_pid.pid}.")
         else:
             self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
-            logger.info("CARLA server started in normal visualization mode.")
+            logger.info(f"CARLA server started in normal visualization mode using PID {self._carla_pid.pid}.")
         time.sleep(self._config.sleep_time)
 
     def _find_carla_distribution(self) -> str:
@@ -187,21 +187,24 @@ class CarlaInterface:
         additional to the objects defined in the scenario
         """
         self.set_scenario(sc)
-        if not waypoint_control:
-            for time_step in range(calc_max_timestep(sc)):
-                for obs in self._cr_obstacles:
-                    if not obs.is_spawned:
-                        obs.spawn(self._client.get_world(), time_step)
-                    elif obs.get_role() == ObstacleRole.DYNAMIC:
-                        tm = self._client.get_trafficmanager()
-                        tm.set_path(self._client.get_world().get_actor(obs.carla_id), obs.get_path())
-                self._client.get_world().tick(1) # todo time step
-        else:
-            for time_step in range(calc_max_timestep(sc)):
+        for time_step in range(calc_max_timestep(sc)):
+            if not waypoint_control:
                 logger.info(f"Replay time step: {time_step}.")
-                self._control_commonroad_obstacles(time_step)
+                self._control_commonroad_obstacles_path_dynamic(time_step)
+            else:
+                logger.info(f"Replay time step: {time_step}.")
+                self._control_commonroad_obstacles_waypoint(time_step)
+            self._client.get_world().tick(1)  # todo time step
 
-    def _control_commonroad_obstacles(self, curr_time_step: int):
+    def _control_commonroad_obstacles_path_dynamic(self, curr_time_step: int):
+        for obs in self._cr_obstacles:
+            if not obs.is_spawned:
+                obs.spawn(self._client.get_world(), curr_time_step)
+            elif obs.get_role() == ObstacleRole.DYNAMIC:
+                tm = self._client.get_trafficmanager()
+                tm.set_path(self._client.get_world().get_actor(obs.carla_id), obs.get_path())
+
+    def _control_commonroad_obstacles_waypoint(self, curr_time_step: int):
         """
         Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
 
