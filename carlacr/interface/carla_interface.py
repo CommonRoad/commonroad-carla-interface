@@ -6,7 +6,7 @@ import time
 import signal
 import logging
 import numpy as np
-from typing import List, Type, TypeVar
+from typing import List, Type, TypeVar, Optional
 import pygame
 
 from commonroad.scenario.scenario import Scenario
@@ -112,6 +112,8 @@ class CarlaInterface:
         settings = world.get_settings()
         settings.synchronous_mode = self._config.simulation.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
+        settings.max_substep_delta_time = self._config.simulation.max_substep_delta_time
+        settings.max_substeps = self._config.simulation.max_substeps
         settings.no_rendering_mode = self._config.birds_eye_view
         world.apply_settings(settings)
 
@@ -160,7 +162,7 @@ class CarlaInterface:
                     enable_pedestrian_navigation=True))
         time.sleep(self._config.sleep_time)
 
-    def set_scenario(self, sc: Scenario):
+    def _set_scenario(self, sc: Scenario):
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
@@ -186,7 +188,7 @@ class CarlaInterface:
         :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
         additional to the objects defined in the scenario
         """
-        self.set_scenario(sc)
+        self._set_scenario(sc)
         for time_step in range(calc_max_timestep(sc)):
             if not waypoint_control:
                 logger.info(f"Replay time step: {time_step}.")
@@ -219,7 +221,7 @@ class CarlaInterface:
             else:
                 obs.control(obs.state_at_time_step(curr_time_step))
 
-    def keyboard_control(self):
+    def keyboard_control(self, sc: Scenario):
         logger.info("Start keyboard manual control.")
 
         if self._config.birds_eye_view:
@@ -229,9 +231,12 @@ class CarlaInterface:
             logger.info("Init 3D Manual Control.")
             controller = KeyboardEgoInterface2D("2D Manual Control")
 
-        self._run_simulation(controller)
+        self._run_simulation(controller, sc)
 
-    def _run_simulation(self, ego: Type[EI]):
+    def _run_simulation(self, ego: Type[EI], sc: Optional[Scenario] = None):
+
+        if sc is not None:
+            self._set_scenario(sc)
 
         COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
         COLOR_WHITE = pygame.Color(255, 255, 255)
@@ -271,6 +276,7 @@ class CarlaInterface:
                 logger.info("Loop 2D.")
                 while True:
                     clock.tick_busy_loop(60)
+                    print(clock.get_time())
 
                     # Tick all modules
                     world.tick(clock)

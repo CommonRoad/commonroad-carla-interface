@@ -1003,42 +1003,10 @@ class World2D:
                     exit_game()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     self._hud.help.toggle()
-                # elif event.key == K_TAB:
-                #     # Toggle between hero and map mode
-                #     if self.hero_actor is None:
-                #         self.select_hero_actor()
-                #         self.wheel_offset = HERO_DEFAULT_SCALE
-                #         self.control = carla.VehicleControl()
-                #         self._hud.notification('Hero Mode')
-                #     else:
-                #         self.wheel_offset = MAP_DEFAULT_SCALE
-                #         self.mouse_offset = [0, 0]
-                #         self.mouse_pos = [0, 0]
-                #         self.scale_offset = [0, 0]
-                #         self.hero_actor = None
-                #         self._hud.notification('Map Mode')
                 elif event.key == K_F1:
                     self._hud.show_info = not self._hud.show_info
                 elif event.key == K_i:
                     self._hud.show_actor_ids = not self._hud.show_actor_ids
-                # elif isinstance(self.control, carla.VehicleControl):
-                    # if event.key == K_q:
-                    #     self.control.gear = 1 if self.control.reverse else -1
-                    # elif event.key == K_m:
-                    #     self.control.manual_gear_shift = not self.control.manual_gear_shift
-                    #     self.control.gear = self.hero_actor.get_control().gear
-                    #     self._hud.notification('%s Transmission' % (
-                    #         'Manual' if self.control.manual_gear_shift else 'Automatic'))
-                    # elif self.control.manual_gear_shift and event.key == K_COMMA:
-                    #     self.control.gear = max(-1, self.control.gear - 1)
-                    # elif self.control.manual_gear_shift and event.key == K_PERIOD:
-                    #     self.control.gear = self.control.gear + 1
-                    # elif event.key == K_p:
-                    #     # Toggle autopilot
-                    #     if self.hero_actor is not None:
-                    #         self._autopilot_enabled = not self._autopilot_enabled
-                    #         self.hero_actor.set_autopilot(self._autopilot_enabled)
-                    #         self._hud.notification('Autopilot %s' % ('On' if self._autopilot_enabled else 'Off'))
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Handle mouse wheel for zooming in and out
                 if event.button == 4:

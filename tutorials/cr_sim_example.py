@@ -19,11 +19,11 @@ cr_map = "/media/sebastian/TUM/06_code/internal/carla-interface/scenarios/four_w
 cr_scenario, _ = scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
 param = CarlaParams()
 param.map = or_map
-param.offscreen_mode = False
+param.offscreen_mode = True
 
 try:
     ci = CarlaInterface(param)
-    ci.replay(cr_scenario, True)
+    ci.keyboard_control(cr_scenario)
 except Exception as e:
     print(e)
 

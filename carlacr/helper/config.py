@@ -113,6 +113,8 @@ class BaseParam:
 @dataclass
 class SimulationParams(BaseParam):
     time_step: float =  0.1
+    max_substep_delta_time: float = 0.01
+    max_substeps: int = 10
     tm_port: int = 8000
     hybrid_physics_mode: bool = False
     global_percentage_speed_difference: float = 0.0
