@@ -11,7 +11,8 @@ from typing import List
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 
-from carlacr.helper.config import CarlaParams, OperatingMode
+from carlacr.game.game_interface import manual_keyboard_control
+from carlacr.helper.config import CarlaParams
 from carlacr.interface.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle_interface import ObstacleInterface
 from carlacr.interface.pedestrian_interface import PedestrianInterface
@@ -50,7 +51,7 @@ class CarlaInterface:
         self._client.set_timeout(self._config.client_init_timeout)
         self._init_carla_world()
         self._init_carla_traffic_manager()
-        self._load_map(self._config.carla_map)
+        self._load_map(self._config.map)
         sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
         # CR_PLANNING Mode
@@ -77,7 +78,7 @@ class CarlaInterface:
         if self._config.offscreen_mode:
             self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'], stdout=subprocess.PIPE,
                                                preexec_fn=os.setsid)
-            logger.info("CARLA server started in non-rendering mode.")
+            logger.info("CARLA server started in off-screen mode.")
         else:
             self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in normal visualization mode.")
@@ -106,6 +107,7 @@ class CarlaInterface:
         settings = world.get_settings()
         settings.synchronous_mode = self._config.simulation.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
+        settings.no_rendering_mode = self._config.birds_eye_view
         world.apply_settings(settings)
 
     def _init_carla_traffic_manager(self):
@@ -142,10 +144,10 @@ class CarlaInterface:
             logger.info(f"Loaded OpenDRIVE map: {os.path.basename(map_name)} successfully.")
 
             self._client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
-                    vertex_distance=self._config.map.vertex_distance,
-                    max_road_length=self._config.map.max_road_length,
-                    wall_height=self._config.map.wall_height,
-                    additional_width=self._config.map.extra_width,
+                    vertex_distance=self._config.map_params.vertex_distance,
+                    max_road_length=self._config.map_params.max_road_length,
+                    wall_height=self._config.map_params.wall_height,
+                    additional_width=self._config.map_params.extra_width,
                     smooth_junctions=True,
                     enable_mesh_visibility=True,
                     enable_pedestrian_navigation=True))
@@ -193,7 +195,6 @@ class CarlaInterface:
                 self.control_commonroad_obstacles(time_step)
 
     def test_manual_control(self):
-        from carlacr.interface.game_interface import manual_keyboard_control
         if self._config.birds_eye_view:
             manual_keyboard_control(self._client, self._config.manual_control)
 

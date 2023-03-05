@@ -52,13 +52,13 @@ class BaseParam:
     default_carla_paths: List[str] = field(default_factory=lambda: [
         "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
         "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/"])
-    offscreen_mode: bool = False
-    carla_map = "Town01"
+    offscreen_mode: bool = True
+    map = "Town01"
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
     operating_mode: OperatingMode = OperatingMode.REPLAY
-    birds_eye_view: bool = False
+    birds_eye_view: bool = True
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -74,7 +74,7 @@ class BaseParam:
         self.default_carla_paths = self.default_carla_paths
         self.offscreen_mode = self.offscreen_mode
         self.client_init_timeout = self.client_init_timeout
-        self.carla_map = self.carla_map
+        self.map = self.map
         self.sync = self.sync
         self.autopilot = self.autopilot
         self.operating_mode = self.operating_mode
@@ -169,6 +169,10 @@ class ManualControlParams(BaseParam):
     filter: str = "vehicle.*"
     generation: str = "2"
     gamma: float = 2.2
+    description: str = "test"
+    show_triggers: bool = True
+    show_connections: bool = True
+    show_spawn_points: bool = True
 
 
 @dataclass
@@ -176,5 +180,5 @@ class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
-    map: MapParams = field(default_factory=MapParams)
+    map_params: MapParams = field(default_factory=MapParams)
     manual_control: ManualControlParams = field(default_factory=ManualControlParams)
