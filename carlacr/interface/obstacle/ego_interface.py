@@ -14,6 +14,7 @@ from carlacr.helper.config import ObstacleParams
 
 logger = logging.getLogger(__name__)
 
+
 class EgoInterface(VehicleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
     def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams()):
@@ -146,6 +147,7 @@ class WheelEgoInterface(EgoInterface):
 
     def control(self, state: Optional[State] = None):
         pass
+
 
 class KeyboardEgoInterface(EgoInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""

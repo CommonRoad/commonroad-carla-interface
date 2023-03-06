@@ -14,6 +14,7 @@ class OperatingMode(Enum):
     REPLAY = 3
     SCENARIO_GENERATION = 4
 
+
 class ObstacleMode(Enum):
     CARLA: 0
     CR: 1
@@ -53,7 +54,7 @@ class BaseParam:
         "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
         "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/"])
     offscreen_mode: bool = True
-    map = "Town01"
+    map: str = "Town01"
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
@@ -121,6 +122,8 @@ class SimulationParams(BaseParam):
     global_distance_to_leading_vehicle: float = 1.0
     hybrid_physics_radius: float = 70.0
     seed: int = 0
+    osm_mode: bool = False
+
 
 @dataclass
 class ControlParams(BaseParam):
@@ -163,6 +166,7 @@ class MapParams(BaseParam):
     max_road_length: float = 500.0  # in meters
     wall_height: float = 1.0  # in meters
     extra_width: float = 0.6  # in meters
+
 
 @dataclass
 class KeyboardControlParams(BaseParam):

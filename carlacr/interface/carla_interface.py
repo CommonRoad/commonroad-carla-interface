@@ -12,10 +12,10 @@ import pygame
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
 
-from carlacr.game.birds_eye_view import HUD2D
-from carlacr.game.birds_eye_view import World2D
+from carlacr.game.birds_eye_view import HUD2D, World2D
+from carlacr.game.ego_view import HUD3D, World3D
 from carlacr.interface.obstacle.ego_interface import EgoInterface
-from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D
+from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D, KeyboardEgoInterface3D
 from carlacr.helper.config import CarlaParams
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
@@ -24,6 +24,7 @@ from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 logger = logging.getLogger(__name__)
 
 EI = TypeVar('EI', bound=EgoInterface)
+
 
 # This module contains helper methods for the Carla-CommonRoad Interface
 def calc_max_timestep(sc: Scenario) -> int:
@@ -128,6 +129,7 @@ class CarlaInterface:
         traffic_manager.set_hybrid_physics_radius(self._config.simulation.hybrid_physics_radius)
         traffic_manager.set_synchronous_mode(self._config.sync)
         traffic_manager.set_random_device_seed(self._config.simulation.seed)
+        traffic_manager.set_osm_mode(self._config.simulation.osm_mode)
 
     def _load_map(self, map_name: str):
         """
@@ -142,6 +144,7 @@ class CarlaInterface:
         if map_name[0:4] == "Town":
             logger.info(f"Load CARLA default map: {map_name}")
             self._client.load_world(map_name)
+            self._config.simulation.osm_mode = True
         elif os.path.exists(map_name):
             logger.info(f"Load OpenDRIVE map: {os.path.basename(map_name)}")
             with open(map_name, encoding='utf-8') as od_file:
@@ -289,7 +292,27 @@ class CarlaInterface:
                     hud.render(display)
 
                     pygame.display.flip()
+            else:
+                logger.info("Init 3D.")
+                hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
+                world = World3D(sim_world, hud, self._config.keyboard_control)
+                controller = KeyboardEgoInterface3D(world, self._config.autopilot)
 
+                if self._config.sync:
+                    sim_world.tick()
+                else:
+                    sim_world.wait_for_tick()
+
+                clock = pygame.time.Clock()
+                while True:
+                    if self._config.sync:
+                        sim_world.tick()
+                    clock.tick_busy_loop(60)
+                    if controller.parse_events(self._client, world, clock, self._config.sync):
+                        return
+                    world.tick(clock)
+                    world.render(display)
+                    pygame.display.flip()
 
         finally:
             if world is not None:
