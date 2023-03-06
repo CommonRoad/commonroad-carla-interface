@@ -281,7 +281,7 @@ class CarlaInterface:
             if self._config.birds_eye_view:
                 logger.info("Init 2D.")
                 hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
-                world = World2D("CARLA 2D", self._config.keyboard_control)
+                world = World2D("CARLA 2D", self._config.keyboard_control, sim_world.get_actor(self._ego._carla_id))
 
                 # For each module, assign other modules that are going to be used inside that module
                 logger.info("Register 2D.")

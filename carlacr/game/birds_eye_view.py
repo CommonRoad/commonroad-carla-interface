@@ -867,7 +867,7 @@ class MapImage(object):
 class World2D:
     """Class that contains all the information of a carla world that is running on the server side"""
 
-    def __init__(self, name, args):
+    def __init__(self, name, args, ego):
         self.name = name
         self.args = args
         self.server_fps = 0.0
@@ -892,8 +892,8 @@ class World2D:
         self.scaled_size = 0
 
         # Hero actor
-        self.hero_actor = None
-        self.spawned_hero = None
+        self.hero_actor = ego
+        self.spawned_hero = ego
         self.hero_transform = None
 
         self.scale_offset = [0, 0]
