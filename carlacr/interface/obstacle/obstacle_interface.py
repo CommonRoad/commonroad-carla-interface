@@ -38,7 +38,6 @@ class ObstacleInterface(ABC):
             self._spawn_timestep = cr_obstacle.initial_state.time_step
             self._cr_base = cr_obstacle
 
-
     def spawn(self, world: carla.World, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.

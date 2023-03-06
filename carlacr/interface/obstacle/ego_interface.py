@@ -1,6 +1,9 @@
 import logging
 from typing import Optional
-from carla import World
+import random
+
+import carla
+
 try:
     from carla import VehicleAckermannControl, AckermannControllerSettings
 except ImportError:
@@ -11,6 +14,7 @@ from commonroad.scenario.trajectory import State
 
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.helper.config import ObstacleParams
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +37,29 @@ class EgoInterface(VehicleInterface):
 
     def tick(self, clock):
         pass
+
+    def spawn(self, world: carla.World, time_step: int) -> bool:
+        if super().spawn(world, time_step):
+            return True
+        else:
+            # function taken from CARLA
+            # Spawns the hero actor when the script runs"""
+            # Get a random blueprint.
+            self._world = world
+            blueprint = random.choice(world.get_blueprint_library().filter(filter))
+            if blueprint.has_attribute('color'):
+                color = random.choice(blueprint.get_attribute('color').recommended_values)
+                blueprint.set_attribute('color', color)
+            # Spawn the player.
+            ego_actor = None
+            while ego_actor is None:
+                spawn_points = world.get_map().get_spawn_points()
+                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+                ego_actor = world.try_spawn_actor(blueprint, spawn_point)
+
+            # Save it in order to destroy it when closing program
+            self._is_spawned = True
+            self._carla_id = ego_actor.id
 
 class AckermannEgoInterface(EgoInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
@@ -88,6 +115,7 @@ class AckermannEgoInterface(EgoInterface):
             logger.error("Error while updating position")
             raise e
 
+
 class PIDEgoInterface(EgoInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
@@ -133,6 +161,7 @@ class PIDEgoInterface(EgoInterface):
         except Exception as e:
             logger.error("Error while updating position")
             raise e
+
 
 class WheelEgoInterface(EgoInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""

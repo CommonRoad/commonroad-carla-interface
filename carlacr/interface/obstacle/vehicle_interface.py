@@ -23,7 +23,7 @@ class VehicleInterface(ObstacleInterface):
         """
         super().__init__(cr_obstacle, config)
 
-    def spawn(self, world: carla.World, time_step: int):
+    def spawn(self, world: carla.World, time_step: int) -> bool:
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 
@@ -32,8 +32,7 @@ class VehicleInterface(ObstacleInterface):
         """
         self._world = world
         if time_step != self._cr_base.initial_state.time_step:
-            return
-
+            return False
 
         transform = create_carla_transform(self._cr_base.initial_state)
 
@@ -69,6 +68,7 @@ class VehicleInterface(ObstacleInterface):
                     obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
                     self._carla_id = obstacle.id
                     self._is_spawned = True
+                return True
             except Exception as e:
                 logger.error(f"Error while spawning VEHICLE: {e}")
                 raise e

@@ -8,9 +8,13 @@ import logging
 import numpy as np
 from typing import List, Type, TypeVar, Optional
 import pygame
+import random
 
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.obstacle import ObstacleRole, ObstacleType
+from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
+from commonroad.geometry.shape import Rectangle
+from commonroad.scenario.state import InitialState
 
 from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
@@ -63,6 +67,7 @@ class CarlaInterface:
         # CR_PLANNING Mode
         # if self._config.operating_mode is OperatingMode.:
         self._cr_obstacles: List[ObstacleInterface] = []
+        self._ego: EgoInterface
 
         # if carla_planning_mode
 
@@ -224,8 +229,13 @@ class CarlaInterface:
             else:
                 obs.control(obs.state_at_time_step(curr_time_step))
 
-    def keyboard_control(self, sc: Scenario):
+    def keyboard_control(self, sc: Scenario, pp: PlanningProblem):
         logger.info("Start keyboard manual control.")
+
+        if pp is not None:
+            self._ego = DynamicObstacle(0, ObstacleType.CAR, Rectangle(5, 2), pp.initial_state)
+        else:
+            self._ego =
 
         if self._config.birds_eye_view:
             logger.info("Init 2D Manual Control.")
@@ -234,12 +244,14 @@ class CarlaInterface:
             logger.info("Init 3D Manual Control.")
             controller = KeyboardEgoInterface2D("2D Manual Control")
 
-        self._run_simulation(controller, sc)
+        self._run_simulation(sc, pp)
 
-    def _run_simulation(self, ego: Type[EI], sc: Optional[Scenario] = None):
+    def _run_simulation(self, ego: Type[EI], sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
 
         if sc is not None:
             self._set_scenario(sc)
+
+
 
         COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
         COLOR_WHITE = pygame.Color(255, 255, 255)

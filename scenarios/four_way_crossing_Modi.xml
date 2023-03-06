@@ -4059,4 +4059,38 @@
       </state>
     </trajectory>
   </dynamicObstacle>
+    <planningProblem id="8">
+    <initialState>
+      <position>
+        <point>
+          <x>1.0</x>
+          <y>-80.0</y>
+        </point>
+      </position>
+      <orientation>
+        <exact>0.0</exact>
+      </orientation>
+      <time>
+        <exact>0</exact>
+      </time>
+      <velocity>
+        <exact>12.0</exact>
+      </velocity>
+      <yawRate>
+        <exact>0.0</exact>
+      </yawRate>
+      <slipAngle>
+        <exact>0.0</exact>
+      </slipAngle>
+    </initialState>
+    <goalState>
+      <position>
+        <lanelet ref="19"/>
+      </position>
+      <time>
+        <intervalStart>0</intervalStart>
+        <intervalEnd>100</intervalEnd>
+      </time>
+    </goalState>
+  </planningProblem>
 </commonRoad>

@@ -957,41 +957,11 @@ class World2D:
         self.result_surface.set_colorkey(COLOR_BLACK)
 
         # Start hero mode by default
-        self.select_hero_actor()
-        self.hero_actor.set_autopilot(False)
         self.wheel_offset = HERO_DEFAULT_SCALE
 
         # Register event for receiving server tick
         weak_self = weakref.ref(self)
         self.world.on_tick(lambda timestamp: World2D.on_world_tick(weak_self, timestamp))
-
-    def select_hero_actor(self):
-        """Selects only one hero actor if there are more than one. If there are not any, it will spawn one."""
-        hero_vehicles = [actor for actor in self.world.get_actors()
-                         if 'vehicle' in actor.type_id and actor.attributes['role_name'] == 'hero']
-        if len(hero_vehicles) > 0:
-            self.hero_actor = random.choice(hero_vehicles)
-            self.hero_transform = self.hero_actor.get_transform()
-        else:
-            self._spawn_hero()
-
-    def _spawn_hero(self):
-        """Spawns the hero actor when the script runs"""
-        # Get a random blueprint.
-        blueprint = random.choice(self.world.get_blueprint_library().filter(self.args.filter))
-        blueprint.set_attribute('role_name', 'hero')
-        if blueprint.has_attribute('color'):
-            color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
-        # Spawn the player.
-        while self.hero_actor is None:
-            spawn_points = self.world.get_map().get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
-            self.hero_actor = self.world.try_spawn_actor(blueprint, spawn_point)
-        self.hero_transform = self.hero_actor.get_transform()
-
-        # Save it in order to destroy it when closing program
-        self.spawned_hero = self.hero_actor
 
     def _parse_events(self):
         """Parses input events. These events are executed only once when pressing a key."""
