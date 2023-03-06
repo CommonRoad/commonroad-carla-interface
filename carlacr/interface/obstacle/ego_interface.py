@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
 import random
+import math
+import numpy as np
 
 import carla
 
@@ -9,8 +11,9 @@ try:
 except ImportError:
     print("TODO logging")
 
-from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole
-from commonroad.scenario.trajectory import State
+from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType
+from commonroad.scenario.trajectory import State, InitialState
+from commonroad.geometry.shape import Rectangle
 
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.helper.config import ObstacleParams
@@ -46,7 +49,7 @@ class EgoInterface(VehicleInterface):
             # Spawns the hero actor when the script runs"""
             # Get a random blueprint.
             self._world = world
-            blueprint = random.choice(world.get_blueprint_library().filter(filter))
+            blueprint = random.choice(world.get_blueprint_library().filter(self._config.filter))
             if blueprint.has_attribute('color'):
                 color = random.choice(blueprint.get_attribute('color').recommended_values)
                 blueprint.set_attribute('color', color)
@@ -60,6 +63,19 @@ class EgoInterface(VehicleInterface):
             # Save it in order to destroy it when closing program
             self._is_spawned = True
             self._carla_id = ego_actor.id
+            self._commonroad_id = 0
+            self._spawn_timestep = time_step
+
+            vel_vec = ego_actor.get_velocity()
+            vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
+            transform = ego_actor.get_transform()
+            location = transform.location
+            rotation = transform.rotation
+            length = ego_actor.bounding_box.extent.x * 2
+            width = ego_actor.bounding_box.extent.y * 2
+            self._cr_base = DynamicObstacle(0, ObstacleType.CAR, Rectangle(length, width),
+                                            InitialState(0, np.array([location.x, -location.y]),
+                                                         -((rotation.yaw * math.pi) / 180), vel, 0, 0, 0))
 
 class AckermannEgoInterface(EgoInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""

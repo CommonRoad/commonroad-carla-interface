@@ -67,7 +67,7 @@ class CarlaInterface:
         # CR_PLANNING Mode
         # if self._config.operating_mode is OperatingMode.:
         self._cr_obstacles: List[ObstacleInterface] = []
-        self._ego: EgoInterface
+        self._ego = None
 
         # if carla_planning_mode
 
@@ -229,29 +229,32 @@ class CarlaInterface:
             else:
                 obs.control(obs.state_at_time_step(curr_time_step))
 
-    def keyboard_control(self, sc: Scenario, pp: PlanningProblem):
+    def keyboard_control(self, sc: Scenario = None, pp: PlanningProblem = None):
         logger.info("Start keyboard manual control.")
 
         if pp is not None:
-            self._ego = DynamicObstacle(0, ObstacleType.CAR, Rectangle(5, 2), pp.initial_state)
+            ego_obs = DynamicObstacle(0, ObstacleType.CAR, Rectangle(5, 2), pp.initial_state)
         else:
-            self._ego =
+            ego_obs = None
 
         if self._config.birds_eye_view:
             logger.info("Init 2D Manual Control.")
-            controller = KeyboardEgoInterface2D("2D Manual Control")
+            self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
         else:
             logger.info("Init 3D Manual Control.")
-            controller = KeyboardEgoInterface2D("2D Manual Control")
+            self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
 
         self._run_simulation(sc, pp)
 
-    def _run_simulation(self, ego: Type[EI], sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
+    def _run_simulation(self, sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
+        sim_world = self._client.get_world()
 
         if sc is not None:
+            logger.info("Spawn obstacles.")
             self._set_scenario(sc)
 
-
+        logger.info("Spawn ego.")
+        self._ego.spawn(sim_world, 0)
 
         COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
         COLOR_WHITE = pygame.Color(255, 255, 255)
@@ -259,7 +262,7 @@ class CarlaInterface:
         pygame.font.init()
         world = None
         try:
-            sim_world = self._client.get_world()
+
 
             display = pygame.display.set_mode(
                     (self._config.keyboard_control.width, self._config.keyboard_control.height),
@@ -282,7 +285,7 @@ class CarlaInterface:
 
                 # For each module, assign other modules that are going to be used inside that module
                 logger.info("Register 2D.")
-                ego.start(hud, world)
+                self._ego.start(hud, world)
                 hud.start()
                 world.start(hud, sim_world)
 
@@ -296,7 +299,7 @@ class CarlaInterface:
                     # Tick all modules
                     world.tick(clock)
                     hud.tick(clock)
-                    ego.tick(clock)
+                    self._ego.tick(clock)
 
                     # Render all modules
                     display.fill(COLOR_ALUMINIUM_4)

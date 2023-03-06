@@ -16,16 +16,17 @@ logging.basicConfig(level=logging.DEBUG)
 # cr_map = os.path.dirname(__file__) + "/../scenarios/four_way_crossing_Modi.xml"
 or_map = os.path.dirname(__file__) + "/../maps/DEU_Test-1_1_T-1.xodr"
 cr_map = os.path.dirname(__file__) + "/../scenarios/DEU_Test-1_1_T-1.xml"
-# or_map = "Town"
-cr_scenario, _ = scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
+or_map = "Town01"
+scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
 param = CarlaParams()
 param.map = or_map
 param.offscreen_mode = True
-param.birds_eye_view = False
+param.birds_eye_view = True
 
 try:
     ci = CarlaInterface(param)
-    ci.keyboard_control(cr_scenario)
+   # ci.keyboard_control(scenario, list(planning_problem_set.planning_problem_dict.values())[0])
+    ci.keyboard_control()
 except Exception as e:
     print(e)
 

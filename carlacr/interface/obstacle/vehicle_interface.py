@@ -31,7 +31,7 @@ class VehicleInterface(ObstacleInterface):
         :return: if spawn successful the according CARLA actor else None
         """
         self._world = world
-        if time_step != self._cr_base.initial_state.time_step:
+        if self._cr_base is None or time_step != self._cr_base.initial_state.time_step:
             return False
 
         transform = create_carla_transform(self._cr_base.initial_state)

@@ -58,7 +58,6 @@ from carla import TrafficLightState as tls
 import datetime
 import weakref
 import math
-import random
 import hashlib
 
 try:

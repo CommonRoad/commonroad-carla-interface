@@ -37,6 +37,10 @@ class ObstacleInterface(ABC):
             self._commonroad_id = cr_obstacle.obstacle_id
             self._spawn_timestep = cr_obstacle.initial_state.time_step
             self._cr_base = cr_obstacle
+        else:
+            self._commonroad_id = None
+            self._spawn_timestep = None
+            self._cr_base = None
 
     def spawn(self, world: carla.World, time_step: int):
         """

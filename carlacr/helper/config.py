@@ -151,13 +151,7 @@ class ObstacleParams(BaseParam):
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     control: ControlParams = field(default_factory=ControlParams)
-
-
-@dataclass
-class Mode2dParams(BaseParam):
-    description: str = "CARLA No Rendering Mode Visualizer"
-    res: str = '1280x720'  # window resolution (default: 1280x720)
-    filter: str = 'vehicle.*'  # actor filter (default: "vehicle.*")
+    filter: str = "vehicle.*"
 
 
 @dataclass
@@ -173,7 +167,6 @@ class KeyboardControlParams(BaseParam):
     width: float = 1280
     height: float = 720
     rolename: str = "hero"
-    filter: str = "vehicle.*"
     generation: str = "2"
     gamma: float = 2.2
     description: str = "Keyboard Control"
@@ -186,6 +179,5 @@ class KeyboardControlParams(BaseParam):
 class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
-    mode_2d: Mode2dParams = field(default_factory=Mode2dParams)
     map_params: MapParams = field(default_factory=MapParams)
     keyboard_control: KeyboardControlParams = field(default_factory=KeyboardControlParams)
