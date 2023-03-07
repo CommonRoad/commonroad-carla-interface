@@ -167,7 +167,8 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
         if response.error:
             logging.error(response.error)
         else:
-            vehicles_list.append(VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(response.actor_id)), True, response.actor_id))
+            vehicles_list.append(VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(response.actor_id)),
+                                                  True, response.actor_id))
     # Set automatic vehicle lights update if specified
     for actor in world.get_actors([veh.carla_id for veh in vehicles_list]):
         traffic_manager.update_vehicle_lights(actor, True)
