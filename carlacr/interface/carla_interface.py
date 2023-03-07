@@ -262,8 +262,6 @@ class CarlaInterface:
         pygame.font.init()
         world = None
         try:
-
-
             display = pygame.display.set_mode(
                     (self._config.keyboard_control.width, self._config.keyboard_control.height),
                     pygame.HWSURFACE | pygame.DOUBLEBUF)
