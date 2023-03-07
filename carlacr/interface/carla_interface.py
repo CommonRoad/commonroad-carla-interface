@@ -6,15 +6,13 @@ import time
 import signal
 import logging
 import numpy as np
-from typing import List, Type, TypeVar, Optional
+from typing import List, TypeVar, Optional
 import pygame
-import random
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
-from commonroad.scenario.state import InitialState
 
 from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
@@ -24,6 +22,7 @@ from carlacr.helper.config import CarlaParams
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
+from carlacr.helper.traffic_generation import create_actors
 
 logger = logging.getLogger(__name__)
 
@@ -250,8 +249,10 @@ class CarlaInterface:
         sim_world = self._client.get_world()
 
         if sc is not None:
-            logger.info("Spawn obstacles.")
+            logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
+        else:
+            create_actors(self._client, self._config.simulation)
 
         logger.info("Spawn ego.")
         self._ego.spawn(sim_world, 0)

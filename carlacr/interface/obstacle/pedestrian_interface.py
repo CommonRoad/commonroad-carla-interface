@@ -1,5 +1,5 @@
 import logging
-
+from typing import Optional
 import carla
 
 from commonroad.scenario.obstacle import DynamicObstacle
@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 class PedestrianInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
+    def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
+                 carla_id: Optional[int] = None, config: ObstacleParams = ObstacleParams()):
         """
         Initializer of the obstacle.
 

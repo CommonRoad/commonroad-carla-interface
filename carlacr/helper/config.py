@@ -123,6 +123,14 @@ class SimulationParams(BaseParam):
     hybrid_physics_radius: float = 70.0
     seed: int = 0
     osm_mode: bool = False
+    percentage_pedestrians_running: float = 0  # how many pedestrians will run
+    percentage_pedestrians_crossing: float = 0  # how many pedestrians will walk through the road
+    number_walkers: int = 10
+    number_vehicles: int = 30
+    safe_vehicles: bool = True
+    filter_vehicle: str = "vehicle.*"
+    filter_pedestrian: str = 'walker.pedestrian.*'
+    seed_walker: int = 0
 
 
 @dataclass
@@ -145,13 +153,11 @@ class ControlParams(BaseParam):
 
 @dataclass
 class ObstacleParams(BaseParam):
-    percentage_pedestrians_running: float = 0  # how many pedestrians will run
-    percentage_pedestrians_crossing: float = 0  # how many pedestrians will walk through the road
     approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     control: ControlParams = field(default_factory=ControlParams)
-    filter: str = "vehicle.*"
+    simulation: SimulationParams = field(default_factory=SimulationParams)
 
 
 @dataclass

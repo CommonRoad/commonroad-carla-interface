@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 import carla
 import math
 
@@ -15,13 +16,16 @@ logger = logging.getLogger(__name__)
 class VehicleInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
+    def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
+                 carla_id: Optional[int] = None, config: ObstacleParams = ObstacleParams()):
         """
         Initializer of the obstacle.
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
         super().__init__(cr_obstacle, config)
+        self._is_spawned = spawned
+        self._carla_id = carla_id
 
     def spawn(self, world: carla.World, time_step: int) -> bool:
         """

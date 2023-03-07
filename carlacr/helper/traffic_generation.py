@@ -6,105 +6,89 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-"""Example script to generate traffic in the simulation"""
-
 import time
-
-
+import logging
+from numpy import random
+from typing import List
 import carla
+from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_pedestrian_from_actor
+from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
+from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
+from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
+from carlacr.helper.config import SimulationParams
 
 SetAutopilot = carla.command.SetAutopilot
 FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
-import logging
-from numpy import random
 
-def get_actor_blueprints(world, filter, generation):
-    bps = world.get_blueprint_library().filter(filter)
-
-    if generation.lower() == "all":
-        return bps
-
-    # If the filter returns only one bp, we assume that this one needed and therefore, we ignore the generation
-    if len(bps) == 1:
-        return bps
-
-    try:
-        int_generation = int(generation)
-        # Check if generation is in available generations
-        if int_generation in [1, 2]:
-            bps = [x for x in bps if int(x.get_attribute('generation')) == int_generation]
-            return bps
-        else:
-            print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-            return []
-    except:
-        print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-        return []
-
-def main(client, args, traffic_manager):
+def create_actors(client: carla.Client, config: SimulationParams) -> List[ObstacleInterface]:
+    traffic_manager = client.get_trafficmanager()
     world = client.get_world()
-    random.seed(args.seed if args.seed is not None else int(time.time()))
+    random.seed(config.seed if config.seed is not None else int(time.time()))
 
-    blueprints, blueprintsWalkers = extract_blueprints(args, world)
+    blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(args, blueprints, client, traffic_manager)
+    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, traffic_manager)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker(args, blueprintsWalkers, client)
+    all_walker_actors = spawn_walker(config, blueprints_walkers, client)
+
+    return all_vehicle_actors + all_walker_actors
+
+def extract_blueprints(config: SimulationParams, world: carla.World):
+    blueprints_vehicles = world.get_blueprint_library().filter(config.filter_vehicle)
+    blueprints_walkers = world.get_blueprint_library().filter(config.filter_pedestrian)
+    if config.safe_vehicles:
+        blueprints_vehicles = [x for x in blueprints_vehicles if int(x.get_attribute('number_of_wheels')) == 4]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('microlino')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('carlacola')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('cybertruck')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('t2')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('sprinter')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('firetruck')]
+        blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('ambulance')]
+    blueprints_vehicles = sorted(blueprints_vehicles, key=lambda bp: bp.id)
+    return blueprints_vehicles, blueprints_walkers
 
 
-def extract_blueprints(args, world):
-    blueprints = get_actor_blueprints(world, args.filterv, args.generationv)
-    blueprintsWalkers = get_actor_blueprints(world, args.filterw, args.generationw)
-    if args.safe:
-        blueprints = [x for x in blueprints if int(x.get_attribute('number_of_wheels')) == 4]
-        blueprints = [x for x in blueprints if not x.id.endswith('microlino')]
-        blueprints = [x for x in blueprints if not x.id.endswith('carlacola')]
-        blueprints = [x for x in blueprints if not x.id.endswith('cybertruck')]
-        blueprints = [x for x in blueprints if not x.id.endswith('t2')]
-        blueprints = [x for x in blueprints if not x.id.endswith('sprinter')]
-        blueprints = [x for x in blueprints if not x.id.endswith('firetruck')]
-        blueprints = [x for x in blueprints if not x.id.endswith('ambulance')]
-    blueprints = sorted(blueprints, key=lambda bp: bp.id)
-    return blueprints, blueprintsWalkers
-
-
-def spawn_walker(args, blueprintsWalkers, client):
+def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client):
+    logging.info("Traffic Generation spawn walkers.")
     walkers_list = []
+    cr_walkers_list = []
     all_id = []
     world = client.get_world()
-    if args.seedw:
-        world.set_pedestrians_seed(args.seedw)
-        random.seed(args.seedw)
+    if config.seed_walker:
+        world.set_pedestrians_seed(config.seed_walker)
+        random.seed(config.seed_walker)
     # 1. take all the random locations to spawn
     spawn_points = []
-    for i in range(args.number_of_walkers):
+    for i in range(config.number_walkers):
         spawn_point = carla.Transform()
         loc = world.get_random_location_from_navigation()
         if (loc != None):
             spawn_point.location = loc
             spawn_points.append(spawn_point)
+
     # 2. we spawn the walker object
     batch = []
     walker_speed = []
     for spawn_point in spawn_points:
-        walker_bp = random.choice(blueprintsWalkers)
+        walker_bp = random.choice(blueprints_walkers)
         # set as not invincible
         if walker_bp.has_attribute('is_invincible'):
             walker_bp.set_attribute('is_invincible', 'false')
         # set the max speed
         if walker_bp.has_attribute('speed'):
-            if (random.random() > args.percentagePedestriansRunning):
+            if (random.random() > config.percentage_pedestrians_running):
                 # walking
                 walker_speed.append(walker_bp.get_attribute('speed').recommended_values[1])
             else:
                 # running
                 walker_speed.append(walker_bp.get_attribute('speed').recommended_values[2])
         else:
-            print("Walker has no speed")
+            logging.info("spawn_walker: Walker has no speed")
             walker_speed.append(0.0)
         batch.append(SpawnActor(walker_bp, spawn_point))
     results = client.apply_batch_sync(batch, True)
@@ -116,6 +100,7 @@ def spawn_walker(args, blueprintsWalkers, client):
             walkers_list.append({"id": results[i].actor_id})
             walker_speed2.append(walker_speed[i])
     walker_speed = walker_speed2
+
     # 3. we spawn the walker controller
     batch = []
     walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
@@ -127,31 +112,32 @@ def spawn_walker(args, blueprintsWalkers, client):
             logging.error(results[i].error)
         else:
             walkers_list[i]["con"] = results[i].actor_id
+
     # 4. we put together the walkers and controllers id to get the objects from their id
     for i in range(len(walkers_list)):
         all_id.append(walkers_list[i]["con"])
         all_id.append(walkers_list[i]["id"])
     all_actors = world.get_actors(all_id)
-    # wait for a tick to ensure client receives the last transform of the walkers we have just created
-    if args.asynch or not args.sync:
-        world.wait_for_tick()
-    else:
-        world.tick()
+
     # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
     # set how many pedestrians can cross the road
-    world.set_pedestrians_cross_factor(args.percentagePedestriansCrossing)
-    for i in range(0, len(all_id), 2):
+    world.set_pedestrians_cross_factor(config.percentage_pedestrians_crossing)
+    for idx in range(0, len(all_id), 2):
         # start walker
-        all_actors[i].start()
+        all_actors[idx].start()
         # set walk to random point
-        all_actors[i].go_to_location(world.get_random_location_from_navigation())
+        all_actors[idx].go_to_location(world.get_random_location_from_navigation())
         # max speed
-        all_actors[i].set_max_speed(float(walker_speed[int(i / 2)]))
+        all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
+    for actor in all_actors:
+        cr_walkers_list.append(PedestrianInterface(create_cr_pedestrian_from_actor(actor), True, actor.id))
 
-    return all_actors
+    return cr_walkers_list
 
 
-def spawn_vehicle(args, blueprints, client, traffic_manager):
+def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
+                  traffic_manager: carla.TrafficManager) -> List[VehicleInterface]:
+    logging.info("Traffic Generation spawn vehicles.")
     batch = []
     vehicles_list = []
     world = client.get_world()
@@ -159,11 +145,11 @@ def spawn_vehicle(args, blueprints, client, traffic_manager):
     spawn_points = world.get_map().get_spawn_points()
     number_of_spawn_points = len(spawn_points)
 
-    if args.number_of_vehicles < number_of_spawn_points:
+    if config.number_vehicles < number_of_spawn_points:
         random.shuffle(spawn_points)
 
     for n, transform in enumerate(spawn_points):
-        if n >= args.number_of_vehicles:
+        if n >= config.number_vehicles:
             break
         blueprint = random.choice(blueprints)
         if blueprint.has_attribute('color'):
@@ -177,11 +163,13 @@ def spawn_vehicle(args, blueprints, client, traffic_manager):
 
         # spawn the cars and set their autopilot and light state all together
         batch.append(SpawnActor(blueprint, transform).then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
-    for response in client.apply_batch_sync(batch, args.sync):
+    for response in client.apply_batch_sync(batch, config.sync):
         if response.error:
             logging.error(response.error)
         else:
-            vehicles_list.append(response.actor_id)
+            vehicles_list.append(VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(response.actor_id)), True, response.actor_id))
     # Set automatic vehicle lights update if specified
-    for actor in world.get_actors(vehicles_list):
+    for actor in world.get_actors([veh.carla_id for veh in vehicles_list]):
         traffic_manager.update_vehicle_lights(actor, True)
+
+    return vehicles_list
