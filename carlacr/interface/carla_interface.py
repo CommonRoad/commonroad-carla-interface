@@ -310,7 +310,7 @@ class CarlaInterface:
             else:
                 logger.info("Init 3D.")
                 hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
-                world = World3D(sim_world, hud, self._config.keyboard_control)
+                world = World3D(sim_world, hud, self._config.keyboard_control, sim_world.get_actor(self._ego._carla_id))
                 controller = KeyboardEgoInterface3D(world, self._config.autopilot)
 
                 if self._config.sync:
