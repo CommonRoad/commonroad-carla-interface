@@ -23,6 +23,7 @@ from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
+from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class CarlaInterface:
         # CR_PLANNING Mode
         # if self._config.operating_mode is OperatingMode.:
         self._cr_obstacles: List[ObstacleInterface] = []
-        self._ego = None
+        self._ego: Optional[EgoInterface] = None
 
         # if carla_planning_mode
 
@@ -245,6 +246,41 @@ class CarlaInterface:
 
         self._run_simulation(sc, pp)
 
+    def update_cr_state(self):
+        # add current state to history
+        # self._ego.trajectory.append(self._ego.cr_obstacle.initial_state)  # TODO replace with cr-io history
+
+        # get world and extract new current state
+        world = self._client.get_world()
+
+        # TODO replace with cr-io initial state
+        # if self._config.obstacle.vehicle_ks_state:
+        #     self._ego.cr_obstacle.initial_state = \
+        #         create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id),
+        #                                    self._ego.cr_obstacle.initial_state.time_step + 1)
+        # else:
+        #     self._ego.cr_obstacle.initial_state = \
+        #         create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id),
+        #                                    self._ego.cr_obstacle.initial_state.time_step + 1)
+        time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
+            self._ego.trajectory[-1].time_step + 1
+        if self._config.obstacle.vehicle_ks_state:
+            state = create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+        else:
+            state = create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+        self._ego.trajectory.append(state)
+
+        for obs in self._cr_obstacles:
+            time_step = obs.cr_obstacle.initial_state.time_step + 1 if len(obs.trajectory) == 0 else \
+                obs.trajectory[-1].time_step + 1
+            if obs.get_type() == ObstacleType.PEDESTRIAN:
+                state = create_cr_pm_state_from_actor(world.get_actor(obs.carla_id), time_step)
+            elif self._config.obstacle.vehicle_ks_state:
+                state = create_cr_ks_state_from_actor(world.get_actor(obs.carla_id), time_step)
+            else:
+                state = create_cr_pm_state_from_actor(world.get_actor(obs.carla_id), time_step)
+            obs.trajectory.append(state)
+
     def _run_simulation(self, sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
         sim_world = self._client.get_world()
 
@@ -252,7 +288,7 @@ class CarlaInterface:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
         else:
-            create_actors(self._client, self._config.simulation)
+            self._cr_obstacles = create_actors(self._client, self._config.simulation)
 
         logger.info("Spawn ego.")
         self._ego.spawn(sim_world, 0)
@@ -292,8 +328,11 @@ class CarlaInterface:
                 clock = pygame.time.Clock()
                 logger.info("Loop 2D.")
                 while True:
+                    if self._config.sync:
+                        sim_world.tick(1)
+                    else:
+                        sim_world.wait_for_tick()
                     clock.tick_busy_loop(60)
-                    print(clock.get_time())
 
                     # Tick all modules
                     world.tick(clock)
@@ -306,21 +345,21 @@ class CarlaInterface:
                     hud.render(display)
 
                     pygame.display.flip()
+
+                    self.update_cr_state()
+
             else:
                 logger.info("Init 3D.")
                 hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
                 world = World3D(sim_world, hud, self._config.keyboard_control, sim_world.get_actor(self._ego._carla_id))
                 controller = KeyboardEgoInterface3D(world, self._config.autopilot)
 
-                if self._config.sync:
-                    sim_world.tick()
-                else:
-                    sim_world.wait_for_tick()
-
                 clock = pygame.time.Clock()
                 while True:
                     if self._config.sync:
                         sim_world.tick()
+                    else:
+                        sim_world.wait_for_tick()
                     clock.tick_busy_loop(60)
                     if controller.parse_events(self._client, world, clock, self._config.sync):
                         return

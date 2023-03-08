@@ -131,6 +131,7 @@ class SimulationParams(BaseParam):
     filter_vehicle: str = "vehicle.*"
     filter_pedestrian: str = 'walker.pedestrian.*'
     seed_walker: int = 0
+    pedestrian_default_shape: bool = False
 
 
 @dataclass
@@ -158,6 +159,7 @@ class ObstacleParams(BaseParam):
     physics: bool = True  # if physics should be enabled for the vehicle
     control: ControlParams = field(default_factory=ControlParams)
     simulation: SimulationParams = field(default_factory=SimulationParams)
+    vehicle_ks_state: bool = True
 
 
 @dataclass

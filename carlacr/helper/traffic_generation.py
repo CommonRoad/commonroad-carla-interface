@@ -11,7 +11,7 @@ import logging
 from numpy import random
 from typing import List
 import carla
-from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_pedestrian_from_actor
+from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_pedestrian_from_walker
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
@@ -35,7 +35,7 @@ def create_actors(client: carla.Client, config: SimulationParams) -> List[Obstac
     # Spawn Walkers
     all_walker_actors = spawn_walker(config, blueprints_walkers, client)
 
-    return all_vehicle_actors + all_walker_actors
+    return all_vehicle_actors # + all_walker_actors
 
 def extract_blueprints(config: SimulationParams, world: carla.World):
     blueprints_vehicles = world.get_blueprint_library().filter(config.filter_vehicle)
@@ -130,7 +130,8 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
         # max speed
         all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
     for actor in all_actors:
-        cr_walkers_list.append(PedestrianInterface(create_cr_pedestrian_from_actor(actor), True, actor.id))
+        cr_walkers_list.append(PedestrianInterface(
+                create_cr_pedestrian_from_walker(actor, config.pedestrian_default_shape), True, actor.id))
 
     return cr_walkers_list
 
