@@ -13,6 +13,10 @@ from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
+from commonroad.prediction.prediction import TrajectoryPrediction
+from commonroad.scenario.trajectory import Trajectory
+
+from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
 
 from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
@@ -24,6 +28,7 @@ from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor
+from carlacr.interface.traffic_light import CarlaTrafficLight
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +183,24 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
             obs.spawn(self._client.get_world(), 0)
 
+    def load_scenario(self) -> Scenario:
+        """Converts the CARLA map to Commonroad."""
+        carla_map = self._client.get_world().get_map()
+
+        # Convert the CARLA map into OpenDRIVE in a temporary file
+        f = open("temp.xodr", "w")
+        f.write(carla_map.to_opendrive())
+        f.close()
+
+        # Load OpenDRIVE file, parse it, and convert it to a CommonRoad scenario
+        scenario = opendrive_to_commonroad("./temp.xodr")
+
+        # Delete temporary file
+        os.remove("./temp.xodr")
+
+        return scenario
+
+
     def replay(self, sc: Scenario, waypoint_control = False):
         """
         Runs the CommonRoad Scenario in CARLA.
@@ -199,8 +222,15 @@ class CarlaInterface:
                 self._control_commonroad_obstacles_waypoint(time_step)
             self._client.get_world().tick(1)  # todo time step
 
-    def scenario_generation(self, sc: Scenario):
-        pass
+    def scenario_generation(self, sc: Scenario) -> Scenario:
+        self._cr_obstacles = create_actors(self._client, self._config.simulation)
+        self._run_simulation()
+
+        for obs in self._cr_obstacles:
+            obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape)
+            sc.add_objects(obs.cr_obstacle)
+
+        return sc
 
     def _control_commonroad_obstacles_path_dynamic(self, curr_time_step: int):
         for obs in self._cr_obstacles:
@@ -240,7 +270,18 @@ class CarlaInterface:
             logger.info("Init 3D Manual Control.")
             self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
 
-        self._run_simulation(sc, pp)
+        sim_world = self._client.get_world()
+
+        if sc is not None:
+            logger.info("Spawn CommonRoad obstacles.")
+            self._set_scenario(sc)
+        else:
+            self._cr_obstacles = create_actors(self._client, self._config.simulation)
+
+        logger.info("Spawn ego.")
+        self._ego.spawn(sim_world, 0)
+
+        self._run_simulation()
 
     def update_cr_state(self):
         # add current state to history
@@ -277,17 +318,8 @@ class CarlaInterface:
                 state = create_cr_pm_state_from_actor(world.get_actor(obs.carla_id), time_step)
             obs.trajectory.append(state)
 
-    def _run_simulation(self, sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
+    def _run_simulation(self):
         sim_world = self._client.get_world()
-
-        if sc is not None:
-            logger.info("Spawn CommonRoad obstacles.")
-            self._set_scenario(sc)
-        else:
-            self._cr_obstacles = create_actors(self._client, self._config.simulation)
-
-        logger.info("Spawn ego.")
-        self._ego.spawn(sim_world, 0)
 
         COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
         COLOR_WHITE = pygame.Color(255, 255, 255)
@@ -309,6 +341,9 @@ class CarlaInterface:
             display.fill((0, 0, 0))
             pygame.display.flip()
 
+            max_time_step = 60
+            time_step = 0
+
             if self._config.birds_eye_view:
                 logger.info("Init 2D.")
                 hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
@@ -323,9 +358,10 @@ class CarlaInterface:
                 # Game loop
                 clock = pygame.time.Clock()
                 logger.info("Loop 2D.")
-                while True:
+                while True and not time_step >= max_time_step:
                     if self._config.sync:
-                        sim_world.tick(1)
+                        sim_world.tick(10)
+                        time_step += 1
                     else:
                         sim_world.wait_for_tick()
                     clock.tick_busy_loop(60)
@@ -343,6 +379,8 @@ class CarlaInterface:
                     pygame.display.flip()
 
                     self.update_cr_state()
+
+
 
             else:
                 logger.info("Init 3D.")
