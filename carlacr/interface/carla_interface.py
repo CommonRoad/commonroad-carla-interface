@@ -64,16 +64,9 @@ class CarlaInterface:
         self._load_map(self._config.map)
         sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
-        # CR_PLANNING Mode
-        # if self._config.operating_mode is OperatingMode.:
         self._cr_obstacles: List[ObstacleInterface] = []
         self._ego: Optional[EgoInterface] = None
-
-        # if carla_planning_mode
-
-        # if scenario_generation
-
-        # if replay_mode
+        self._tl: Optional[CarlaTrafficLight] = None
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -205,6 +198,9 @@ class CarlaInterface:
                 logger.info(f"Replay time step: {time_step}.")
                 self._control_commonroad_obstacles_waypoint(time_step)
             self._client.get_world().tick(1)  # todo time step
+
+    def scenario_generation(self, sc: Scenario):
+        pass
 
     def _control_commonroad_obstacles_path_dynamic(self, curr_time_step: int):
         for obs in self._cr_obstacles:
