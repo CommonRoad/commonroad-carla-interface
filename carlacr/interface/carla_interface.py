@@ -239,7 +239,7 @@ class CarlaInterface:
         sim_world = self._client.get_world()
         time_step = 0
         while time_step <= self._config.simulation.max_time_step:
-            sim_world.tick(self._config.simulation.time_step)
+            sim_world.tick(10)
             time_step += 1
             self.update_cr_state(sim_world)
 

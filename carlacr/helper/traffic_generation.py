@@ -150,8 +150,9 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
     if config.number_vehicles < number_of_spawn_points:
         random.shuffle(spawn_points)
 
-    for n, transform in enumerate(spawn_points):
-        if n >= config.number_vehicles:
+    num_vehicles = 0
+    for transform in spawn_points:
+        if num_vehicles >= config.number_vehicles:
             break
         blueprint = random.choice(blueprints)
         if blueprint.has_attribute('color'):
@@ -164,16 +165,21 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
             blueprint.set_attribute('role_name', 'autopilot')
 
         # spawn the cars and set their autopilot and light state all together
-        batch.append(SpawnActor(blueprint, transform).then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
-    for response in client.apply_batch_sync(batch, config.sync):
-        if response.error:
-            logging.error(response.error)
-        else:
-            vehicles_list.append(VehicleInterface(
-                    create_cr_vehicle_from_actor(world.get_actor(response.actor_id), cr_id), True, response.actor_id))
+        spawned_actor = world.try_spawn_actor(blueprint, transform)
+      #  batch.append(SpawnActor(blueprint, transform).then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
+ #   for response in client.apply_batch_sync(batch, config.sync):
+  #      if response.error:
+  #          logging.error(response.error)
+  #      else:
+        if spawned_actor is not None:
+            vehicles_list.append(
+                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), True,
+                            spawned_actor.id))
+            spawned_actor.set_autopilot(True)
+            traffic_manager.update_vehicle_lights(spawned_actor, True)
             cr_id += 1
-    # Set automatic vehicle lights update if specified
-    for actor in world.get_actors([veh.carla_id for veh in vehicles_list]):
-        traffic_manager.update_vehicle_lights(actor, True)
+            num_vehicles += 1
+        else:
+            continue
 
     return vehicles_list

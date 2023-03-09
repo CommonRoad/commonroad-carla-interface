@@ -6,7 +6,6 @@ from commonroad.geometry.shape import Rectangle, Circle
 from commonroad.scenario.state import InitialState, PMState, KSState, CustomState
 from commonroad.common.util import make_valid_orientation
 from commonroad.planning.goal import GoalRegion, Interval, AngleInterval
-import time
 from typing import Union
 
 
@@ -31,7 +30,7 @@ from typing import Union
 def create_goal_region_from_state(state: Union[KSState, PMState], ks_state: bool = True) -> GoalRegion:
     if ks_state:
         return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
-                                       position=Circle(10, state.position),
+                                       position=Circle(3, state.position),
                                        velocity=Interval(max(0.0, state.velocity - 10), state.velocity + 10),
                                        orientation=AngleInterval(state.orientation - 0.25, state.orientation + 0.25))])
     else:
@@ -47,8 +46,7 @@ def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObsta
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
     location = transform.location
-    rotation = transform.rotation
-    orientation = -((rotation.yaw * math.pi) / 180)
+    orientation = -((transform.rotation.yaw * math.pi) / 180)
     length = actor.bounding_box.extent.x * 2
     width = actor.bounding_box.extent.y * 2
     return DynamicObstacle(cr_id, ObstacleType.CAR, Rectangle(length, width),
@@ -57,8 +55,11 @@ def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObsta
 
 def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState:
     vel_vec = actor.get_velocity()
-    location = actor.get_transform().location
-    return PMState(time_step, np.array([location.x, -location.y]), vel_vec.x, vel_vec.y)
+    transform = actor.get_transform()
+    location = transform.location
+    orientation = -((transform.rotation.yaw * math.pi) / 180)
+    return PMState(time_step, np.array([location.x, -location.y]),
+                   vel_vec.x * math.cos(orientation) - math.sin(vel_vec.y) * vel_vec.y, vel_vec.x * math.sin(orientation) + math.cos(orientation) * vel_vec.y)
 
 vehicles = set()
 
@@ -69,14 +70,11 @@ def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSSta
     location = transform.location
     rotation = transform.rotation
     orientation = make_valid_orientation(-((rotation.yaw * math.pi) / 180))
-    start = time.time()
-    steer = actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
-    end = time.time()
+    try:
+        steer = actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
+    except RuntimeError:
+        steer = 0
     steering_angle = make_valid_orientation(steer * (math.pi/180))
-    dif = end - start
-    if dif > 0.001:
-        vehicles.add(actor.type_id)
-        print(vehicles)
     return KSState(time_step, np.array([location.x, -location.y]), steering_angle, vel, orientation)
 
  #   slow_vehicles: {'vehicle.seat.leon', 'vehicle.dodge.charger_2020', 'vehicle.audi.tt', 'vehicle.chevrolet.impala', 'vehicle.mercedes.coupe', 'vehicle.lincoln.mkz_2017', 'vehicle.volkswagen.t2_2021', 'vehicle.citroen.c3', 'vehicle.bmw.grandtourer', 'vehicle.mini.cooper_s_2021', 'vehicle.nissan.micra', 'vehicle.dodge.charger_police_2020', 'vehicle.tesla.model3', 'vehicle.nissan.patrol_2021', 'vehicle.jeep.wrangler_rubicon', 'vehicle.audi.etron', 'vehicle.ford.crown', 'vehicle.mini.cooper_s'}
