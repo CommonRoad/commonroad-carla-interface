@@ -5,6 +5,7 @@ import os
 import logging
 from carlacr.interface.carla_interface import CarlaInterface
 from commonroad.common.file_reader import CommonRoadFileReader
+from commonroad.common.file_writer import CommonRoadFileWriter
 from carlacr.helper.config import CarlaParams
 
 
@@ -20,13 +21,16 @@ or_map = "Town01"
 scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
 param = CarlaParams()
 param.map = or_map
+param.obstacle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.birds_eye_view = True
 
 try:
     ci = CarlaInterface(param)
    # ci.keyboard_control(scenario, list(planning_problem_set.planning_problem_dict.values())[0])
-    ci.keyboard_control()
+   # ci.keyboard_control()
+    sc, pps = ci.scenario_generation(ci.create_cr_map())
+    CommonRoadFileWriter(sc, pps).write_to_file()
 except Exception as e:
     print(e)
 

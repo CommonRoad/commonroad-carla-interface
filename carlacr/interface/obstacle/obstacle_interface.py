@@ -1,12 +1,12 @@
 import logging
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, Union
 from abc import ABC
 
 import carla
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType
-from commonroad.scenario.trajectory import State
+from commonroad.scenario.trajectory import PMState, KSState, State
 
 from carlacr.helper.config import ObstacleParams
 
@@ -59,7 +59,7 @@ class ObstacleInterface(ABC):
         return self._is_spawned
 
     @property
-    def trajectory(self) -> List[State]:
+    def trajectory(self) -> List[Union[PMState, KSState]]:
         return self._trajectory
 
     @property

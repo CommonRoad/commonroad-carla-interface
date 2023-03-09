@@ -6,11 +6,13 @@ import time
 import signal
 import logging
 import numpy as np
-from typing import List, TypeVar, Optional
+from typing import List, TypeVar, Optional, Tuple
 import pygame
+import time
 
 from commonroad.scenario.scenario import Scenario
-from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
+from commonroad.planning.goal import GoalRegion
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
@@ -72,6 +74,7 @@ class CarlaInterface:
         self._cr_obstacles: List[ObstacleInterface] = []
         self._ego: Optional[EgoInterface] = None
         self._tl: Optional[CarlaTrafficLight] = None
+        self._snapshots: List[carla.WorldSnapshot] = []
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -183,7 +186,7 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
             obs.spawn(self._client.get_world(), 0)
 
-    def load_scenario(self) -> Scenario:
+    def create_cr_map(self) -> Scenario:
         """Converts the CARLA map to Commonroad."""
         carla_map = self._client.get_world().get_map()
 
@@ -222,15 +225,29 @@ class CarlaInterface:
                 self._control_commonroad_obstacles_waypoint(time_step)
             self._client.get_world().tick(1)  # todo time step
 
-    def scenario_generation(self, sc: Scenario) -> Scenario:
+    def scenario_generation(self, sc: Scenario) -> Tuple[Scenario, PlanningProblemSet]:
+        assert self._config.sync is True
         self._cr_obstacles = create_actors(self._client, self._config.simulation)
-        self._run_simulation()
 
-        for obs in self._cr_obstacles:
+        max_time_step = 60
+        time_step = 0
+        sim_world = self._client.get_world()
+
+
+        logger.info("Simulate.")
+
+        while time_step <= max_time_step:
+            sim_world.tick(self._config.simulation.time_step)
+            time_step += 1
+        #    self._snapshots.append(sim_world.get_snapshot())
+            self.update_cr_state(sim_world)
+
+        for obs in self._cr_obstacles[1:]:
             obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape)
             sc.add_objects(obs.cr_obstacle)
 
-        return sc
+        return sc, PlanningProblemSet([PlanningProblem(0, self._cr_obstacles[0].cr_obstacle.initial_state,
+                                                       GoalRegion(self._cr_obstacles[0].trajectory[-1]))])
 
     def _control_commonroad_obstacles_path_dynamic(self, curr_time_step: int):
         for obs in self._cr_obstacles:
@@ -283,12 +300,11 @@ class CarlaInterface:
 
         self._run_simulation()
 
-    def update_cr_state(self):
+    def update_cr_state(self, world: carla.World):
         # add current state to history
         # self._ego.trajectory.append(self._ego.cr_obstacle.initial_state)  # TODO replace with cr-io history
 
         # get world and extract new current state
-        world = self._client.get_world()
 
         # TODO replace with cr-io initial state
         # if self._config.obstacle.vehicle_ks_state:
@@ -299,23 +315,27 @@ class CarlaInterface:
         #     self._ego.cr_obstacle.initial_state = \
         #         create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id),
         #                                    self._ego.cr_obstacle.initial_state.time_step + 1)
-        time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
-            self._ego.trajectory[-1].time_step + 1
-        if self._config.obstacle.vehicle_ks_state:
-            state = create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
-        else:
-            state = create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
-        self._ego.trajectory.append(state)
+        if self._ego is not None:
+            time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
+                self._ego.trajectory[-1].time_step + 1
+            if self._config.obstacle.vehicle_ks_state:
+                state = create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+            else:
+                state = create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+            self._ego.trajectory.append(state)
 
         for obs in self._cr_obstacles:
             time_step = obs.cr_obstacle.initial_state.time_step + 1 if len(obs.trajectory) == 0 else \
                 obs.trajectory[-1].time_step + 1
+
+            actor = world.get_actor(obs.carla_id)
+
             if obs.get_type() == ObstacleType.PEDESTRIAN:
-                state = create_cr_pm_state_from_actor(world.get_actor(obs.carla_id), time_step)
+                state = create_cr_pm_state_from_actor(actor, time_step)
             elif self._config.obstacle.vehicle_ks_state:
-                state = create_cr_ks_state_from_actor(world.get_actor(obs.carla_id), time_step)
+                state = create_cr_ks_state_from_actor(actor, time_step)
             else:
-                state = create_cr_pm_state_from_actor(world.get_actor(obs.carla_id), time_step)
+                state = create_cr_pm_state_from_actor(actor, time_step)
             obs.trajectory.append(state)
 
     def _run_simulation(self):
@@ -378,7 +398,7 @@ class CarlaInterface:
 
                     pygame.display.flip()
 
-                    self.update_cr_state()
+                    self.update_cr_state(sim_world)
 
 
 
