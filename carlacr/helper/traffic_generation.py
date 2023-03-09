@@ -22,7 +22,7 @@ FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
 
-def create_actors(client: carla.Client, config: SimulationParams) -> List[ObstacleInterface]:
+def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) -> List[ObstacleInterface]:
     traffic_manager = client.get_trafficmanager()
     world = client.get_world()
     random.seed(config.seed if config.seed is not None else int(time.time()))
@@ -30,10 +30,11 @@ def create_actors(client: carla.Client, config: SimulationParams) -> List[Obstac
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, traffic_manager)
+    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, traffic_manager, cr_id)
+    cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker(config, blueprints_walkers, client)
+    # all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
 
     return all_vehicle_actors # + all_walker_actors
 
@@ -137,7 +138,7 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
 
 
 def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
-                  traffic_manager: carla.TrafficManager) -> List[VehicleInterface]:
+                  traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
     logging.info("Traffic Generation spawn vehicles.")
     batch = []
     vehicles_list = []
@@ -168,8 +169,9 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
         if response.error:
             logging.error(response.error)
         else:
-            vehicles_list.append(VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(response.actor_id)),
-                                                  True, response.actor_id))
+            vehicles_list.append(VehicleInterface(
+                    create_cr_vehicle_from_actor(world.get_actor(response.actor_id), cr_id), True, response.actor_id))
+            cr_id += 1
     # Set automatic vehicle lights update if specified
     for actor in world.get_actors([veh.carla_id for veh in vehicles_list]):
         traffic_manager.update_vehicle_lights(actor, True)

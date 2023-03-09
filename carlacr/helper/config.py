@@ -132,6 +132,7 @@ class SimulationParams(BaseParam):
     filter_pedestrian: str = 'walker.pedestrian.*'
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
+    max_time_step: int = 60
 
 
 @dataclass

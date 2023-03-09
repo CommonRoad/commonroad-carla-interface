@@ -11,7 +11,6 @@ import time
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
-from commonroad.planning.goal import GoalRegion
 from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
@@ -28,7 +27,8 @@ from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
-from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor
+from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
+    create_goal_region_from_state
 from carlacr.interface.traffic_light import CarlaTrafficLight
 
 logger = logging.getLogger(__name__)
@@ -231,33 +231,38 @@ class CarlaInterface:
 
     def scenario_generation(self, sc: Scenario) -> Tuple[Scenario, PlanningProblemSet]:
         assert self._config.sync is True
-        self._cr_obstacles = create_actors(self._client, self._config.simulation)
 
-        max_time_step = 60
-        time_step = 0
+        logger.info("Scenario generation: Create actors.")
+        self._cr_obstacles = create_actors(self._client, self._config.simulation, sc.generate_object_id())
+
+        logger.info("Scenario generation: Start Simulation.")
         sim_world = self._client.get_world()
-
-
-        logger.info("Simulate.")
-
-        while time_step <= max_time_step:
+        time_step = 0
+        while time_step <= self._config.simulation.max_time_step:
             sim_world.tick(self._config.simulation.time_step)
             time_step += 1
-        #    self._snapshots.append(sim_world.get_snapshot())
             self.update_cr_state(sim_world)
 
-            for actor in sim_world.get_actors():
-                # Save the state of the CARLA traffic lights
-                if "light" in actor.type_id:
-                    self.traffic_lights[actor.id].append(actor.get_state())
+            # for actor in sim_world.get_actors():
+            #     # Save the state of the CARLA traffic lights
+            #     if "light" in actor.type_id:
+            #         self.traffic_lights[actor.id].append(actor.get_state())
 
 
         for obs in self._cr_obstacles[1:]:
-            obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape)
+            obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory),
+                                                              obs.cr_obstacle.obstacle_shape)
             sc.add_objects(obs.cr_obstacle)
 
-        return sc, PlanningProblemSet([PlanningProblem(0, self._cr_obstacles[0].cr_obstacle.initial_state,
-                                                       GoalRegion(self._cr_obstacles[0].trajectory[-1]))])
+        # define goal region
+        if self._config.obstacle.vehicle_ks_state:
+            goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1])
+        else:
+            goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1], False)
+
+        return sc, PlanningProblemSet([PlanningProblem(sc.generate_object_id(),
+                                                       self._cr_obstacles[0].cr_obstacle.initial_state,
+                                                       goal_region)])
 
     # def _get_cycle_of_matching_traffic_light(self, cr_traffic_light: TrafficLight):
     #     """
