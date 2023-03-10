@@ -43,17 +43,7 @@ class VehicleInterface(ObstacleInterface):
         if self._cr_base.obstacle_type in \
                 [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
                  ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
-            nearest_vehicle_type = None
-            if self._config.approximation_type == ApproximationType.LENGTH:
-                nearest_vehicle_type = \
-                    similar_by_length(self._cr_base.obstacle_shape.length, self._cr_base.obstacle_shape.width, 0)
-            if self._config.approximation_type == ApproximationType.WIDTH:
-                nearest_vehicle_type = \
-                    similar_by_width(self._cr_base.obstacle_shape.length, self._cr_base.obstacle_shape.width, 0)
-            if self._config.approximation_type == ApproximationType.AREA:
-                nearest_vehicle_type = \
-                    similar_by_area(self._cr_base.obstacle_shape.length, self._cr_base.obstacle_shape.width, 0)
-            obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
+            obstacle_blueprint = self._find_blueprint(world)
 
             try:
                 obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
@@ -76,6 +66,20 @@ class VehicleInterface(ObstacleInterface):
             except Exception as e:
                 logger.error(f"Error while spawning VEHICLE: {e}")
                 raise e
+
+    def _find_blueprint(self, world):
+        nearest_vehicle_type = None
+        if self._config.approximation_type == ApproximationType.LENGTH:
+            nearest_vehicle_type = similar_by_length(self._cr_base.obstacle_shape.length,
+                                                     self._cr_base.obstacle_shape.width, 0)
+        if self._config.approximation_type == ApproximationType.WIDTH:
+            nearest_vehicle_type = similar_by_width(self._cr_base.obstacle_shape.length,
+                                                    self._cr_base.obstacle_shape.width, 0)
+        if self._config.approximation_type == ApproximationType.AREA:
+            nearest_vehicle_type = similar_by_area(self._cr_base.obstacle_shape.length,
+                                                   self._cr_base.obstacle_shape.width, 0)
+        obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
+        return obstacle_blueprint
 
     def _set_up_lights(self, vehicle, state: State = None, sig=None):
         """

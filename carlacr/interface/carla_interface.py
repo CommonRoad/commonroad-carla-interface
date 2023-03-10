@@ -1,3 +1,5 @@
+import copy
+
 import carla
 import os
 import sys
@@ -15,7 +17,10 @@ from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObst
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.trajectory import Trajectory
+from commonroad.common.solution import Solution, PlanningProblemSolution, VehicleType, VehicleModel, CostFunction
 
+from commonroad_dc.feasibility.solution_checker import solution_feasible
+from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
 from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
 
 from carlacr.game.birds_eye_view import HUD2D, World2D
@@ -190,6 +195,14 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
             obs.spawn(self._client.get_world(), 0)
 
+    def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
+                 cost_function: CostFunction) -> PlanningProblemSolution:
+        return PlanningProblemSolution(planning_problem_id=planning_problem_id,
+                 vehicle_model=vehicle_model,
+                 vehicle_type=vehicle_type,
+                 cost_function=cost_function,
+                 trajectory=Trajectory(self._ego.trajectory[0].time_step, self._ego.trajectory))
+
     def create_cr_map(self) -> Scenario:
         """Converts the CARLA map to Commonroad."""
         carla_map = self._client.get_world().get_map()
@@ -208,26 +221,37 @@ class CarlaInterface:
         return scenario
 
 
-    def replay(self, sc: Scenario, waypoint_control = False):
+    def replay(self, sc: Scenario, solution: Optional[Solution] = None, pps: PlanningProblemSet = None,
+               ego_id: Optional[int] = None, store_video: bool = False, waypoint_control = False):
         """
-        Runs the CommonRoad Scenario in CARLA.
+        Runs CommonRoad scenario in CARLA.
+        """
+        assert solution is None or ego_id is None
+        assert solution is None and pps is None or solution is not None and pps is not None
+        sc_sol = copy.deepcopy(sc)
+        if solution is not None:
+            pp_idx = list(pps.planning_problem_dict.keys())[0]
+            trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[pp_idx][2]
+            max_time_step = len(trajectory.state_list)
+            vehicle_params = VehicleParameterMapping.from_vehicle_type(solution.planning_problem_solutions[0].vehicle_type)
 
-        :param time_step_delta_real: sets the time that will be waited in real time between the time steps,
-        if None the dt of the scenario will be used
-        :param carla_vehicles: maximum number of vehicles that should be created & controlled by CARLA additional to
-        the objects defined in the scenario
-        :param carla_pedestrians: maximum number of pedestrians that should be created & controlled by CARLA
-        additional to the objects defined in the scenario
-        """
-        self._set_scenario(sc)
-        for time_step in range(calc_max_timestep(sc)):
+            shape = Rectangle(vehicle_params.l, vehicle_params.w)
+            sc_sol.add_objects(DynamicObstacle(list(pps.planning_problem_dict.keys())[0], ObstacleType.CAR, shape,
+                                               pps.planning_problem_dict[pp_idx].initial_state,
+                                               TrajectoryPrediction(trajectory, shape)))
+        else:
+            max_time_step = calc_max_timestep(sc_sol)
+       # if ego_id is not None:
+
+        self._set_scenario(sc_sol)
+        for time_step in range(max_time_step):
             if not waypoint_control:
                 logger.info(f"Replay time step: {time_step}.")
                 self._control_commonroad_obstacles_path_dynamic(time_step)
             else:
                 logger.info(f"Replay time step: {time_step}.")
                 self._control_commonroad_obstacles_waypoint(time_step)
-            self._client.get_world().tick(1)  # todo time step
+            self._client.get_world().tick()
 
     def scenario_generation(self, sc: Scenario) -> Tuple[Scenario, PlanningProblemSet]:
         assert self._config.sync is True
@@ -347,7 +371,7 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
             if not obs.is_spawned:
                 obs.spawn(self._client.get_world(), curr_time_step)
-            elif obs.get_role() == ObstacleRole.DYNAMIC:
+            if obs.get_role() == ObstacleRole.DYNAMIC:
                 tm = self._client.get_trafficmanager()
                 tm.set_path(self._client.get_world().get_actor(obs.carla_id), obs.get_path())
 
@@ -518,3 +542,4 @@ class CarlaInterface:
         finally:
             if world is not None:
                 world.destroy()
+            return
