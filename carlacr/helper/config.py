@@ -125,6 +125,15 @@ class SimulationParams(BaseParam):
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
+    width: float = 1280
+    height: float = 720
+    rolename: str = "hero"
+    generation: str = "2"
+    gamma: float = 2.2
+    description: str = "Keyboard Control"
+    show_triggers: bool = True
+    show_connections: bool = True
+    show_spawn_points: bool = True
 
 
 @dataclass
@@ -164,21 +173,7 @@ class MapParams(BaseParam):
 
 
 @dataclass
-class KeyboardControlParams(BaseParam):
-    width: float = 1280
-    height: float = 720
-    rolename: str = "hero"
-    generation: str = "2"
-    gamma: float = 2.2
-    description: str = "Keyboard Control"
-    show_triggers: bool = True
-    show_connections: bool = True
-    show_spawn_points: bool = True
-
-
-@dataclass
 class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     obstacle: ObstacleParams = field(default_factory=ObstacleParams)
     map_params: MapParams = field(default_factory=MapParams)
-    keyboard_control: KeyboardControlParams = field(default_factory=KeyboardControlParams)

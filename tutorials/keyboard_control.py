@@ -7,7 +7,6 @@ from carlacr.helper.config import CarlaParams, CustomVis
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import Solution, VehicleType, VehicleModel, CostFunction
 from commonroad.common.solution import CommonRoadSolutionWriter
-import traceback, sys
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -27,14 +26,10 @@ param.vis_type = CustomVis.BIRD # set to false if your system is powerful enough
 
 # Initialize CARLA-Interface and start keyboard control
 ci = CarlaInterface(param)
-try:
-    ci.keyboard_control(scenario, list(planning_problem_set.planning_problem_dict.values())[0])
-except Exception as e:
-    traceback.format_exception(*sys.exc_info())
+ci.keyboard_control(scenario, list(planning_problem_set.planning_problem_dict.values())[0])
 
 # Extract solution driven by vehicle and store it
 logger.info("Store solution")
 solution = ci.solution(list(planning_problem_set.planning_problem_dict.keys())[0], VehicleModel.PM,
                        VehicleType.BMW_320i, CostFunction.JB1)
-CommonRoadSolutionWriter(Solution(scenario.scenario_id, [solution])).write_to_file()
-
+CommonRoadSolutionWriter(Solution(scenario.scenario_id, [solution])).write_to_file(overwrite=True)

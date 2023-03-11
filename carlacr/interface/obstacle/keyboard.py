@@ -90,27 +90,15 @@ class KeyboardEgoInterface2D(EgoInterface):
 
     def _parse_events(self):
         """Parses input events. These events are executed only once when pressing a key."""
+        hero_actor = self._world.get_actor(self._carla_id)
         for event in pygame.event.get():
-                if event.key == K_TAB:
-                    # Toggle between hero and map mode
-                    if self._world.hero_actor is None:
-                        self._world.select_hero_actor()
-                        self._world.wheel_offset = HERO_DEFAULT_SCALE
-                        self.control = carla.VehicleControl()
-                        self._hud.notification('Hero Mode')
-                    else:
-                        self._world.wheel_offset = MAP_DEFAULT_SCALE
-                        self._world.mouse_offset = [0, 0]
-                        self._world.mouse_pos = [0, 0]
-                        self._world.scale_offset = [0, 0]
-                        self._world.hero_actor = None
-                        self._hud.notification('Map Mode')
+            if event.type == pygame.KEYDOWN:
                 if isinstance(self.control, carla.VehicleControl):
                     if event.key == K_q:
                         self.control.gear = 1 if self.control.reverse else -1
                     elif event.key == K_m:
                         self.control.manual_gear_shift = not self.control.manual_gear_shift
-                        self.control.gear = self._world.hero_actor.get_control().gear
+                        self.control.gear = hero_actor.get_control().gear
                         self._hud.notification('%s Transmission' % (
                             'Manual' if self.control.manual_gear_shift else 'Automatic'))
                     elif self.control.manual_gear_shift and event.key == K_COMMA:
@@ -119,9 +107,9 @@ class KeyboardEgoInterface2D(EgoInterface):
                         self.control.gear = self.control.gear + 1
                     elif event.key == K_p:
                         # Toggle autopilot
-                        if self._world.hero_actor is not None:
+                        if hero_actor is not None:
                             self._autopilot_enabled = not self._autopilot_enabled
-                            self._world.hero_actor.set_autopilot(self._autopilot_enabled)
+                            hero_actor.set_autopilot(self._autopilot_enabled)
                             self._hud.notification('Autopilot %s' % ('On' if self._autopilot_enabled else 'Off'))
 
     def _parse_keys(self, milliseconds):
@@ -147,8 +135,7 @@ class KeyboardEgoInterface2D(EgoInterface):
             if isinstance(self.control, carla.VehicleControl):
                 self._parse_keys(clock.get_time())
                 self.control.reverse = self.control.gear < 0
-            if (self._world.hero_actor is not None):
-                self._world.hero_actor.apply_control(self.control)
+            self._world.get_actor(self._carla_id).apply_control(self.control)
 
 class KeyboardEgoInterface3D(EgoInterface):
     """Class that handles keyboard input."""
@@ -390,7 +377,8 @@ class KeyboardEgoInterface3D(EgoInterface):
             self._control.speed = .01
             self._rotation.yaw += 0.08 * milliseconds
         if keys[K_UP] or keys[K_w]:
-            self._control.speed = world.player_max_speed_fast if pygame.key.get_mods() & KMOD_SHIFT else world.player_max_speed
+            self._control.speed = world.player_max_speed_fast if pygame.key.get_mods() & KMOD_SHIFT \
+                else world.player_max_speed
         self._control.jump = keys[K_SPACE]
         self._rotation.yaw = round(self._rotation.yaw, 1)
         self._control.direction = self._rotation.get_forward_vector()

@@ -34,9 +34,9 @@ def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) ->
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    # all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
+    all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
 
-    return all_vehicle_actors # + all_walker_actors
+    return all_vehicle_actors + all_walker_actors
 
 def extract_blueprints(config: SimulationParams, world: carla.World):
     blueprints_vehicles = world.get_blueprint_library().filter(config.filter_vehicle)
@@ -154,15 +154,7 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
     for transform in spawn_points:
         if num_vehicles >= config.number_vehicles:
             break
-        blueprint = random.choice(blueprints)
-        if blueprint.has_attribute('color'):
-            color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
-        if blueprint.has_attribute('driver_id'):
-            driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
-            blueprint.set_attribute('driver_id', driver_id)
-        else:
-            blueprint.set_attribute('role_name', 'autopilot')
+        blueprint = select_blueprint(blueprints)
 
         # spawn the cars and set their autopilot and light state all together
         spawned_actor = world.try_spawn_actor(blueprint, transform)
@@ -183,3 +175,18 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
             continue
 
     return vehicles_list
+
+
+def select_blueprint(blueprints):
+    blueprint = random.choice(blueprints)
+    if blueprint.has_attribute('color'):
+        color = random.choice(blueprint.get_attribute('color').recommended_values)
+        blueprint.set_attribute('color', color)
+    if blueprint.has_attribute('driver_id'):
+        driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
+        blueprint.set_attribute('driver_id', driver_id)
+    else:
+        blueprint.set_attribute('role_name', 'autopilot')
+    if blueprint.has_attribute('is_invincible'):
+        blueprint.set_attribute('is_invincible', 'true')
+    return blueprint

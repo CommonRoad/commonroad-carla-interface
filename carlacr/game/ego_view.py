@@ -72,7 +72,6 @@ from carla import ColorConverter as cc
 import collections
 import datetime
 import math
-import random
 import re
 import weakref
 
@@ -125,6 +124,7 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
+from carlacr.helper.traffic_generation import select_blueprint, extract_blueprints
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -143,41 +143,15 @@ def get_actor_display_name(actor, truncate=250):
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 
-def get_actor_blueprints(world, filter, generation):
-    bps = world.get_blueprint_library().filter(filter)
-
-    if generation.lower() == "all":
-        return bps
-
-    # If the filter returns only one bp, we assume that this one needed
-    # and therefore, we ignore the generation
-    if len(bps) == 1:
-        return bps
-
-    try:
-        int_generation = int(generation)
-        # Check if generation is in available generations
-        if int_generation in [1, 2]:
-            bps = [x for x in bps if int(x.get_attribute('generation')) == int_generation]
-            return bps
-        else:
-            print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-            return []
-    except:
-        print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-        return []
-
-
 # ==============================================================================
 # -- World ---------------------------------------------------------------------
 # ==============================================================================
 
 
-class World3D(object):
-    def __init__(self, carla_world, hud, args, player):
+class World3D:
+    def __init__(self, carla_world, hud, config, player):
         self.world = carla_world
-        self.sync = args.sync
-        self.actor_role_name = args.rolename
+        self._config = config
         try:
             self.map = self.world.get_map()
         except RuntimeError as error:
@@ -195,9 +169,6 @@ class World3D(object):
         self.camera_manager = None
         self._weather_presets = find_weather_presets()
         self._weather_index = 0
-        self._actor_filter = args.filter
-        self._actor_generation = args.generation
-        self._gamma = args.gamma
         self.restart()
         self.world.on_tick(hud.on_world_tick)
         self.recording_enabled = False
@@ -211,49 +182,22 @@ class World3D(object):
             carla.MapLayer.Props, carla.MapLayer.StreetLights, carla.MapLayer.Walls, carla.MapLayer.All]
 
     def restart(self):
-        self.player_max_speed = 1.589
-        self.player_max_speed_fast = 3.713
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
-        # Get a random blueprint.
-        blueprint = random.choice(get_actor_blueprints(self.world, self._actor_filter, self._actor_generation))
-        blueprint.set_attribute('role_name', self.actor_role_name)
-        if blueprint.has_attribute('color'):
-            color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
-        if blueprint.has_attribute('driver_id'):
-            driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
-            blueprint.set_attribute('driver_id', driver_id)
-        if blueprint.has_attribute('is_invincible'):
-            blueprint.set_attribute('is_invincible', 'true')
-        # set the max speed
-        if blueprint.has_attribute('speed'):
-            self.player_max_speed = float(blueprint.get_attribute('speed').recommended_values[1])
-            self.player_max_speed_fast = float(blueprint.get_attribute('speed').recommended_values[2])
 
-        # Spawn the player.
-        if self.player is not None:
-            spawn_point = self.player.get_transform()
-            spawn_point.location.z += 2.0
-            spawn_point.rotation.roll = 0.0
-            spawn_point.rotation.pitch = 0.0
-            self.destroy()
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-            self.show_vehicle_telemetry = False
-            self.modify_vehicle_physics(self.player)
         # Set up the sensors.
         self.collision_sensor = CollisionSensor(self.player, self.hud)
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
         self.gnss_sensor = GnssSensor(self.player)
         self.imu_sensor = IMUSensor(self.player)
-        self.camera_manager = CameraManager(self.player, self.hud, self._gamma)
+        self.camera_manager = CameraManager(self.player, self.hud, self._config.gamma)
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
         self.hud.notification(actor_type)
 
-        if self.sync:
+        if self._config.sync:
             self.world.tick()
         else:
             self.world.wait_for_tick()
@@ -327,8 +271,8 @@ class World3D(object):
 
 
 class HUD3D(object):
-    def __init__(self, width, height):
-        self.dim = (width, height)
+    def __init__(self, config):
+        self.dim = (config.width, config.height)
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
         font_name = 'courier' if os.name == 'nt' else 'mono'
         fonts = [x for x in pygame.font.get_fonts() if font_name in x]
@@ -336,14 +280,15 @@ class HUD3D(object):
         mono = default_font if default_font in fonts else fonts[0]
         mono = pygame.font.match_font(mono)
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
-        self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        self.help = HelpText(pygame.font.Font(mono, 16), width, height)
+        self._notifications = FadingText(font, (config.width, 40), (0, config.height - 40))
+        self.help = HelpText(pygame.font.Font(mono, 16), config.width, config.height)
         self.server_fps = 0
         self.frame = 0
         self.simulation_time = 0
         self._show_info = True
         self._info_text = []
         self._server_clock = pygame.time.Clock()
+        self._config = config
 
     def on_world_tick(self, timestamp):
         self._server_clock.tick()
@@ -367,7 +312,7 @@ class HUD3D(object):
         collision = [colhist[x + self.frame - 200] for x in range(0, 200)]
         max_col = max(1.0, max(collision))
         collision = [x / max_col for x in collision]
-        vehicles = world.world.get_actors().filter('vehicle.*')
+        vehicles = world.world.get_actors().filter(self._config.filter_vehicle)
         self._info_text = ['Server:  % 16.0f FPS' % self.server_fps, 'Client:  % 16.0f FPS' % clock.get_fps(), '',
                            'Vehicle: % 20s' % get_actor_display_name(world.player, truncate=20),
                            'Map:     % 20s' % world.map.name.split('/')[-1],

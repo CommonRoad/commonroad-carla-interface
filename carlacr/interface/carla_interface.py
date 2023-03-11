@@ -1,5 +1,3 @@
-import copy
-
 import carla
 import os
 import sys
@@ -27,7 +25,6 @@ from carlacr.game.ego_view import HUD3D, World3D
 from carlacr.interface.obstacle.ego_interface import EgoInterface
 from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D, KeyboardEgoInterface3D
 from carlacr.helper.config import CarlaParams, CustomVis
-from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
@@ -314,13 +311,15 @@ class CarlaInterface:
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
+            obstacle_control = True
         else:
             self._cr_obstacles = create_actors(self._client, self._config.simulation)
+            obstacle_control = False
 
         logger.info("Spawn ego.")
         self._ego.spawn(sim_world, 0)
 
-        self._run_simulation()
+        self._run_simulation(obstacle_control=obstacle_control)
 
     def update_cr_state(self, world: carla.World):
         # add current state to history
@@ -377,14 +376,14 @@ class CarlaInterface:
 
         if self._config.vis_type is CustomVis.BIRD:
             logger.info("Init 2D.")
-            hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
-            world = World2D("CARLA 2D", self._config.keyboard_control, sim_world.get_actor(self._ego.carla_id))
+            hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
+            world = World2D("CARLA 2D", self._config.simulation, sim_world.get_actor(self._ego.carla_id))
             world.start(hud, sim_world)
 
         elif self._config.vis_type is CustomVis.EGO:
             logger.info("Init 3D.")
-            hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
-            world = World3D(sim_world, hud, self._config.keyboard_control, sim_world.get_actor(self._ego.carla_id))
+            hud = HUD3D(self._config.simulation)
+            world = World3D(sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
@@ -425,15 +424,14 @@ class CarlaInterface:
     def _init_display(self):
         pygame.init()
         pygame.font.init()
-        display = pygame.display.set_mode((self._config.keyboard_control.width, self._config.keyboard_control.height),
+        display = pygame.display.set_mode((self._config.simulation.width, self._config.simulation.height),
                 pygame.HWSURFACE | pygame.DOUBLEBUF)
-        pygame.display.set_caption(self._config.keyboard_control.description)  # Place a title to game window
+        pygame.display.set_caption(self._config.simulation.description)  # Place a title to game window
         # Show loading screen
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
-        COLOR_WHITE = pygame.Color(255, 255, 255)
-        text_surface = font.render('Rendering map...', True, COLOR_WHITE)
+        text_surface = font.render('Rendering map...', True, pygame.Color(255, 255, 255))
         display.blit(text_surface, text_surface.get_rect(
-                center=(self._config.keyboard_control.width / 2, self._config.keyboard_control.height / 2)))
+                center=(self._config.simulation.width / 2, self._config.simulation.height / 2)))
         display.fill((0, 0, 0))
         pygame.display.flip()
         return display
