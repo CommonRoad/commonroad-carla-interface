@@ -252,9 +252,6 @@ class HUD2D (object):
         self._init_hud_params()
         self._init_data_params()
 
-    def start(self):
-        """Does nothing since it does not need to use other modules"""
-
     def _init_hud_params(self):
         """Initialized visual parameters such as font text and size"""
         font_name = 'courier' if os.name == 'nt' else 'mono'
@@ -926,6 +923,7 @@ class World2D:
             show_spawn_points=self.args.show_spawn_points)
 
         self._hud = hud
+        self._hud.notification("Press 'H' or '?' for help.", seconds=4.0)
 
         self.original_surface_size = min(self._hud.dim[0], self._hud.dim[1])
         self.surface_size = self.map_image.big_map_surface.get_width()

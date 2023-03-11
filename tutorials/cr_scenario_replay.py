@@ -2,13 +2,13 @@ import os
 import logging
 
 from carlacr.interface.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from carlacr.helper.config import CarlaParams, CustomVis
 
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import CommonRoadSolutionReader
 
-logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Specify CommonRoad and OpenDRIVE map
 or_map_path = os.path.dirname(__file__) + "/../maps/DEU_Test-1_1_T-1.xodr"
@@ -22,8 +22,8 @@ solution = CommonRoadSolutionReader().open(cr_solution_path)
 # Configure simulation and scenario settings
 param = CarlaParams()
 param.map = or_map_path
-param.offscreen_mode = False # set to false if your system is powerful enough
-param.birds_eye_view = True # set to false if your system is powerful enough
+param.offscreen_mode = True # set to true if your system (GPU) is powerful enough
+param.vis_type = CustomVis.EGO # change if your system (GPU) is powerful enough
 
 # Initialize CARLA-Interface and execute simulation
 ci = CarlaInterface(param)

@@ -7,17 +7,11 @@ from omegaconf import OmegaConf
 from enum import Enum
 
 
-class OperatingMode(Enum):
-    MOTION_PLANNER = 0
-    KEYBOARD = 1
-    WHEEL = 2
-    REPLAY = 3
-    SCENARIO_GENERATION = 4
 
-
-class ObstacleMode(Enum):
-    CARLA: 0
-    CR: 1
+class CustomVis(Enum):
+    BIRD = 0
+    EGO = 1
+    NONE = 2
 
 
 class ApproximationType(Enum):
@@ -58,8 +52,7 @@ class BaseParam:
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
-    operating_mode: OperatingMode = OperatingMode.REPLAY
-    birds_eye_view: bool = True
+    vis_type: CustomVis = CustomVis.BIRD
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -78,8 +71,7 @@ class BaseParam:
         self.map = self.map
         self.sync = self.sync
         self.autopilot = self.autopilot
-        self.operating_mode = self.operating_mode
-        self.birds_eye_view = self.birds_eye_view
+        self.vis_type = self.vis_type
 
     def __getitem__(self, item):
         try:

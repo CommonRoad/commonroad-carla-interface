@@ -99,16 +99,6 @@ class ObstacleInterface(ABC):
             logger.error("Error while updating position")
             raise e
 
-    def get_path(self) -> List[carla.Location]:
-        if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
-            return [carla.Location(x=self._cr_base.initial_state.position[0],
-                                   y=-self._cr_base.initial_state.position[1],
-                                   z=0.5)]
-        else:
-            return [carla.Location(x=state.position[0],  y=-state.position[1], z=0.5)
-                    for state in self._cr_base.prediction.trajectory.state_list]
-
-
     def destroy_carla_obstacle(self, world):
         """
         Destroys vehicle in CARLA.

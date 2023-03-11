@@ -13,12 +13,11 @@ import time
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
-from commonroad.scenario.obstacle import ObstacleRole, ObstacleType, DynamicObstacle
+from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.trajectory import Trajectory
 from commonroad.common.solution import Solution, PlanningProblemSolution, VehicleType, VehicleModel, CostFunction
-
 from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
 from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
@@ -27,7 +26,7 @@ from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
 from carlacr.interface.obstacle.ego_interface import EgoInterface
 from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D, KeyboardEgoInterface3D
-from carlacr.helper.config import CarlaParams
+from carlacr.helper.config import CarlaParams, CustomVis
 from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
@@ -35,6 +34,7 @@ from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
 from carlacr.interface.traffic_light import CarlaTrafficLight
+from carlacr.interface.obstacle.cr_replay_ego import CommonRoadObstacleInterface
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class CarlaInterface:
         settings.fixed_delta_seconds = self._config.simulation.time_step
         settings.max_substep_delta_time = self._config.simulation.max_substep_delta_time
         settings.max_substeps = self._config.simulation.max_substeps
-        settings.no_rendering_mode = self._config.birds_eye_view
+        settings.no_rendering_mode = self._config.vis_type == CustomVis.BIRD
         world.apply_settings(settings)
 
     def _init_carla_traffic_manager(self):
@@ -184,16 +184,16 @@ class CarlaInterface:
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
-                self._cr_obstacles.append(VehicleInterface(obs))
+                self._cr_obstacles.append(CommonRoadObstacleInterface(obs))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
                 self._cr_obstacles.append(PedestrianInterface(obs))
 
         # TODO: set traffic light cycle
-        self._spawn_cr_obstacles()
+#        self._spawn_cr_obstacles()
 
-    def _spawn_cr_obstacles(self):
-        for obs in self._cr_obstacles:
-            obs.spawn(self._client.get_world(), 0)
+    # def _spawn_cr_obstacles(self):
+    #     for obs in self._cr_obstacles:
+    #         obs.spawn(self._client.get_world(), 0)
 
     def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
                  cost_function: CostFunction) -> PlanningProblemSolution:
@@ -228,30 +228,33 @@ class CarlaInterface:
         """
         assert solution is None or ego_id is None
         assert solution is None and pps is None or solution is not None and pps is not None
-        sc_sol = copy.deepcopy(sc)
+
         if solution is not None:
-            pp_idx = list(pps.planning_problem_dict.keys())[0]
-            trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[pp_idx][2]
-            max_time_step = len(trajectory.state_list)
-            vehicle_params = VehicleParameterMapping.from_vehicle_type(solution.planning_problem_solutions[0].vehicle_type)
-
-            shape = Rectangle(vehicle_params.l, vehicle_params.w)
-            sc_sol.add_objects(DynamicObstacle(list(pps.planning_problem_dict.keys())[0], ObstacleType.CAR, shape,
-                                               pps.planning_problem_dict[pp_idx].initial_state,
-                                               TrajectoryPrediction(trajectory, shape)))
+            ego_id = list(pps.planning_problem_dict.keys())[0]
+            ego_obs = self._add_solution_to_scenario(ego_id, pps, solution)
+            self._config.simulation.max_time_step = len(ego_obs.prediction.trajectory.state_list)
         else:
-            max_time_step = calc_max_timestep(sc_sol)
-       # if ego_id is not None:
-
-        self._set_scenario(sc_sol)
-        for time_step in range(max_time_step):
-            if not waypoint_control:
-                logger.info(f"Replay time step: {time_step}.")
-                self._control_commonroad_obstacles_path_dynamic(time_step)
+            self._config.simulation.max_time_step = calc_max_timestep(sc)
+            if ego_id is not None:
+                ego_obs = sc.obstacle_by_id(ego_id)
+                sc.remove_obstacle(ego_obs)
             else:
-                logger.info(f"Replay time step: {time_step}.")
-                self._control_commonroad_obstacles_waypoint(time_step)
-            self._client.get_world().tick()
+                ego_obs = None
+
+        if ego_id is not None:
+            self._ego = CommonRoadObstacleInterface(ego_obs, waypoint_control)
+
+        self._set_scenario(sc)
+
+        self._run_simulation(obstacle_control=True)
+
+    def _add_solution_to_scenario(self, ego_id, pps, solution) -> DynamicObstacle:
+        trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[ego_id][2]
+        vehicle_params = VehicleParameterMapping.from_vehicle_type(solution.planning_problem_solutions[0].vehicle_type)
+        shape = Rectangle(vehicle_params.l, vehicle_params.w)
+
+        return DynamicObstacle(ego_id, ObstacleType.CAR, shape, pps.planning_problem_dict[ego_id].initial_state,
+                            TrajectoryPrediction(trajectory, shape))
 
     def scenario_generation(self, sc: Scenario) -> Tuple[Scenario, PlanningProblemSet]:
         assert self._config.sync is True
@@ -288,122 +291,23 @@ class CarlaInterface:
                                                        self._cr_obstacles[0].cr_obstacle.initial_state,
                                                        goal_region)])
 
-    # def _get_cycle_of_matching_traffic_light(self, cr_traffic_light: TrafficLight):
-    #     """
-    #     Finds the matching lanelet for the CARLA traffic light object.
-    #
-    #     :param carla_traffic_light: the CARLA traffic light object for which a matching lanelet is to be found
-    #     """
-    #     best_carla_traffic_light_id = None
-    #     # A big enough number
-    #     best_diff = 99999
-    #     cr_position = cr_traffic_light.position
-    #
-    #     for actor in self.world.get_actors():
-    #         if "light" in actor.type_id:
-    #             carla_location = actor.get_location()
-    #             diff_x = abs(carla_location.x - cr_position[0])
-    #             diff_y = abs(carla_location.y + cr_position[1])  # We add since OPDR to CR Conversion inverses the sign
-    #
-    #             cur_diff = sqrt(diff_x**2 + diff_y**2)
-    #
-    #             if cur_diff < best_diff:
-    #                 best_diff = cur_diff
-    #                 best_carla_traffic_light_id = actor.id
-    #
-    #     return self._create_traffic_light_cycle(best_carla_traffic_light_id)
-    #
-    # def _change_cycle_of_traffic_lights(self):
-    #     """Change the cycle of the CR traffic lights in the scenario to the cycle of the nearest CARLA traffic light."""
-    #
-    #     lanelet_network = self.scenario.lanelet_network
-    #     lanelets = lanelet_network.lanelets
-    #
-    #     for lanelet in lanelets:
-    #         for traffic_light_id in lanelet.traffic_lights:
-    #             traffic_light = lanelet_network.find_traffic_light_by_id(traffic_light_id)
-    #             traffic_light.cycle = self._get_cycle_of_matching_traffic_light(traffic_light)
-    # def _create_traffic_light_cycle_element(self, state: carla.TrafficLightState, duration: int):
-    #     """
-    #     Creates a CommonRoad TrafficLightCycleElement for the given CARLA TrafficLightState and duration.
-    #
-    #     :param state: the CARLA traffic light state
-    #     :param duration: the duration of the state
-    #     """
-    #     cycle_element = None
-    #     if state == carla.TrafficLightState.Green:
-    #         cycle_element = TrafficLightCycleElement(TrafficLightState.GREEN, duration)
-    #     elif state == carla.TrafficLightState.Red:
-    #         cycle_element = TrafficLightCycleElement(TrafficLightState.RED, duration)
-    #     elif state == carla.TrafficLightState.Yellow:
-    #         cycle_element = TrafficLightCycleElement(TrafficLightState.YELLOW, duration)
-    #     return cycle_element
-    #
-    # def _create_traffic_light_cycle(self, traffic_light_id: int):
-    #     """
-    #     Creates a traffic light cycle for the given traffic light.
-    #
-    #     :param traffic_light: the traffic light for the traffic light cycle is to be created
-    #     :param starting_state: the state of the traffic light at the start
-    #     """
-    #     state_list = self.traffic_lights[traffic_light_id]
-    #     cycle = []
-    #     current_state = state_list[0]
-    #     duration = 0
-    #
-    #     for state in state_list:
-    #         if state == current_state:
-    #             duration += 1
-    #         else:
-    #             cycle_element = self._create_traffic_light_cycle_element(current_state, duration)
-    #             cycle.append(cycle_element)
-    #             current_state = state
-    #             duration = 1
-    #
-    #     # Handle last cycle element
-    #     cycle_element = self._create_traffic_light_cycle_element(current_state, duration)
-    #     cycle.append(cycle_element)
-    #
-    #     return cycle
-
-
-    def _control_commonroad_obstacles_path_dynamic(self, curr_time_step: int):
-        for obs in self._cr_obstacles:
-            if not obs.is_spawned:
-                obs.spawn(self._client.get_world(), curr_time_step)
-            if obs.get_role() == ObstacleRole.DYNAMIC:
-                tm = self._client.get_trafficmanager()
-                tm.set_path(self._client.get_world().get_actor(obs.carla_id), obs.get_path())
-
-    def _control_commonroad_obstacles_waypoint(self, curr_time_step: int):
-        """
-        Control CommonRoad obstacles, spawn, update position and destroy regarding actor in carla if out of scenario.
-
-        :param interface_obstacles: list of CommonRoadObstacleInterface object
-        :param carla_interface_obstacles: list of tuple (interface object,actor)
-        :param curr_time_step: current time step of the scenario
-        :param mode: update obstacle "by-time", "by-control", or "by-ackermann-control"
-        """
-        for obs in self._cr_obstacles:
-            if not obs.is_spawned:
-                obs.spawn(self._client.get_world(), curr_time_step)
-            else:
-                obs.control(obs.state_at_time_step(curr_time_step))
-
-    def keyboard_control(self, sc: Scenario = None, pp: PlanningProblem = None):
+    def keyboard_control(self, sc: Scenario = None, pp: PlanningProblem = None,
+                         vehicle_type: VehicleType = VehicleType.BMW_320i):
         logger.info("Start keyboard manual control.")
 
         if pp is not None:
-            ego_obs = DynamicObstacle(0, ObstacleType.CAR, Rectangle(5, 2), pp.initial_state)
+            vehicle_params = VehicleParameterMapping.from_vehicle_type(vehicle_type)
+            ego_obs = DynamicObstacle(0, ObstacleType.CAR, Rectangle(vehicle_params.l, vehicle_params.w),
+                                      pp.initial_state)
         else:
             ego_obs = None
 
-        if self._config.birds_eye_view:
+        if self._config.vis_type is CustomVis.BIRD:
             logger.info("Init 2D Manual Control.")
             self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
         else:
             logger.info("Init 3D Manual Control.")
-            self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
+            self._ego = KeyboardEgoInterface3D("3 Manual Control", ego_obs)
 
         sim_world = self._client.get_world()
 
@@ -456,90 +360,80 @@ class CarlaInterface:
                 state = create_cr_pm_state_from_actor(actor, time_step)
             obs.trajectory.append(state)
 
-    def _run_simulation(self):
+    def _run_simulation(self, obstacle_control: bool = False):
         sim_world = self._client.get_world()
-
+        tm = self._client.get_trafficmanager()
+        world = None
         COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
-        COLOR_WHITE = pygame.Color(255, 255, 255)
+        hud = None
+        time_step = 0
+        clock = None
+        display = None
+
+        if self._config.vis_type is not CustomVis.NONE:
+            self._ego.spawn(sim_world, time_step, tm)
+            display = self._init_display()
+            clock = pygame.time.Clock()
+
+        if self._config.vis_type is CustomVis.BIRD:
+            logger.info("Init 2D.")
+            hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
+            world = World2D("CARLA 2D", self._config.keyboard_control, sim_world.get_actor(self._ego.carla_id))
+            world.start(hud, sim_world)
+
+        elif self._config.vis_type is CustomVis.EGO:
+            logger.info("Init 3D.")
+            hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
+            world = World3D(sim_world, hud, self._config.keyboard_control, sim_world.get_actor(self._ego.carla_id))
+
+        logger.info("Loop.")
+        while time_step <= self._config.simulation.max_time_step:
+            if self._config.sync:
+                sim_world.tick()
+                time_step += 1
+            else:
+                sim_world.wait_for_tick()
+
+            if self._ego is not None:
+                self._ego.tick(clock, sim_world, tm)
+
+            if self._config.vis_type is CustomVis.BIRD:
+                # Tick all modules
+                clock.tick_busy_loop(60)
+                world.tick(clock)
+                hud.tick(clock)
+
+                # Render all modules
+                display.fill(COLOR_ALUMINIUM_4)
+                world.render(display)
+                hud.render(display)
+
+                pygame.display.flip()
+            elif self._config.vis_type is CustomVis.EGO:
+                clock.tick_busy_loop(60)
+                self._ego.parse_events(self._client, world, clock, self._config.sync)
+                world.tick(clock)
+                world.render(display)
+
+                pygame.display.flip()
+
+            if obstacle_control:
+                for obs in self._cr_obstacles:
+                    obs.tick(clock, sim_world, tm)
+            self.update_cr_state(sim_world)
+
+    def _init_display(self):
         pygame.init()
         pygame.font.init()
-        world = None
-        try:
-            display = pygame.display.set_mode(
-                    (self._config.keyboard_control.width, self._config.keyboard_control.height),
-                    pygame.HWSURFACE | pygame.DOUBLEBUF)
-
-            pygame.display.set_caption(self._config.keyboard_control.description)  # Place a title to game window
-
-            # Show loading screen
-            font = pygame.font.Font(pygame.font.get_default_font(), 20)
-            text_surface = font.render('Rendering map...', True, COLOR_WHITE)
-            display.blit(text_surface, text_surface.get_rect(
-                    center=(self._config.keyboard_control.width / 2, self._config.keyboard_control.height / 2)))
-            display.fill((0, 0, 0))
-            pygame.display.flip()
-
-            max_time_step = 60
-            time_step = 0
-
-            if self._config.birds_eye_view:
-                logger.info("Init 2D.")
-                hud = HUD2D("CARLA 2D", self._config.keyboard_control.width, self._config.keyboard_control.height)
-                world = World2D("CARLA 2D", self._config.keyboard_control, sim_world.get_actor(self._ego._carla_id))
-
-                # For each module, assign other modules that are going to be used inside that module
-                logger.info("Register 2D.")
-                self._ego.start(hud, world)
-                hud.start()
-                world.start(hud, sim_world)
-
-                # Game loop
-                clock = pygame.time.Clock()
-                logger.info("Loop 2D.")
-                while True and not time_step >= max_time_step:
-                    if self._config.sync:
-                        sim_world.tick(10)
-                        time_step += 1
-                    else:
-                        sim_world.wait_for_tick()
-                    clock.tick_busy_loop(60)
-
-                    # Tick all modules
-                    world.tick(clock)
-                    hud.tick(clock)
-                    self._ego.tick(clock)
-
-                    # Render all modules
-                    display.fill(COLOR_ALUMINIUM_4)
-                    world.render(display)
-                    hud.render(display)
-
-                    pygame.display.flip()
-
-                    self.update_cr_state(sim_world)
-
-
-
-            else:
-                logger.info("Init 3D.")
-                hud = HUD3D(self._config.keyboard_control.width, self._config.keyboard_control.height)
-                world = World3D(sim_world, hud, self._config.keyboard_control, sim_world.get_actor(self._ego._carla_id))
-                controller = KeyboardEgoInterface3D(world, self._config.autopilot)
-
-                clock = pygame.time.Clock()
-                while True:
-                    if self._config.sync:
-                        sim_world.tick()
-                    else:
-                        sim_world.wait_for_tick()
-                    clock.tick_busy_loop(60)
-                    if controller.parse_events(self._client, world, clock, self._config.sync):
-                        return
-                    world.tick(clock)
-                    world.render(display)
-                    pygame.display.flip()
-
-        finally:
-            if world is not None:
-                world.destroy()
-            return
+        display = pygame.display.set_mode((self._config.keyboard_control.width, self._config.keyboard_control.height),
+                pygame.HWSURFACE | pygame.DOUBLEBUF)
+        pygame.display.set_caption(self._config.keyboard_control.description)  # Place a title to game window
+        # Show loading screen
+        font = pygame.font.Font(pygame.font.get_default_font(), 20)
+        COLOR_WHITE = pygame.Color(255, 255, 255)
+        text_surface = font.render('Rendering map...', True, COLOR_WHITE)
+        display.blit(text_surface, text_surface.get_rect(
+                center=(self._config.keyboard_control.width / 2, self._config.keyboard_control.height / 2)))
+        display.fill((0, 0, 0))
+        pygame.display.flip()
+        return display

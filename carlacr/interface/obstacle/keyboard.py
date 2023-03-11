@@ -84,21 +84,7 @@ class KeyboardEgoInterface2D(EgoInterface):
         self.control = carla.VehicleControl()
         self._autopilot_enabled = False
 
-        # Modules that input will depend on
-        self._hud = None
-        self._world = None
-
-    def start(self, hud, world):
-        """Assigns other initialized modules that input module needs."""
-        self._hud = hud
-        self._world = world
-
-        self._hud.notification("Press 'H' or '?' for help.", seconds=4.0)
-
-    def render(self, display):
-        """Does nothing. Input module does not need render anything."""
-
-    def tick(self, clock):
+    def tick(self, clock, world, tm):
         """Executed each frame. Calls method for parsing input."""
         self.parse_input(clock)
 

@@ -1,12 +1,9 @@
-import time
-import carla
-import subprocess
 import os
 import logging
 from carlacr.interface.carla_interface import CarlaInterface
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.file_writer import CommonRoadFileWriter
-from carlacr.helper.config import CarlaParams
+from carlacr.helper.config import CarlaParams, CustomVis
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ param = CarlaParams()
 param.map = or_map
 param.obstacle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.birds_eye_view = True
+param.vis_type = CustomVis.BIRD
 
 try:
     ci = CarlaInterface(param)

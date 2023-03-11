@@ -28,18 +28,14 @@ class EgoInterface(VehicleInterface):
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
-        super().__init__(cr_obstacle, config)
+        super().__init__(cr_obstacle, config=config)
+        self._hud = None
+        self._vis_world = None
 
-    def control(self, state: Optional[State] = None):
+    def tick(self, clock, world, tm):
         pass
 
-    def start(self, hud, world):
-        pass
-
-    def tick(self, clock):
-        pass
-
-    def spawn(self, world: carla.World, time_step: int) -> bool:
+    def spawn(self, world: carla.World, time_step: int, tm: carla.TrafficManager = None) -> bool:
         if super().spawn(world, time_step):
             return True
         else:
