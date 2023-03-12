@@ -11,6 +11,7 @@
 # ==============================================================================
 
 from typing import Optional
+import sys
 
 from carlacr.interface.obstacle.ego_interface import EgoInterface
 from carlacr.helper.config import ObstacleParams
@@ -41,6 +42,7 @@ try:
     from pygame.locals import K_q
     from pygame.locals import K_s
     from pygame.locals import K_w
+    from pygame.locals import K_ESCAPE
 
     from pygame.locals import KMOD_CTRL
     from pygame.locals import KMOD_SHIFT
@@ -76,10 +78,10 @@ HERO_DEFAULT_SCALE = 1.0
 class KeyboardEgoInterface2D(EgoInterface):
     """Class that handles input received such as keyboard and mouse."""
 
-    def __init__(self, name: str, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams()):
+    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None,
+                 config: ObstacleParams = ObstacleParams()):
         """Initializes input member variables when instance is created."""
         super().__init__(cr_obstacle, config)
-        self.name = name
         self._steer_cache = 0.0
         self.control = carla.VehicleControl()
         self._autopilot_enabled = False
@@ -139,21 +141,20 @@ class KeyboardEgoInterface2D(EgoInterface):
 
 class KeyboardEgoInterface3D(EgoInterface):
     """Class that handles keyboard input."""
-    def __init__(self, world, start_in_autopilot):
-        self._autopilot_enabled = start_in_autopilot
-        if isinstance(world.player, carla.Vehicle):
+    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams(), walker: bool = False):
+        super().__init__(cr_obstacle, config)
+
+        self._autopilot_enabled = False
+        if not walker:
             self._control = carla.VehicleControl()
             self._lights = carla.VehicleLightState.NONE
-            world.player.set_autopilot(self._autopilot_enabled)
-            world.player.set_light_state(self._lights)
-        elif isinstance(world.player, carla.Walker):
+        else:
             self._control = carla.WalkerControl()
             self._autopilot_enabled = False
-            self._rotation = world.player.get_transform().rotation
-        else:
-            raise NotImplementedError("Actor type not supported")
+        #    self._rotation = world.player.get_transform().rotation
+
         self._steer_cache = 0.0
-        world.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
+
 
     def parse_events(self, client, world, clock, sync_mode):
         if isinstance(self._control, carla.VehicleControl):
@@ -162,7 +163,7 @@ class KeyboardEgoInterface3D(EgoInterface):
             if event.type == pygame.QUIT:
                 return True
             elif event.type == pygame.KEYUP:
-                if self._is_quit_shortcut(event.key):
+                if is_quit_shortcut(event.key):
                     return True
                 elif event.key == K_BACKSPACE:
                     if self._autopilot_enabled:
@@ -383,4 +384,11 @@ class KeyboardEgoInterface3D(EgoInterface):
         self._rotation.yaw = round(self._rotation.yaw, 1)
         self._control.direction = self._rotation.get_forward_vector()
 
+def is_quit_shortcut(key):
+    """Returns True if one of the specified keys are pressed"""
+    return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
 
+def exit_game():
+    """Shuts down program and PyGame"""
+    pygame.quit()
+    sys.exit()

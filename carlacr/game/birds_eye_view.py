@@ -50,7 +50,7 @@ except IndexError:
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
 
-from carlacr.interface.obstacle.keyboard import HERO_DEFAULT_SCALE
+from carlacr.interface.obstacle.keyboard import HERO_DEFAULT_SCALE, exit_game, is_quit_shortcut
 
 import carla
 from carla import TrafficLightState as tls
@@ -64,7 +64,6 @@ try:
     import pygame
     from pygame.locals import KMOD_CTRL
     from pygame.locals import KMOD_SHIFT
-    from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
     from pygame.locals import K_SLASH
     from pygame.locals import K_h
@@ -1344,11 +1343,3 @@ class World2D:
         if self.spawned_hero is not None:
             self.spawned_hero.destroy()
 
-def is_quit_shortcut(key):
-    """Returns True if one of the specified keys are pressed"""
-    return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
-
-def exit_game():
-    """Shuts down program and PyGame"""
-    pygame.quit()
-    sys.exit()

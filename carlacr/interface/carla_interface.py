@@ -301,7 +301,7 @@ class CarlaInterface:
 
         if self._config.vis_type is CustomVis.BIRD:
             logger.info("Init 2D Manual Control.")
-            self._ego = KeyboardEgoInterface2D("2D Manual Control", ego_obs)
+            self._ego = KeyboardEgoInterface2D(ego_obs)
         else:
             logger.info("Init 3D Manual Control.")
             self._ego = KeyboardEgoInterface3D("3 Manual Control", ego_obs)

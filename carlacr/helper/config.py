@@ -162,6 +162,7 @@ class ObstacleParams(BaseParam):
     control: ControlParams = field(default_factory=ControlParams)
     simulation: SimulationParams = field(default_factory=SimulationParams)
     vehicle_ks_state: bool = True
+    path_sampling: int = 10 # use every path_sampling time step for path to follow CR trajectory
 
 
 @dataclass

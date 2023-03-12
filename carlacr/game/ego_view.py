@@ -196,6 +196,7 @@ class World3D:
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
         self.hud.notification(actor_type)
+        self.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
 
         if self._config.sync:
             self.world.tick()

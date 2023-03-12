@@ -23,7 +23,7 @@ solution = CommonRoadSolutionReader().open(cr_solution_path)
 param = CarlaParams()
 param.map = or_map_path
 param.offscreen_mode = True # set to true if your system (GPU) is powerful enough
-param.vis_type = CustomVis.EGO # change if your system (GPU) is powerful enough
+param.vis_type = CustomVis.BIRD # change if your system (GPU) is powerful enough
 
 # Initialize CARLA-Interface and execute simulation
 ci = CarlaInterface(param)
