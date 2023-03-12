@@ -304,7 +304,7 @@ class CarlaInterface:
             self._ego = KeyboardEgoInterface2D(ego_obs)
         else:
             logger.info("Init 3D Manual Control.")
-            self._ego = KeyboardEgoInterface3D("3 Manual Control", ego_obs)
+            self._ego = KeyboardEgoInterface3D(ego_obs)
 
         sim_world = self._client.get_world()
 

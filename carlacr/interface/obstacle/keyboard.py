@@ -141,7 +141,8 @@ class KeyboardEgoInterface2D(EgoInterface):
 
 class KeyboardEgoInterface3D(EgoInterface):
     """Class that handles keyboard input."""
-    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams(), walker: bool = False):
+    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None, config: ObstacleParams = ObstacleParams(),
+                 walker: bool = False):
         super().__init__(cr_obstacle, config)
 
         self._autopilot_enabled = False

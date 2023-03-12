@@ -22,7 +22,7 @@ param = CarlaParams()
 param.map = or_map_path
 param.obstacle.vehicle_ks_state = False
 param.offscreen_mode = True # set to false if your system is powerful enough
-param.vis_type = CustomVis.BIRD # set to false if your system is powerful enough
+param.vis_type = CustomVis.EGO # set to false if your system is powerful enough
 
 # Initialize CARLA-Interface and start keyboard control
 ci = CarlaInterface(param)
