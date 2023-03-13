@@ -34,7 +34,7 @@ def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) ->
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
+    all_walker_actors = spawn_walker(config, blueprints_walkers, client)
 
     return all_vehicle_actors + all_walker_actors
 

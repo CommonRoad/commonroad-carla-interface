@@ -23,7 +23,7 @@ from crdesigner.map_conversion.map_conversion_interface import opendrive_to_comm
 from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
 from carlacr.interface.obstacle.ego_interface import EgoInterface
-from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface2D, KeyboardEgoInterface3D
+from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface
 from carlacr.helper.config import CarlaParams, CustomVis
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
@@ -299,12 +299,8 @@ class CarlaInterface:
         else:
             ego_obs = None
 
-        if self._config.vis_type is CustomVis.BIRD:
-            logger.info("Init 2D Manual Control.")
-            self._ego = KeyboardEgoInterface2D(ego_obs)
-        else:
-            logger.info("Init 3D Manual Control.")
-            self._ego = KeyboardEgoInterface3D(ego_obs)
+        logger.info("Init Manual Control.")
+        self._ego = KeyboardEgoInterface(ego_obs)
 
         sim_world = self._client.get_world()
 
@@ -312,9 +308,9 @@ class CarlaInterface:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
             obstacle_control = True
-        else:
-            self._cr_obstacles = create_actors(self._client, self._config.simulation)
-            obstacle_control = False
+      #  else:
+       #     self._cr_obstacles = create_actors(self._client, self._config.simulation, 1)
+        obstacle_control = False
 
         logger.info("Spawn ego.")
         self._ego.spawn(sim_world, 0)
@@ -363,7 +359,7 @@ class CarlaInterface:
         sim_world = self._client.get_world()
         tm = self._client.get_trafficmanager()
         world = None
-        COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
+
         hud = None
         time_step = 0
         clock = None
@@ -377,9 +373,7 @@ class CarlaInterface:
         if self._config.vis_type is CustomVis.BIRD:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
-            world = World2D("CARLA 2D", self._config.simulation, sim_world.get_actor(self._ego.carla_id))
-            world.start(hud, sim_world)
-
+            world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
         elif self._config.vis_type is CustomVis.EGO:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
@@ -396,24 +390,10 @@ class CarlaInterface:
             if self._ego is not None:
                 self._ego.tick(clock, sim_world, tm)
 
-            if self._config.vis_type is CustomVis.BIRD:
-                # Tick all modules
+            if self._config.vis_type is not CustomVis.NONE:
                 clock.tick_busy_loop(60)
                 world.tick(clock)
-                hud.tick(clock)
-
-                # Render all modules
-                display.fill(COLOR_ALUMINIUM_4)
                 world.render(display)
-                hud.render(display)
-
-                pygame.display.flip()
-            elif self._config.vis_type is CustomVis.EGO:
-                clock.tick_busy_loop(60)
-                self._ego.parse_events(self._client, world, clock, self._config.sync)
-                world.tick(clock)
-                world.render(display)
-
                 pygame.display.flip()
 
             if obstacle_control:

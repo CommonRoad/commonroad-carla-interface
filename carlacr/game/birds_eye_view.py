@@ -117,7 +117,6 @@ COLOR_ALUMINIUM_4 = pygame.Color(85, 87, 83)
 COLOR_ALUMINIUM_4_5 = pygame.Color(66, 62, 64)
 COLOR_ALUMINIUM_5 = pygame.Color(46, 52, 54)
 
-
 COLOR_WHITE = pygame.Color(255, 255, 255)
 COLOR_BLACK = pygame.Color(0, 0, 0)
 
@@ -863,16 +862,17 @@ class MapImage(object):
 class World2D:
     """Class that contains all the information of a carla world that is running on the server side"""
 
-    def __init__(self, name, args, ego):
+    def __init__(self, name, world, hud, args, ego):
         self.name = name
+        self.world = world
         self.args = args
         self.server_fps = 0.0
         self.simulation_time = 0
         self.server_clock = pygame.time.Clock()
 
         # World data
-        self.world = None
-        self.town_map = None
+        self.world = world
+        self.town_map = self.world.get_map()
         self.actors_with_transforms = []
 
         # Mouse control
@@ -881,7 +881,7 @@ class World2D:
         self.wheel_offset = 0.1
         self.wheel_amount = 0.025
 
-        self._hud = None
+        self._hud = hud
 
         self.surface_size = [0, 0]
         self.prev_scaled_size = 0
@@ -907,11 +907,10 @@ class World2D:
         self.hero_surface = None
         self.actors_surface = None
 
-    def start(self, hud, world):
-        """Build the map image, stores the needed modules and prepares rendering in Hero Mode"""
-        self.world = world
-        self.town_map = self.world.get_map()
+        self.start()
 
+    def start(self):
+        """Build the map image, stores the needed modules and prepares rendering in Hero Mode"""
         # Create Surfaces
         self.map_image = MapImage(
             carla_world=self.world,
@@ -921,7 +920,6 @@ class World2D:
             show_connections=self.args.show_connections,
             show_spawn_points=self.args.show_spawn_points)
 
-        self._hud = hud
         self._hud.notification("Press 'H' or '?' for help.", seconds=4.0)
 
         self.original_surface_size = min(self._hud.dim[0], self._hud.dim[1])
@@ -1011,6 +1009,7 @@ class World2D:
             self.hero_transform = self.hero_actor.get_transform()
 
         self.update_hud_info(clock)
+        self._hud.tick(clock)
 
     def update_hud_info(self, clock):
         """Updates the HUD info regarding simulation,
@@ -1254,7 +1253,10 @@ class World2D:
 
     def render(self, display):
         """Renders the map and all the actors in hero and map mode"""
+        display.fill(COLOR_ALUMINIUM_4)
+
         if self.actors_with_transforms is None:
+            self._hud.render(display)
             return
         self.result_surface.fill(COLOR_BLACK)
 
@@ -1337,6 +1339,8 @@ class World2D:
 
             display.blit(self.result_surface, (translation_offset[0] + center_offset[0],
                                                translation_offset[1]))
+
+        self._hud.render(display)
 
     def destroy(self):
         """Destroy the hero actor when class instance is destroyed"""

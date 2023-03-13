@@ -59,7 +59,7 @@ class EgoInterface(VehicleInterface):
             self._carla_id = ego_actor.id
             self._commonroad_id = 0
             self._spawn_timestep = time_step
-            self._cr_base = create_cr_vehicle_from_actor(ego_actor)
+            self._cr_base = create_cr_vehicle_from_actor(ego_actor, 0)
 
 
 class AckermannEgoInterface(EgoInterface):
