@@ -13,7 +13,9 @@ param = CarlaParams()
 #param.map = "Town10HD"
 param.obstacle.vehicle_ks_state = False
 param.simulation.max_time_step = 120
-param.offscreen_mode = False
+param.offscreen_mode = True
+param.simulation.number_vehicles = 10
+param.simulation.number_walkers = 0
 
 # Execute scenario generation
 ci = CarlaInterface(param)

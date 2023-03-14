@@ -34,7 +34,7 @@ def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) ->
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker(config, blueprints_walkers, client)
+    all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
 
     return all_vehicle_actors + all_walker_actors
 
@@ -54,7 +54,7 @@ def extract_blueprints(config: SimulationParams, world: carla.World):
     return blueprints_vehicles, blueprints_walkers
 
 
-def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client):
+def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int):
     logging.info("Traffic Generation spawn walkers.")
     walkers_list = []
     cr_walkers_list = []
@@ -132,7 +132,8 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
         all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
     for actor in all_actors:
         cr_walkers_list.append(PedestrianInterface(
-                create_cr_pedestrian_from_walker(actor, config.pedestrian_default_shape), True, actor.id))
+                create_cr_pedestrian_from_walker(actor, cr_id, config.pedestrian_default_shape), True, actor.id))
+        cr_id += 1
 
     return cr_walkers_list
 

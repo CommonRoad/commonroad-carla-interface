@@ -55,11 +55,13 @@ def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObsta
 
 def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState:
     vel_vec = actor.get_velocity()
+    vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
     location = transform.location
     orientation = -((transform.rotation.yaw * math.pi) / 180)
-    return PMState(time_step, np.array([location.x, -location.y]),
-                   vel_vec.x * math.cos(orientation) - math.sin(vel_vec.y) * vel_vec.y, vel_vec.x * math.sin(orientation) + math.cos(orientation) * vel_vec.y)
+    velocity_x = math.cos(orientation) * vel
+    velocity_y = math.sin(orientation) * vel
+    return PMState(time_step, np.array([location.x, -location.y]), velocity_x, velocity_y)
 
 vehicles = set()
 
@@ -96,6 +98,6 @@ def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_sh
         shape = Circle(length / 2)
     else:
         shape = Rectangle(length, width)
-    return DynamicObstacle(cr_id, ObstacleType.CAR, shape,
+    return DynamicObstacle(cr_id, ObstacleType.PEDESTRIAN, shape,
                            InitialState(0, np.array([location.x, -location.y]),
                                         -((rotation.yaw * math.pi) / 180), vel, 0, 0, 0))

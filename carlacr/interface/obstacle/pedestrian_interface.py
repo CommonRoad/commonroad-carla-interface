@@ -21,6 +21,8 @@ class PedestrianInterface(ObstacleInterface):
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
         super().__init__(cr_obstacle, config)
+        self._carla_id = carla_id
+        self._is_spawned = spawned
 
     def spawn(self, world: carla.World, time_step: int):
         """
@@ -30,7 +32,7 @@ class PedestrianInterface(ObstacleInterface):
         :return: if spawn successful the according CARLA actor else None
         """
         self._world = world
-        if time_step != self._cr_base.initial_state.time_step:
+        if time_step != self._cr_base.initial_state.time_step or self._is_spawned:
             return
         transform = create_carla_transform(self._cr_base.initial_state)
         obstacle_blueprint_walker = world.get_blueprint_library().find('walker.pedestrian.0002')
