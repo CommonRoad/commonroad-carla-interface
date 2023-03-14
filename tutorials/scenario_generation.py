@@ -10,9 +10,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Configure simulation and scenario settings
 param = CarlaParams()
-param.map = "Town10HD"
-param.obstacle.vehicle_ks_state = True
-param.simulation.max_time_step = 60
+#param.map = "Town10HD"
+param.obstacle.vehicle_ks_state = False
+param.simulation.max_time_step = 120
+param.offscreen_mode = False
 
 # Execute scenario generation
 ci = CarlaInterface(param)

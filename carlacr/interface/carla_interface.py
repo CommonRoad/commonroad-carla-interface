@@ -260,18 +260,7 @@ class CarlaInterface:
         self._cr_obstacles = create_actors(self._client, self._config.simulation, sc.generate_object_id())
 
         logger.info("Scenario generation: Start Simulation.")
-        sim_world = self._client.get_world()
-        time_step = 0
-        while time_step <= self._config.simulation.max_time_step:
-            sim_world.tick(10)
-            time_step += 1
-            self.update_cr_state(sim_world)
-
-            # for actor in sim_world.get_actors():
-            #     # Save the state of the CARLA traffic lights
-            #     if "light" in actor.type_id:
-            #         self.traffic_lights[actor.id].append(actor.get_state())
-
+        self._run_simulation(traffic_generation=True)
 
         for obs in self._cr_obstacles[1:]:
             obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory),
@@ -355,7 +344,7 @@ class CarlaInterface:
                 state = create_cr_pm_state_from_actor(actor, time_step)
             obs.trajectory.append(state)
 
-    def _run_simulation(self, obstacle_control: bool = False):
+    def _run_simulation(self, obstacle_control: bool = False, traffic_generation: bool = False):
         sim_world = self._client.get_world()
         tm = self._client.get_trafficmanager()
         world = None
@@ -365,16 +354,16 @@ class CarlaInterface:
         clock = None
         display = None
 
-        if self._config.vis_type is not CustomVis.NONE:
+        if self._config.vis_type is not CustomVis.NONE and not traffic_generation:
             self._ego.spawn(sim_world, time_step, tm)
             display = self._init_display()
             clock = pygame.time.Clock()
 
-        if self._config.vis_type is CustomVis.BIRD:
+        if self._config.vis_type is CustomVis.BIRD and not traffic_generation:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
             world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
-        elif self._config.vis_type is CustomVis.EGO:
+        elif self._config.vis_type is CustomVis.EGO and not traffic_generation:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
             world = World3D(sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
@@ -390,7 +379,7 @@ class CarlaInterface:
             if self._ego is not None:
                 self._ego.tick(clock, sim_world, tm)
 
-            if self._config.vis_type is not CustomVis.NONE:
+            if self._config.vis_type is not CustomVis.NONE and not traffic_generation:
                 clock.tick_busy_loop(60)
                 world.tick(clock)
                 world.render(display)
