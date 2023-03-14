@@ -134,6 +134,7 @@ class SimulationParams(BaseParam):
     show_triggers: bool = True
     show_connections: bool = True
     show_spawn_points: bool = True
+    record_video: bool = False
 
 
 @dataclass

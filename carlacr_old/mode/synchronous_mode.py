@@ -60,7 +60,7 @@ class CarlaSyncMode:
 
         make_queue(self.world.on_tick)
         for sensor in self.sensors:
-            make_queue(sensor.listen)
+            make_queue(sensor.listcaen)
         return self
 
     def tick(self, timeout):

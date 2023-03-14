@@ -171,8 +171,8 @@ class World3D:
         self._weather_index = 0
         self.restart()
         self.world.on_tick(hud.on_world_tick)
-        self.recording_enabled = False
-        self.recording_start = 0
+     #   self.recording_enabled = False
+    #    self.recording_start = 0
         self.constant_velocity_enabled = False
         self.show_vehicle_telemetry = False
         self.doors_are_open = False
@@ -192,6 +192,8 @@ class World3D:
         self.gnss_sensor = GnssSensor(self.player)
         self.imu_sensor = IMUSensor(self.player)
         self.camera_manager = CameraManager(self.player, self.hud, self._config.gamma)
+        if self._config.record_video:
+            self.camera_manager.toggle_recording()
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
@@ -271,7 +273,7 @@ class World3D:
 # ==============================================================================
 
 
-class HUD3D(object):
+class HUD3D:
     def __init__(self, config):
         self.dim = (config.width, config.height)
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
@@ -396,7 +398,7 @@ class HUD3D(object):
 # ==============================================================================
 
 
-class FadingText(object):
+class FadingText:
     def __init__(self, font, dim, pos):
         self.font = font
         self.dim = dim
@@ -425,7 +427,7 @@ class FadingText(object):
 # ==============================================================================
 
 
-class HelpText(object):
+class HelpText:
     """Helper class to handle text output using pygame"""
 
     def __init__(self, font, width, height):
@@ -456,7 +458,7 @@ class HelpText(object):
 # ==============================================================================
 
 
-class CollisionSensor(object):
+class CollisionSensor:
     def __init__(self, parent_actor, hud):
         self.sensor = None
         self.history = []
@@ -495,7 +497,7 @@ class CollisionSensor(object):
 # ==============================================================================
 
 
-class LaneInvasionSensor(object):
+class LaneInvasionSensor:
     def __init__(self, parent_actor, hud):
         self.sensor = None
 
@@ -526,7 +528,7 @@ class LaneInvasionSensor(object):
 # ==============================================================================
 
 
-class GnssSensor(object):
+class GnssSensor:
     def __init__(self, parent_actor):
         self.sensor = None
         self._parent = parent_actor
@@ -554,7 +556,7 @@ class GnssSensor(object):
 # ==============================================================================
 
 
-class IMUSensor(object):
+class IMUSensor:
     def __init__(self, parent_actor):
         self.sensor = None
         self._parent = parent_actor
@@ -589,7 +591,7 @@ class IMUSensor(object):
 # ==============================================================================
 
 
-class RadarSensor(object):
+class RadarSensor:
     def __init__(self, parent_actor):
         self.sensor = None
         self._parent = parent_actor
@@ -645,7 +647,7 @@ class RadarSensor(object):
 # ==============================================================================
 
 
-class CameraManager(object):
+class CameraManager:
     def __init__(self, parent_actor, hud, gamma_correction):
         self.sensor = None
         self.surface = None
