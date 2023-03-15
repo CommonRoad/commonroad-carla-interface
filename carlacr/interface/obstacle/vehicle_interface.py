@@ -62,7 +62,10 @@ class VehicleInterface(ObstacleInterface):
                     obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
                     self._carla_id = obstacle.id
                     self._is_spawned = True
-                return True
+                    return True
+                else:
+                    logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
+                    return True
             except Exception as e:
                 logger.error(f"Error while spawning VEHICLE: {e}")
                 raise e

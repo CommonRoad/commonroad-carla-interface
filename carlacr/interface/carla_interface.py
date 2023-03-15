@@ -8,6 +8,7 @@ import numpy as np
 from typing import List, TypeVar, Optional, Tuple, Dict
 import pygame
 import time
+import psutil
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
@@ -92,6 +93,9 @@ class CarlaInterface:
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
         path_to_carla = os.path.join(self._find_carla_distribution(), "CarlaUE4.sh")
+        logger.info("Kill existing CARLA servers.")
+        for pid in self._find_pid_by_name("CarlaUE4-Linux-"):
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
         logger.info("Start CARLA server.")
         if self._config.offscreen_mode:
             self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'], stdout=subprocess.PIPE,
@@ -101,6 +105,22 @@ class CarlaInterface:
             self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info(f"CARLA server started in normal visualization mode using PID {self._carla_pid.pid}.")
         time.sleep(self._config.sleep_time)
+
+    def _find_pid_by_name(self, process_name: str) -> List[int]:
+        '''
+        Get a list of all the PIDs of a all the running process whose name contains
+        the given string processName
+        '''
+        processes = []
+        # Iterate over the all the running process
+        for proc in psutil.process_iter():
+            try:
+                # Check if process name contains the given name string.
+                if process_name.lower() in proc.name().lower():
+                    processes.append(proc.pid)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return processes
 
     def _find_carla_distribution(self) -> str:
         """Searches for CARLA executable in provided paths.
@@ -226,6 +246,7 @@ class CarlaInterface:
         assert solution is None or ego_id is None
         assert solution is None and pps is None or solution is not None and pps is not None
 
+        obstacle_only = False
         if solution is not None:
             ego_id = list(pps.planning_problem_dict.keys())[0]
             ego_obs = self._add_solution_to_scenario(ego_id, pps, solution)
@@ -237,13 +258,14 @@ class CarlaInterface:
                 sc.remove_obstacle(ego_obs)
             else:
                 ego_obs = None
+                obstacle_only = True
 
         if ego_id is not None:
             self._ego = CommonRoadObstacleInterface(ego_obs, waypoint_control)
 
         self._set_scenario(sc)
 
-        self._run_simulation(obstacle_control=True)
+        self._run_simulation(obstacle_control=True, obstacle_only=obstacle_only)
 
     def _add_solution_to_scenario(self, ego_id, pps, solution) -> DynamicObstacle:
         trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[ego_id][2]
@@ -344,7 +366,7 @@ class CarlaInterface:
                 state = create_cr_pm_state_from_actor(actor, time_step)
             obs.trajectory.append(state)
 
-    def _run_simulation(self, obstacle_control: bool = False, traffic_generation: bool = False):
+    def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
         sim_world = self._client.get_world()
         tm = self._client.get_trafficmanager()
         world = None
@@ -354,16 +376,16 @@ class CarlaInterface:
         clock = None
         display = None
 
-        if self._config.vis_type is not CustomVis.NONE and not traffic_generation:
+        if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
             self._ego.spawn(sim_world, time_step, tm)
             display = self._init_display()
             clock = pygame.time.Clock()
 
-        if self._config.vis_type is CustomVis.BIRD and not traffic_generation:
+        if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
             world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
-        elif self._config.vis_type is CustomVis.EGO and not traffic_generation:
+        elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
             world = World3D(sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
@@ -379,7 +401,7 @@ class CarlaInterface:
             if self._ego is not None:
                 self._ego.tick(clock, sim_world, tm)
 
-            if self._config.vis_type is not CustomVis.NONE and not traffic_generation:
+            if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
                 clock.tick_busy_loop(60)
                 world.tick(clock)
                 world.render(display)
