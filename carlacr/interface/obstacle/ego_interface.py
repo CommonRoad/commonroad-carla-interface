@@ -177,18 +177,3 @@ class WheelEgoInterface(EgoInterface):
 
     def control(self, state: Optional[State] = None):
         pass
-
-
-class KeyboardEgoInterface(EgoInterface):
-    """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
-
-    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
-        """
-        Initializer of the obstacle.
-
-        :param cr_obstacle: the underlying CommonRoad obstacle
-        """
-        super().__init__(cr_obstacle, config)
-
-    def control(self, state: Optional[State] = None):
-        pass

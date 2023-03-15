@@ -14,7 +14,7 @@ class PedestrianInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
-                 carla_id: Optional[int] = None, config: ObstacleParams = ObstacleParams()):
+                 carla_id: Optional[int] = None, waypoint_control: bool = False, config: ObstacleParams = ObstacleParams()):
         """
         Initializer of the obstacle.
 
@@ -23,6 +23,9 @@ class PedestrianInterface(ObstacleInterface):
         super().__init__(cr_obstacle, config)
         self._carla_id = carla_id
         self._is_spawned = spawned
+        self._waypoint_control = waypoint_control
+        self._time_step = cr_obstacle.initial_state.time_step
+        self._ai_controller_id = None
 
     def spawn(self, world: carla.World, time_step: int):
         """
@@ -46,3 +49,26 @@ class PedestrianInterface(ObstacleInterface):
         except Exception as e:
             logger.error(f"Error while spawning PEDESTRIAN: {e}")
             raise e
+
+        if not self._waypoint_control:
+            walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
+            actor = world.spawn_actor(walker_controller_bp, carla.Transform(), self._world.get_actor(self._carla_id))
+            self._ai_controller_id = actor.id
+            actor.start()
+            position = self._cr_base.prediction.trajectory.final_state.position
+            location = carla.Location(x=position[0], y=-position[1], z=0.5)
+            actor.go_to_location(location)
+            actor.set_max_speed(max([state.velocity for state in self._cr_base.prediction.trajectory.state_list]))
+
+    def tick(self, world):
+        if not self._is_spawned:
+            self.spawn(world, self._time_step)
+        cur_state = self.cr_obstacle.state_at_time(self._time_step)
+        if self._waypoint_control:
+            control = carla.WalkerControl()
+            control.speed = cur_state.velocity
+            rotation = world.get_actor(self._carla_id).get_transform().rotation
+            rotation.yaw = cur_state.orientation
+            control.direction = rotation.get_forward_vector()
+            self._world.get_actor(self._carla_id).apply_control(control)
+        self._time_step += 1

@@ -116,6 +116,7 @@ class CarlaInterface:
         for proc in psutil.process_iter():
             try:
                 # Check if process name contains the given name string.
+            #    print(proc.name().lower())
                 if process_name.lower() in proc.name().lower():
                     processes.append(proc.pid)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -197,13 +198,13 @@ class CarlaInterface:
                     enable_pedestrian_navigation=True))
         time.sleep(self._config.sleep_time)
 
-    def _set_scenario(self, sc: Scenario):
+    def _set_scenario(self, sc: Scenario, waypoint_control: bool = False):
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
-                self._cr_obstacles.append(CommonRoadObstacleInterface(obs))
+                self._cr_obstacles.append(CommonRoadObstacleInterface(obs, waypoint_control=waypoint_control))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
-                self._cr_obstacles.append(PedestrianInterface(obs))
+                self._cr_obstacles.append(PedestrianInterface(obs, waypoint_control=waypoint_control))
 
         # TODO: set traffic light cycle
 #        self._spawn_cr_obstacles()
@@ -263,7 +264,7 @@ class CarlaInterface:
         if ego_id is not None:
             self._ego = CommonRoadObstacleInterface(ego_obs, waypoint_control)
 
-        self._set_scenario(sc)
+        self._set_scenario(sc, waypoint_control)
 
         self._run_simulation(obstacle_control=True, obstacle_only=obstacle_only)
 
@@ -282,7 +283,7 @@ class CarlaInterface:
         self._cr_obstacles = create_actors(self._client, self._config.simulation, sc.generate_object_id())
 
         logger.info("Scenario generation: Start Simulation.")
-        self._run_simulation(traffic_generation=True)
+        self._run_simulation(obstacle_only=True)
 
         for obs in self._cr_obstacles[1:]:
             obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory),
@@ -394,7 +395,6 @@ class CarlaInterface:
         while time_step <= self._config.simulation.max_time_step:
             if self._config.sync:
                 sim_world.tick()
-                time_step += 1
             else:
                 sim_world.wait_for_tick()
 
@@ -409,7 +409,11 @@ class CarlaInterface:
 
             if obstacle_control:
                 for obs in self._cr_obstacles:
-                    obs.tick(clock, sim_world, tm)
+                    if obs.get_type() is not ObstacleType.PEDESTRIAN:
+                        obs.tick(clock, sim_world, tm)
+                    else:
+                        obs.tick(sim_world)
+            time_step += 1
             self.update_cr_state(sim_world)
 
     def _init_display(self):
