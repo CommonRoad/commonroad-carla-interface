@@ -126,8 +126,7 @@ class CarlaTrafficLight:
 def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLight]) -> TrafficLight:
 
     best_carla_traffic_light = None
-    # A big enough number
-    best_diff = 99999
+    best_diff = math.inf # A big enough number
     cr_position = cr_light.position
 
     for light in carla_lights:
