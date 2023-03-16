@@ -81,7 +81,7 @@ class CarlaInterface:
         # Initialize the Lists to save the states of the traffic lights
         for actor in self._client.get_world().get_actors():
             if "light" in actor.type_id:
-                self.traffic_lights.append(CarlaTrafficLight(actor.id))
+                self.traffic_lights.append(CarlaTrafficLight(actor.id, actor.get_location()))
                 self.traffic_lights[-1].set_initial_color(actor.state)
 
     def __del__(self):
