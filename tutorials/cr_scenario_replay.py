@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Specify CommonRoad and OpenDRIVE map
-or_map_path = os.path.dirname(__file__) + "/../maps/four_way_crossing.xodr"
-cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/four_way_crossing_Modi.xml"
+or_map_path = "Town10HD"
+cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/Town10HD.xml"
 #cr_solution_path = os.path.dirname(__file__) + "/solution_PM2:JB1:DEU_Test-1_1_T-1:2020a.xml"
 
 # Load CommonRoad scenario and solution file

@@ -45,30 +45,36 @@ class VehicleInterface(ObstacleInterface):
                  ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
             obstacle_blueprint = self._find_blueprint(world)
 
-            try:
-                obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
-                if obstacle:
-                    obstacle.set_simulate_physics(self._config.physics)
-                    logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._commonroad_id, obstacle.id)
-                    # Set up the lights to initial states:
-                    vehicle = world.get_actor(obstacle.id)
-                    if self._cr_base.initial_signal_state:
-                        if vehicle:
-                            sig = self._cr_base.initial_signal_state
-                            self._set_up_lights(vehicle=vehicle, sig=sig)
-                    yaw = transform.rotation.yaw * (math.pi / 180)
-                    vx = self._cr_base.initial_state.velocity * math.cos(yaw)
-                    vy = self._cr_base.initial_state.velocity * math.sin(yaw)
-                    obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
-                    self._carla_id = obstacle.id
-                    self._is_spawned = True
-                    return True
-                else:
-                    logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
-                    return True
-            except Exception as e:
-                logger.error(f"Error while spawning VEHICLE: {e}")
-                raise e
+            obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
+            if not obstacle:
+                logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
+                spawn_points = world.get_map().get_spawn_points()
+                closest = None
+                best_dist = math.inf
+                for point in spawn_points:
+                    dist = point.location.distance(transform.location)
+                    if dist < best_dist:
+                        best_dist = dist
+                        closest = point
+                obstacle = world.try_spawn_actor(obstacle_blueprint, closest)
+                logger.info(f"Obstacle {self.cr_obstacle.obstacle_id} spawned {best_dist}m away from original position")
+
+            obstacle.set_simulate_physics(self._config.physics)
+            logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._commonroad_id, obstacle.id)
+            # Set up the lights to initial states:
+            vehicle = world.get_actor(obstacle.id)
+            if self._cr_base.initial_signal_state:
+                if vehicle:
+                    sig = self._cr_base.initial_signal_state
+                    self._set_up_lights(vehicle=vehicle, sig=sig)
+            yaw = transform.rotation.yaw * (math.pi / 180)
+            vx = self._cr_base.initial_state.velocity * math.cos(yaw)
+            vy = self._cr_base.initial_state.velocity * math.sin(yaw)
+            obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
+            self._carla_id = obstacle.id
+            self._is_spawned = True
+            return True
+
 
     def _find_blueprint(self, world):
         nearest_vehicle_type = None

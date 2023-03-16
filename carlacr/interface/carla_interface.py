@@ -12,6 +12,7 @@ import psutil
 import copy
 
 from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.traffic_sign import TrafficLight
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
@@ -32,7 +33,7 @@ from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
-from carlacr.interface.traffic_light import CarlaTrafficLight, create_new_light
+from carlacr.interface.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
 from carlacr.interface.obstacle.cr_replay_ego import CommonRoadObstacleInterface
 
 logger = logging.getLogger(__name__)
@@ -207,8 +208,9 @@ class CarlaInterface:
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
                 self._cr_obstacles.append(PedestrianInterface(obs, waypoint_control=waypoint_control))
 
-        # TODO: set traffic light cycle
-
+        for tl in sc.lanelet_network.traffic_lights:
+            closest_tl = find_closest_traffic_light(self.traffic_lights, tl)
+            closest_tl.set_cr_light(tl)
 
     def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
                  cost_function: CostFunction) -> PlanningProblemSolution:
@@ -324,14 +326,16 @@ class CarlaInterface:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
             obstacle_control = True
-      #  else:
-       #     self._cr_obstacles = create_actors(self._client, self._config.simulation, 1)
-        obstacle_control = False
+        else:
+            self._cr_obstacles = create_actors(self._client, self._config.simulation, 1)
+            obstacle_control = False
 
         logger.info("Spawn ego.")
         self._ego.spawn(sim_world, 0)
 
         self._run_simulation(obstacle_control=obstacle_control)
+        # TODO save CR scenario
+
 
     def update_cr_state(self, world: carla.World):
         # add current state to history
@@ -420,6 +424,8 @@ class CarlaInterface:
                         obs.tick(clock, sim_world, tm)
                     else:
                         obs.tick(sim_world)
+                for tl in self.traffic_lights:
+                    tl.tick(sim_world, time_step)
             time_step += 1
             self.update_cr_state(sim_world)
 

@@ -70,12 +70,20 @@ class CarlaTrafficLight:
 
     def set_initial_color(self, color: carla.TrafficLightState):
         if len(self._signal_profile) == 0:
-            self._signal_profile.append(self._match_traffic_light_state(color))
+            self._signal_profile.append(self._match_carla_traffic_light_state_to_cr(color))
         else:
-            self._signal_profile[0] = self._match_traffic_light_state(color)
+            self._signal_profile[0] = self._match_carla_traffic_light_state_to_cr(color)
 
     def add_color(self, color: carla.TrafficLightState):
-        self._signal_profile.append(self._match_traffic_light_state(color))
+        self._signal_profile.append(self._match_carla_traffic_light_state_to_cr(color))
+
+    def set_cr_light(self, cr_light: TrafficLight):
+        self._cr_tl = cr_light
+
+    def tick(self, sim_world: carla.World, time_step: int):
+        new_color = self._cr_tl.get_state_at_time_step(time_step)
+        carla_light = sim_world.get_actor(self._carla_id)
+        carla_light.set_state(self._match_cr_traffic_light_state_to_carla(new_color))
 
     @property
     def carla_id(self):
@@ -85,7 +93,7 @@ class CarlaTrafficLight:
     def carla_position(self):
         return self._carla_position
 
-    def _match_traffic_light_state(self, carla_state: carla.TrafficLightState) -> TrafficLightState:
+    def _match_carla_traffic_light_state_to_cr(self, carla_state: carla.TrafficLightState) -> TrafficLightState:
         if carla_state == carla.TrafficLightState.Green:
             return TrafficLightState.GREEN
         elif carla_state == carla.TrafficLightState.Red:
@@ -96,6 +104,20 @@ class CarlaTrafficLight:
             return TrafficLightState.INACTIVE
         else:
             return TrafficLightState.RED
+
+    def _match_cr_traffic_light_state_to_carla(self, cr_state: TrafficLightState) -> carla.TrafficLightState:
+        if cr_state == TrafficLightState.GREEN:
+            return carla.TrafficLightState.Green
+        elif cr_state == TrafficLightState.RED:
+            return carla.TrafficLightState.Red
+        elif cr_state == TrafficLightState.YELLOW:
+            return carla.TrafficLightState.Yellow
+        elif cr_state == TrafficLightState.INACTIVE:
+            return carla.TrafficLightState.Off
+        elif cr_state == TrafficLightState.RED_YELLOW:
+            return carla.TrafficLightState.Yellow
+        else:
+            return carla.TrafficLightState.Red
 
     def create_traffic_light_cycle(self) -> List[TrafficLightCycleElement]:
         """
@@ -125,10 +147,16 @@ class CarlaTrafficLight:
 
 def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLight]) -> TrafficLight:
 
-    best_carla_traffic_light = None
-    best_diff = math.inf # A big enough number
-    cr_position = cr_light.position
+    best_carla_traffic_light = find_closest_traffic_light(carla_lights, cr_light)
 
+    return TrafficLight(cr_light.traffic_light_id, best_carla_traffic_light.create_traffic_light_cycle(),
+                        cr_light.position, time_offset=0, direction=cr_light.direction, active=True)
+
+
+def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], cr_light: TrafficLight):
+    best_carla_traffic_light = None
+    best_diff = math.inf  # A big enough number
+    cr_position = cr_light.position
     for light in carla_lights:
         diff_x = abs(light.carla_position[0] - cr_position[0])
         diff_y = abs(light.carla_position[1] + cr_position[1])  # We add since OPDR to CR Conversion inverses the sign
@@ -137,6 +165,4 @@ def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLigh
         if cur_diff < best_diff:
             best_diff = cur_diff
             best_carla_traffic_light = light
-
-    return TrafficLight(cr_light.traffic_light_id, best_carla_traffic_light.create_traffic_light_cycle(),
-                        cr_light.position, time_offset=0, direction=cr_light.direction, active=True)
+    return best_carla_traffic_light
