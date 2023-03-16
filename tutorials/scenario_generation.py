@@ -11,11 +11,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Configure simulation and scenario settings
 param = CarlaParams()
-param.map = os.path.dirname(__file__) + "/../maps/four_way_crossing.xodr"
-#param.map = "Town10HD"
+#param.map = os.path.dirname(__file__) + "/../maps/four_way_crossing.xodr"
+param.map = "Town10HD"
 param.obstacle.vehicle_ks_state = False
 param.simulation.max_time_step = 120
-param.offscreen_mode = True
+param.offscreen_mode = False
 param.simulation.number_vehicles = 2
 param.simulation.number_walkers = 2
 param.simulation.osm_mode = True

@@ -9,6 +9,7 @@ from typing import List, TypeVar, Optional, Tuple, Dict
 import pygame
 import time
 import psutil
+import copy
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
@@ -31,7 +32,7 @@ from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
-from carlacr.interface.traffic_light import CarlaTrafficLight
+from carlacr.interface.traffic_light import CarlaTrafficLight, create_new_light
 from carlacr.interface.obstacle.cr_replay_ego import CommonRoadObstacleInterface
 
 logger = logging.getLogger(__name__)
@@ -75,13 +76,13 @@ class CarlaInterface:
 
         self._cr_obstacles: List[ObstacleInterface] = []
         self._ego: Optional[EgoInterface] = None
-        self._tl: Optional[CarlaTrafficLight] = None
-        self.traffic_lights: Dict[int, List[str]] = {}
+        self.traffic_lights: List[CarlaTrafficLight] = []
 
         # Initialize the Lists to save the states of the traffic lights
         for actor in self._client.get_world().get_actors():
             if "light" in actor.type_id:
-                self.traffic_lights[actor.id] = []
+                self.traffic_lights.append(CarlaTrafficLight(actor.id))
+                self.traffic_lights[-1].set_initial_color(actor.state)
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -207,11 +208,7 @@ class CarlaInterface:
                 self._cr_obstacles.append(PedestrianInterface(obs, waypoint_control=waypoint_control))
 
         # TODO: set traffic light cycle
-#        self._spawn_cr_obstacles()
 
-    # def _spawn_cr_obstacles(self):
-    #     for obs in self._cr_obstacles:
-    #         obs.spawn(self._client.get_world(), 0)
 
     def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
                  cost_function: CostFunction) -> PlanningProblemSolution:
@@ -276,6 +273,7 @@ class CarlaInterface:
         return DynamicObstacle(ego_id, ObstacleType.CAR, shape, pps.planning_problem_dict[ego_id].initial_state,
                             TrajectoryPrediction(trajectory, shape))
 
+
     def scenario_generation(self, sc: Scenario) -> Tuple[Scenario, PlanningProblemSet]:
         assert self._config.sync is True
 
@@ -295,6 +293,12 @@ class CarlaInterface:
             goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1])
         else:
             goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1], False)
+
+        old_lights = copy.deepcopy(sc.lanelet_network.traffic_lights)
+        for light in old_lights:
+            new_light = create_new_light(light, self.traffic_lights)
+            sc.remove_traffic_light(light)
+            sc.add_objects(new_light)
 
         return sc, PlanningProblemSet([PlanningProblem(sc.generate_object_id(),
                                                        self._cr_obstacles[0].cr_obstacle.initial_state,
@@ -366,6 +370,9 @@ class CarlaInterface:
             else:
                 state = create_cr_pm_state_from_actor(actor, time_step)
             obs.trajectory.append(state)
+
+        for tl in self.traffic_lights:
+            tl.add_color(world.get_actor(tl.carla_id).state)
 
     def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
         sim_world = self._client.get_world()
