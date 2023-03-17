@@ -6,7 +6,8 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
 from carlacr.helper.config import ObstacleParams
-from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface, create_carla_transform
+from carlacr.interface.objects.obstacle_interface import ObstacleInterface
+from carlacr.interface.controller.controller import create_carla_transform
 
 logger = logging.getLogger(__name__)
 

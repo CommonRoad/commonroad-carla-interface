@@ -6,7 +6,19 @@ from typing import Dict, Union, List
 from omegaconf import OmegaConf
 from enum import Enum
 
+class PedestrianControlType(Enum):
+    AI = 1
+    WALKER = 2
+    TRANSFORM = 3
 
+class VehicleControlType(Enum):
+    KEYBOARD = 1
+    STEERING_WHEEL = 2
+    TRANSFORM = 3
+    PID = 4
+    ACKERMANN = 5
+    PATH = 6
+    PLANNER = 7
 
 class CustomVis(Enum):
     BIRD = 0
@@ -156,6 +168,12 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_ki: float = 0.0
     ackermann_pid_accel_kd: float = 0.01
 
+    def pid_lat_dict(self):
+        pass # TODO
+
+    def pid_lon_dict(self):
+        pass # TODO
+
 
 @dataclass
 class ObstacleParams(BaseParam):
@@ -166,6 +184,7 @@ class ObstacleParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     vehicle_ks_state: bool = True
     path_sampling: int = 10 # use every path_sampling time step for path to follow CR trajectory
+    controller_type: Union[VehicleControlType, PedestrianControlType] = VehicleControlType.TRANSFORM
 
 
 @dataclass

@@ -6,15 +6,13 @@ import subprocess
 import signal
 import logging
 import numpy as np
-from typing import List, TypeVar, Optional, Tuple, Dict
+from typing import List, TypeVar, Optional, Tuple
 import pygame
 import time
 import psutil
 import copy
-import glob
 
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.traffic_sign import TrafficLight
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle
 from commonroad.geometry.shape import Rectangle
@@ -28,14 +26,14 @@ from crdesigner.map_conversion.map_conversion_interface import opendrive_to_comm
 from carlacr.game.birds_eye_view import HUD2D, World2D
 from carlacr.game.ego_view import HUD3D, World3D
 from carlacr.interface.obstacle.ego_interface import EgoInterface
-from carlacr.interface.obstacle.keyboard import KeyboardEgoInterface
+from carlacr.interface.controller.keyboard_controller import KeyboardEgoInterface
 from carlacr.helper.config import CarlaParams, CustomVis
 from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
 from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
-from carlacr.interface.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
+from carlacr.interface.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
 from carlacr.interface.obstacle.cr_replay_ego import CommonRoadObstacleInterface
 
 logger = logging.getLogger(__name__)

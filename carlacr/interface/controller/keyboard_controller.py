@@ -14,7 +14,7 @@ from typing import Optional
 import sys
 import carla
 
-from carlacr.interface.obstacle.ego_interface import EgoInterface
+from carlacr.interface.controller.controller import CarlaController
 from carlacr.helper.config import ObstacleParams
 
 from commonroad.scenario.obstacle import DynamicObstacle
@@ -70,26 +70,18 @@ MAP_DEFAULT_SCALE = 0.1
 HERO_DEFAULT_SCALE = 1.0
 
 
-class KeyboardEgoInterface(EgoInterface):
+class KeyboardControllerInterface(CarlaController):
     """Class that handles input received such as keyboard and mouse."""
 
     def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None,
                  config: ObstacleParams = ObstacleParams(),
                  walker: bool = False):
         """Initializes input member variables when instance is created."""
-        super().__init__(cr_obstacle, config)
-        self._autopilot_enabled = False
-        if not walker:
-            self._control = carla.VehicleControl()
-            self._lights = carla.VehicleLightState.NONE
-        else:
-            self._control = carla.WalkerControl()
-            self._rotation = 0.0
-        self._steer_cache = 0.0
+        super().__init__()
 
-    def tick(self, clock, world, tm):
+    def control(self, clock, world):
         """Executed each frame. Calls method for parsing input."""
-        self._parse_input(clock, world)
+        pass
 
     def _parse_events(self, world):
         if isinstance(self._control, carla.VehicleControl):
@@ -254,47 +246,6 @@ class KeyboardEgoInterface(EgoInterface):
                     # elif event.key == K_x:
                     #     current_lights ^= carla.VehicleLightState.RightBlinker
 
-    def _parse_vehicle_keys(self, milliseconds):
-        keys = pygame.key.get_pressed()
-        self._control.throttle = min(self._control.throttle + 0.01, 1.00) if keys[K_UP] or keys[K_w] else 0.0
-         #   self.control.throttle = 1.0 if keys[K_UP] or keys[K_w] else 0.0
-        steer_increment = 5e-4 * milliseconds
-        if keys[K_LEFT] or keys[K_a]:
-            if self._steer_cache > 0:
-                self._steer_cache = 0
-            else:
-                self._steer_cache -= steer_increment
-        elif keys[K_RIGHT] or keys[K_d]:
-            if self._steer_cache < 0:
-                self._steer_cache = 0
-            else:
-                self._steer_cache += steer_increment
-        else:
-            self._steer_cache = 0.0
-        self._steer_cache = min(0.7, max(-0.7, self._steer_cache))
-        self._control.steer = round(self._steer_cache, 1)
-        self._control.brake = min(self._control.brake + 0.2, 1) if keys[K_DOWN] or keys[K_s] else 0.0
-        # self._control.brake = 1.0 if keys[K_DOWN] or keys[K_s] else 0.0
-        self._control.hand_brake = keys[K_SPACE]
-
-    def _parse_walker_keys(self, milliseconds, world):
-        keys = pygame.key.get_pressed()
-        self._rotation = world.get_actor(self.carla_id).rotation
-        self._control.speed = 0.0
-        if keys[K_DOWN] or keys[K_s]:
-            self._control.speed = 0.0
-        if keys[K_LEFT] or keys[K_a]:
-            self._control.speed = .01
-            self._rotation.yaw -= 0.08 * milliseconds
-        if keys[K_RIGHT] or keys[K_d]:
-            self._control.speed = .01
-            self._rotation.yaw += 0.08 * milliseconds
-        if keys[K_UP] or keys[K_w]:
-            self._control.speed = world.player_max_speed_fast if pygame.key.get_mods() & KMOD_SHIFT \
-                else world.player_max_speed
-        self._control.jump = keys[K_SPACE]
-        self._rotation.yaw = round(self._rotation.yaw, 1)
-        self._control.direction = self._rotation.get_forward_vector()
 
     def _parse_input(self, clock, world):
         """Parses the input, which is classified in keyboard events and mouse"""
@@ -319,6 +270,109 @@ class KeyboardEgoInterface(EgoInterface):
             elif isinstance(self._control, carla.WalkerControl):
                 self._parse_walker_keys(clock.get_time(), world)
             self._world.get_actor(self._carla_id).apply_control(self._control)
+
+
+class KeyboardVehicleController(KeyboardControllerInterface):
+    """Class that handles input received such as keyboard and mouse."""
+
+    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None,
+                 config: ObstacleParams = ObstacleParams(),
+                 walker: bool = False):
+        """Initializes input member variables when instance is created."""
+        super().__init__()
+        self._control = carla.VehicleControl()
+        self._lights = carla.VehicleLightState.NONE
+        self._steer_cache = 0.0
+
+    def control(self, clock, world):
+        """Executed each frame. Calls method for parsing input."""
+        self._parse_input(clock, world)
+
+    def _parse_vehicle_keys(self, milliseconds):
+        keys = pygame.key.get_pressed()
+        self._control.throttle = min(self._control.throttle + 0.01, 1.00) if keys[K_UP] or keys[K_w] else 0.0
+         #   self.control.throttle = 1.0 if keys[K_UP] or keys[K_w] else 0.0
+        steer_increment = 5e-4 * milliseconds
+        if keys[K_LEFT] or keys[K_a]:
+            if self._steer_cache > 0:
+                self._steer_cache = 0
+            else:
+                self._steer_cache -= steer_increment
+        elif keys[K_RIGHT] or keys[K_d]:
+            if self._steer_cache < 0:
+                self._steer_cache = 0
+            else:
+                self._steer_cache += steer_increment
+        else:
+            self._steer_cache = 0.0
+        self._steer_cache = min(0.7, max(-0.7, self._steer_cache))
+        self._control.steer = round(self._steer_cache, 1)
+        self._control.brake = min(self._control.brake + 0.2, 1) if keys[K_DOWN] or keys[K_s] else 0.0
+        # self._control.brake = 1.0 if keys[K_DOWN] or keys[K_s] else 0.0
+        self._control.hand_brake = keys[K_SPACE]
+
+    def _parse_input(self, clock, world):
+        """Parses the input, which is classified in keyboard events and mouse"""
+        self._parse_events(world)
+        if not self._autopilot_enabled:
+            self._parse_vehicle_keys(clock.get_time())
+            self._control.reverse = self._control.gear < 0
+            # Set automatic control-related vehicle lights
+            # current_lights = self._lights
+            # if self._control.brake:
+            #     current_lights |= carla.VehicleLightState.Brake
+            # else: # Remove the Brake flag
+            #     current_lights &= ~carla.VehicleLightState.Brake
+            # if self._control.reverse:
+            #     current_lights |= carla.VehicleLightState.Reverse
+            # else: # Remove the Reverse flag
+            #     current_lights &= ~carla.VehicleLightState.Reverse
+            # if current_lights != self._lights: # Change the light state only if necessary
+            #     self._lights = current_lights
+            #     world.player.set_light_state(carla.VehicleLightState(self._lights))
+            self._world.get_actor(self._carla_id).apply_control(self._control)
+
+class KeyboardWalkerController(KeyboardControllerInterface):
+    """Class that handles input received such as keyboard and mouse."""
+
+    def __init__(self, cr_obstacle: Optional[DynamicObstacle] = None,
+                 config: ObstacleParams = ObstacleParams(),
+                 walker: bool = False):
+        """Initializes input member variables when instance is created."""
+        super().__init__()
+        self._control = carla.WalkerControl()
+        self._rotation = 0.0
+
+    def control(self, clock, world):
+        """Executed each frame. Calls method for parsing input."""
+        self._parse_input(clock, world)
+
+    def _parse_walker_keys(self, milliseconds, world):
+        keys = pygame.key.get_pressed()
+        self._rotation = world.get_actor(self.carla_id).rotation
+        self._control.speed = 0.0
+        if keys[K_DOWN] or keys[K_s]:
+            self._control.speed = 0.0
+        if keys[K_LEFT] or keys[K_a]:
+            self._control.speed = .01
+            self._rotation.yaw -= 0.08 * milliseconds
+        if keys[K_RIGHT] or keys[K_d]:
+            self._control.speed = .01
+            self._rotation.yaw += 0.08 * milliseconds
+        if keys[K_UP] or keys[K_w]:
+            self._control.speed = world.player_max_speed_fast if pygame.key.get_mods() & KMOD_SHIFT \
+                else world.player_max_speed
+        self._control.jump = keys[K_SPACE]
+        self._rotation.yaw = round(self._rotation.yaw, 1)
+        self._control.direction = self._rotation.get_forward_vector()
+
+    def _parse_input(self, clock, world):
+        """Parses the input, which is classified in keyboard events and mouse"""
+        self._parse_events(world)
+        if not self._autopilot_enabled:
+            self._parse_walker_keys(clock.get_time(), world)
+            self._world.get_actor(self._carla_id).apply_control(self._control)
+
 
 def is_quit_shortcut(key):
     """Returns True if one of the specified keys are pressed"""

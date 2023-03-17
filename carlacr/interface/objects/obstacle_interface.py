@@ -1,5 +1,4 @@
 import logging
-import numpy as np
 from typing import List, Optional, Union
 from abc import ABC
 
@@ -11,13 +10,6 @@ from commonroad.scenario.trajectory import PMState, KSState, State
 from carlacr.helper.config import ObstacleParams
 
 logger = logging.getLogger(__name__)
-
-
-def create_carla_transform(state: State, z_position: float = 0.5):
-    transform = carla.Transform(
-            carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
-            carla.Rotation(yaw=(-(180 * state.orientation) / np.pi)))
-    return transform
 
 
 class ObstacleInterface(ABC):
@@ -36,11 +28,11 @@ class ObstacleInterface(ABC):
         self._trajectory = []  # TODO delete later and use cr-io history
         if cr_obstacle is not None:
             self._commonroad_id = cr_obstacle.obstacle_id
-            self._spawn_timestep = cr_obstacle.initial_state.time_step
+            self._time_step = cr_obstacle.initial_state.time_step
             self._cr_base = cr_obstacle
         else:
             self._commonroad_id = None
-            self._spawn_timestep = None
+            self._time_step = None
             self._cr_base: Optional[DynamicObstacle] = None
 
     def spawn(self, world: carla.World, time_step: int):
@@ -79,25 +71,8 @@ class ObstacleInterface(ABC):
     def state_at_time_step(self, time_step: int):
         return self._cr_base.state_at_time(time_step)
 
-    def control(self, state: State):
-        """
-        Tries to update the position of the obstacle and sets lights.
-
-        :param world: the CARLA world object
-        :param state:state at the time step
-        """
-        try:
-            if self._is_spawned & (self._cr_base.obstacle_role == ObstacleRole.DYNAMIC) and \
-                    (self._cr_base.prediction.trajectory is not None):
-                actor = self._world.get_actor(self._carla_id)
-                if actor:
-                    transform = create_carla_transform(state, actor.get_location().z)
-                    actor.set_transform(transform)
-                else:
-                    logger.debug("Could not find actor")
-        except Exception as e:
-            logger.error("Error while updating position")
-            raise e
+    def tick(self, state: State):
+        pass
 
     def destroy_carla_obstacle(self, world):
         """
@@ -109,16 +84,3 @@ class ObstacleInterface(ABC):
             actor = world.get_actor(self._carla_id)
             if actor:
                 actor.destroy()
-
-    def __str__(self):
-        """Gives a description as String of the characteristics of the Obstacle."""
-        resp = f"CommonRoad ID: {self._commonroad_id}\n"
-        resp += f"CARLA ID: {self._carla_id}\n"
-        resp += f"is_spawned: {self._is_spawned}\n"
-        resp += f"spawn_timestep: {self._spawn_timestep}\n"
-        resp += f"trajectory: {{{self._cr_base.prediction.trajectory}\n}}\n"
-        resp += f"size: {self._cr_base.obstacle_shape.length}, {self._cr_base.obstacle_shape.width}\n"
-        resp += f"role: {self._cr_base.obstacle_role}"
-        resp += f"type: {self._cr_base.obstacle_type}\n"
-        return resp
-
