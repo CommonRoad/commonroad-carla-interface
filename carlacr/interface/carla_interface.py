@@ -1,3 +1,4 @@
+import shutil
 import carla
 import os
 import sys
@@ -10,6 +11,7 @@ import pygame
 import time
 import psutil
 import copy
+import glob
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.traffic_sign import TrafficLight
@@ -239,7 +241,7 @@ class CarlaInterface:
 
 
     def replay(self, sc: Scenario, solution: Optional[Solution] = None, pps: PlanningProblemSet = None,
-               ego_id: Optional[int] = None, store_video: bool = False, waypoint_control = False):
+               ego_id: Optional[int] = None, waypoint_control = False):
         """
         Runs CommonRoad scenario in CARLA.
         """
@@ -383,7 +385,6 @@ class CarlaInterface:
         tm = self._client.get_trafficmanager()
         world = None
 
-        hud = None
         time_step = 0
         clock = None
         display = None
@@ -429,6 +430,13 @@ class CarlaInterface:
             time_step += 1
             self.update_cr_state(sim_world)
 
+        world.destroy_sensors()
+        for actor in sim_world.get_actors():
+            actor.destroy()
+
+        if self._config.simulation.record_video:
+            make_video(self._config.simulation.video_path, self._config.simulation.video_name)
+
     def _init_display(self):
         pygame.init()
         pygame.font.init()
@@ -443,3 +451,21 @@ class CarlaInterface:
         display.fill((0, 0, 0))
         pygame.display.flip()
         return display
+
+def make_video(path: str, video_name: str):
+    """Creates a video of the images using moviepy."""
+    tmp_path = os.path.join(path, "_tmp")
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if not os.path.exists(tmp_path):
+        os.mkdir(tmp_path)
+    try:
+        os.system(f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i \'{tmp_path}/*.png\'"
+                  f" -c:v libx264 -pix_fmt yuv420p {path}/{video_name}.mp4")
+        shutil.rmtree(tmp_path)
+    except Exception as e:
+        if os.path.exists(os.path.join(path, video_name + ".mp4")):
+            logger.debug("mp4 created!")
+            pass
+        else:
+            logger.error(e)

@@ -191,7 +191,7 @@ class World3D:
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
         self.gnss_sensor = GnssSensor(self.player)
         self.imu_sensor = IMUSensor(self.player)
-        self.camera_manager = CameraManager(self.player, self.hud, self._config.gamma)
+        self.camera_manager = CameraManager(self.player, self.hud, self._config.gamma, self._config.video_path)
         if self._config.record_video:
             self.camera_manager.toggle_recording()
         self.camera_manager.transform_index = cam_pos_index
@@ -648,12 +648,13 @@ class RadarSensor:
 
 
 class CameraManager:
-    def __init__(self, parent_actor, hud, gamma_correction):
+    def __init__(self, parent_actor, hud, gamma_correction, path):
         self.sensor = None
         self.surface = None
         self._parent = parent_actor
         self.hud = hud
         self.recording = False
+        self.path = path
         bound_x = 0.5 + self._parent.bounding_box.extent.x
         bound_y = 0.5 + self._parent.bounding_box.extent.y
         bound_z = 0.5 + self._parent.bounding_box.extent.z
@@ -790,4 +791,4 @@ class CameraManager:
             array = array[:, :, ::-1]
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
         if self.recording:
-            image.save_to_disk('_out/%08d' % image.frame)
+            image.save_to_disk(f'{self.path}/_tmp/%08d' % image.frame)

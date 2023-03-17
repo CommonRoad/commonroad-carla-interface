@@ -135,6 +135,8 @@ class SimulationParams(BaseParam):
     show_connections: bool = True
     show_spawn_points: bool = True
     record_video: bool = False
+    video_path: str = "./"
+    video_name: str = "CommonRoad"
 
 
 @dataclass
