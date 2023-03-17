@@ -2,7 +2,7 @@ import time
 import carla
 import subprocess
 import logging
-from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 from carlacr.configurations.set_configs import set_configs
 
 

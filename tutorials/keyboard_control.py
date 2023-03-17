@@ -1,12 +1,7 @@
-import os
 import logging
 
-from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 from carlacr.helper.config import CarlaParams, CustomVis
-
-from commonroad.common.file_reader import CommonRoadFileReader
-from commonroad.common.solution import Solution, VehicleType, VehicleModel, CostFunction
-from commonroad.common.solution import CommonRoadSolutionWriter
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

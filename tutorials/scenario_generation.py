@@ -1,6 +1,5 @@
 import logging
-import os
-from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 from carlacr.helper.config import CarlaParams
 
 from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile

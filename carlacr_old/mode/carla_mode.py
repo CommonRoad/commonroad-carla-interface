@@ -14,7 +14,7 @@ from commonroad.common.file_writer import OverwriteExistingFile
 from commonroad.planning.planning_problem import PlanningProblemSet
 from commonroad.scenario.trajectory import State, Trajectory
 from carlacr.configurations.set_configs import set_configs
-from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 
 sys.path.append(set_configs().carla_config.carla_examples_path)
 

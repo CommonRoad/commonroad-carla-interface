@@ -6,7 +6,7 @@ import subprocess
 import signal
 import logging
 import numpy as np
-from typing import List, TypeVar, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 import pygame
 import time
 import psutil
@@ -23,22 +23,17 @@ from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
 from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
 
-from carlacr.game.birds_eye_view import HUD2D, World2D
-from carlacr.game.ego_view import HUD3D, World3D
-from carlacr.interface.obstacle.ego_interface import EgoInterface
-from carlacr.interface.controller.keyboard_controller import KeyboardEgoInterface
-from carlacr.helper.config import CarlaParams, CustomVis
-from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
-from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
+from carlacr.visualization.birds_eye_view import HUD2D, World2D
+from carlacr.visualization.ego_view import HUD3D, World3D
+from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
-from carlacr.interface.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
-from carlacr.interface.obstacle.cr_replay_ego import CommonRoadObstacleInterface
+from carlacr.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
+from carlacr.objects.vehicle import VehicleInterface
+from carlacr.objects.pedestrian import PedestrianInterface
 
 logger = logging.getLogger(__name__)
-
-EI = TypeVar('EI', bound=EgoInterface)
 
 
 # This module contains helper methods for the Carla-CommonRoad Interface
@@ -75,8 +70,8 @@ class CarlaInterface:
         self._load_map(self._config.map)
         sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
-        self._cr_obstacles: List[ObstacleInterface] = []
-        self._ego: Optional[EgoInterface] = None
+        self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
+        self._ego: Optional[VehicleInterface] = None
         self.traffic_lights: List[CarlaTrafficLight] = []
 
         # Initialize the Lists to save the states of the traffic lights
@@ -200,13 +195,13 @@ class CarlaInterface:
                     enable_pedestrian_navigation=True))
         time.sleep(self._config.sleep_time)
 
-    def _set_scenario(self, sc: Scenario, waypoint_control: bool = False):
+    def _set_scenario(self, sc: Scenario):
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
-                self._cr_obstacles.append(CommonRoadObstacleInterface(obs, waypoint_control=waypoint_control))
+                self._cr_obstacles.append(VehicleInterface(obs))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
-                self._cr_obstacles.append(PedestrianInterface(obs, waypoint_control=waypoint_control))
+                self._cr_obstacles.append(PedestrianInterface(obs))
 
         for tl in sc.lanelet_network.traffic_lights:
             closest_tl = find_closest_traffic_light(self.traffic_lights, tl)
@@ -241,7 +236,7 @@ class CarlaInterface:
 
 
     def replay(self, sc: Scenario, solution: Optional[Solution] = None, pps: PlanningProblemSet = None,
-               ego_id: Optional[int] = None, waypoint_control = False):
+               ego_id: Optional[int] = None):
         """
         Runs CommonRoad scenario in CARLA.
         """
@@ -263,9 +258,9 @@ class CarlaInterface:
                 obstacle_only = True
 
         if ego_id is not None:
-            self._ego = CommonRoadObstacleInterface(ego_obs, waypoint_control)
+            self._ego = VehicleInterface(ego_obs)
 
-        self._set_scenario(sc, waypoint_control)
+        self._set_scenario(sc)
 
         self._run_simulation(obstacle_control=True, obstacle_only=obstacle_only)
 
@@ -293,7 +288,7 @@ class CarlaInterface:
             sc.add_objects(obs.cr_obstacle)
 
         # define goal region
-        if self._config.obstacle.vehicle_ks_state:
+        if self._config.vehicle.vehicle_ks_state:
             goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1])
         else:
             goal_region = create_goal_region_from_state(self._cr_obstacles[0].trajectory[-1], False)
@@ -320,7 +315,7 @@ class CarlaInterface:
             ego_obs = None
 
         logger.info("Init Manual Control.")
-        self._ego = KeyboardEgoInterface(ego_obs)
+        self._ego = VehicleInterface(ego_obs)
 
         sim_world = self._client.get_world()
 
@@ -357,7 +352,7 @@ class CarlaInterface:
         if self._ego is not None:
             time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
                 self._ego.trajectory[-1].time_step + 1
-            if self._config.obstacle.vehicle_ks_state:
+            if self._config.vehicle.vehicle_ks_state:
                 state = create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
             else:
                 state = create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
@@ -371,7 +366,7 @@ class CarlaInterface:
 
             if obs.get_type() == ObstacleType.PEDESTRIAN:
                 state = create_cr_pm_state_from_actor(actor, time_step)
-            elif self._config.obstacle.vehicle_ks_state:
+            elif self._config.vehicle.vehicle_ks_state:
                 state = create_cr_ks_state_from_actor(actor, time_step)
             else:
                 state = create_cr_pm_state_from_actor(actor, time_step)
@@ -393,6 +388,8 @@ class CarlaInterface:
             self._ego.spawn(sim_world, time_step, tm)
             display = self._init_display()
             clock = pygame.time.Clock()
+            if self._ego.control_type is VehicleControlType.KEYBOARD:
+                self._ego.register_clock(clock)
 
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
@@ -411,7 +408,7 @@ class CarlaInterface:
                 sim_world.wait_for_tick()
 
             if self._ego is not None:
-                self._ego.tick(clock, sim_world, tm)
+                self._ego.tick(sim_world, tm, time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
                 clock.tick_busy_loop(60)
@@ -422,9 +419,9 @@ class CarlaInterface:
             if obstacle_control:
                 for obs in self._cr_obstacles:
                     if obs.get_type() is not ObstacleType.PEDESTRIAN:
-                        obs.tick(clock, sim_world, tm)
+                        obs.tick(sim_world, tm, time_step)
                     else:
-                        obs.tick(sim_world)
+                        obs.tick(sim_world, tm, time_step)
                 for tl in self.traffic_lights:
                     tl.tick(sim_world, time_step)
             time_step += 1

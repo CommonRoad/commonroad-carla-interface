@@ -1,6 +1,6 @@
 import os
 import logging
-from carlacr.interface.carla_interface import CarlaInterface
+from carlacr.carla_interface import CarlaInterface
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.file_writer import CommonRoadFileWriter
 from carlacr.helper.config import CarlaParams, CustomVis

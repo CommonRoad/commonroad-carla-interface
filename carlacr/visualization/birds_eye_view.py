@@ -50,7 +50,7 @@ except IndexError:
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
 
-from carlacr.interface.controller.keyboard_controller import HERO_DEFAULT_SCALE, exit_game, is_quit_shortcut
+from carlacr.controller.keyboard_controller import HERO_DEFAULT_SCALE, exit_game, is_quit_shortcut
 
 import carla
 from carla import TrafficLightState as tls

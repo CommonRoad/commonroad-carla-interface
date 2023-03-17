@@ -8,12 +8,12 @@ from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, Obstacle
 from commonroad.scenario.trajectory import State
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
-from carlacr.helper.config import ObstacleParams, ApproximationType, VehicleControlType
-from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
-from carlacr.interface.controller.controller import create_carla_transform, TransformControl
-from carlacr.interface.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
+from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType
+from carlacr.objects.obstacle_interface import ObstacleInterface
+from carlacr.controller.controller import create_carla_transform, TransformControl
+from carlacr.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
     VehiclePathFollowingControl
-from carlacr.interface.controller.keyboard_controller import KeyboardVehicleController
+from carlacr.controller.keyboard_controller import KeyboardVehicleController
 from carlacr.helper.utils import create_cr_vehicle_from_actor
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class VehicleInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
-                 carla_id: Optional[int] = None, config: ObstacleParams = ObstacleParams()):
+                 carla_id: Optional[int] = None, config: VehicleParams = VehicleParams()):
         """
         Initializer of the obstacle.
 
@@ -38,19 +38,19 @@ class VehicleInterface(ObstacleInterface):
 
     def _init_controller(self):
         if self._config.controller_type is VehicleControlType.TRANSFORM:
-            self._controller = TransformControl()
+            return TransformControl()
         elif self._config.controller_type is VehicleControlType.PID:
-            self._controller = PIDController(actor=None, config=self._config.control)
+            return PIDController(actor=None, config=self._config.control)
         elif self._config.controller_type is VehicleControlType.ACKERMANN:
-            self._controller = AckermannController(config=self._config.control)
+            return AckermannController(config=self._config.control)
         elif self._config.controller_type is VehicleControlType.STEERING_WHEEL:
-            self._controller = WheelController()
+            return WheelController()
         elif self._config.controller_type is VehicleControlType.KEYBOARD:
-            self._controller = KeyboardVehicleController()
+            return KeyboardVehicleController()
         elif self._config.controller_type is VehicleControlType.PLANNER:
-            self._controller = None
+            return None
         elif self._config.controller_type is VehicleControlType.PATH:
-            self._controller = VehiclePathFollowingControl()
+            return VehiclePathFollowingControl()
 
 
     def spawn(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
@@ -166,6 +166,9 @@ class VehicleInterface(ObstacleInterface):
                 z = z | carla.VehicleLightState.LeftBlinker
             vehicle.set_light_state(carla.VehicleLightState(z))
 
+    def register_clock(self, clock):
+        self._controller.register_clock(clock)
+
     def _get_path(self) -> List[carla.Location]:
         if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
             return [carla.Location(x=self._cr_base.initial_state.position[0],
@@ -181,6 +184,8 @@ class VehicleInterface(ObstacleInterface):
                 path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))
             return path
 
-    def tick(self, state: State):
-        self._controller.control(state)
+    def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
+        if not self._is_spawned:
+            self.spawn(world, time_step)
         self._time_step += 1
+        self._controller.control(world.get_actor(self._carla_id), self.cr_obstacle.state_at_time(self._time_step))

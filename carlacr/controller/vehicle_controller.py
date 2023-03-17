@@ -4,7 +4,7 @@ import carla
 import math
 
 from carlacr.helper.config import ControlParams
-from carlacr.interface.controller.controller import CarlaController
+from carlacr.controller.controller import CarlaController
 
 from commonroad.scenario.state import TraceState
 

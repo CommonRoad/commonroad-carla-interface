@@ -1,11 +1,10 @@
 import os
 import logging
 
-from carlacr.interface.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis
+from carlacr.carla_interface import CarlaInterface
+from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType, PedestrianControlType
 
 from commonroad.common.file_reader import CommonRoadFileReader
-from commonroad.common.solution import CommonRoadSolutionReader
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -26,9 +25,11 @@ param = CarlaParams()
 param.map = or_map_path
 param.offscreen_mode = False # set to true if your system (GPU) is powerful enough
 param.vis_type = CustomVis.NONE # change if your system (GPU) is powerful enough
+param.vehicle.controller_type = VehicleControlType.TRANSFORM
+param.pedestrian.controller_type = PedestrianControlType.TRANSFORM
 # param.simulation.record_video = False
 # param.simulation.video_path = os.path.join(os.path.dirname(__file__), "video")
 
 # Initialize CARLA-Interface and execute simulation
 ci = CarlaInterface(param)
-ci.replay(scenario, waypoint_control=True)
+ci.replay(scenario)

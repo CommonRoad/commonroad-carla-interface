@@ -9,12 +9,11 @@
 import time
 import logging
 from numpy import random
-from typing import List
+from typing import List, Union
 import carla
 from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_pedestrian_from_walker
-from carlacr.interface.obstacle.vehicle_interface import VehicleInterface
-from carlacr.interface.obstacle.pedestrian_interface import PedestrianInterface
-from carlacr.interface.obstacle.obstacle_interface import ObstacleInterface
+from carlacr.objects.vehicle import VehicleInterface
+from carlacr.objects.pedestrian import PedestrianInterface
 from carlacr.helper.config import SimulationParams
 
 SetAutopilot = carla.command.SetAutopilot
@@ -22,7 +21,7 @@ FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
 
-def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) -> List[ObstacleInterface]:
+def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) -> List[Union[PedestrianInterface, VehicleInterface]]:
     traffic_manager = client.get_trafficmanager()
     world = client.get_world()
     random.seed(config.seed if config.seed is not None else int(time.time()))
@@ -54,7 +53,7 @@ def extract_blueprints(config: SimulationParams, world: carla.World):
     return blueprints_vehicles, blueprints_walkers
 
 
-def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int):
+def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int) -> List[PedestrianInterface]:
     logging.info("Traffic Generation spawn walkers.")
     walkers_list = []
     cr_walkers_list = []

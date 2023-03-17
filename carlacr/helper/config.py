@@ -174,9 +174,8 @@ class ControlParams(BaseParam):
     def pid_lon_dict(self):
         pass # TODO
 
-
 @dataclass
-class ObstacleParams(BaseParam):
+class VehicleParams(BaseParam):
     approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
@@ -184,7 +183,13 @@ class ObstacleParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     vehicle_ks_state: bool = True
     path_sampling: int = 10 # use every path_sampling time step for path to follow CR trajectory
-    controller_type: Union[VehicleControlType, PedestrianControlType] = VehicleControlType.TRANSFORM
+    controller_type: VehicleControlType = VehicleControlType.TRANSFORM
+
+class PedestrianParams(BaseParam):
+    # size the blueprint should be selected
+    physics: bool = True  # if physics should be enabled for the vehicle
+    simulation: SimulationParams = field(default_factory=SimulationParams)
+    controller_type: PedestrianControlType = PedestrianControlType.TRANSFORM
 
 
 @dataclass
@@ -198,5 +203,7 @@ class MapParams(BaseParam):
 @dataclass
 class CarlaParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
-    obstacle: ObstacleParams = field(default_factory=ObstacleParams)
+    pedestrian: PedestrianParams = field(default_factory=PedestrianParams)
+    vehicle: VehicleParams = field(default_factory=VehicleParams)
+    ego: VehicleParams = field(default_factory=VehicleParams)
     map_params: MapParams = field(default_factory=MapParams)

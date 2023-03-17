@@ -7,7 +7,7 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType
 from commonroad.scenario.trajectory import PMState, KSState, State
 
-from carlacr.helper.config import ObstacleParams
+from carlacr.helper.config import VehicleParams, PedestrianParams
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class ObstacleInterface(ABC):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, config: ObstacleParams = ObstacleParams()):
+    def __init__(self, cr_obstacle: DynamicObstacle, config: Union[VehicleParams, PedestrianParams]):
         """
         Initializer of the obstacle.
 
@@ -71,7 +71,11 @@ class ObstacleInterface(ABC):
     def state_at_time_step(self, time_step: int):
         return self._cr_base.state_at_time(time_step)
 
-    def tick(self, state: State):
+    @property
+    def control_type(self):
+        return self._config.controller_type
+
+    def tick(self, clock, world: carla.World, tm: carla.TrafficManager):
         pass
 
     def destroy_carla_obstacle(self, world):
