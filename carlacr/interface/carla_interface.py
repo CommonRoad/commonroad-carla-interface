@@ -212,7 +212,9 @@ class CarlaInterface:
 
         for tl in sc.lanelet_network.traffic_lights:
             closest_tl = find_closest_traffic_light(self.traffic_lights, tl)
-            closest_tl.set_cr_light(tl)
+            if closest_tl is not None:
+                logger.error("traffic light could not be matched")
+                closest_tl.set_cr_light(tl)
 
     def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
                  cost_function: CostFunction) -> PlanningProblemSolution:
@@ -430,9 +432,8 @@ class CarlaInterface:
             time_step += 1
             self.update_cr_state(sim_world)
 
-        world.destroy_sensors()
-        for actor in sim_world.get_actors():
-            actor.destroy()
+        if self._config.vis_type is CustomVis.EGO:
+            world.destroy_sensors()
 
         if self._config.simulation.record_video:
             make_video(self._config.simulation.video_path, self._config.simulation.video_name)

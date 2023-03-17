@@ -11,8 +11,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Specify CommonRoad and OpenDRIVE map
-or_map_path = "Town10HD"
-cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/Town10HD.xml"
+# or_map_path = "Town10HD"
+or_map_path = os.path.dirname(__file__) + "/../maps/four_way_crossing.xodr"
+# cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/Town10HD.xml"
+cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/four_way_crossing_Modi.xml"
 #cr_solution_path = os.path.dirname(__file__) + "/solution_PM2:JB1:DEU_Test-1_1_T-1:2020a.xml"
 
 # Load CommonRoad scenario and solution file
@@ -22,11 +24,11 @@ scenario, pps = CommonRoadFileReader(cr_scenario_path).open()
 # Configure simulation and scenario settings
 param = CarlaParams()
 param.map = or_map_path
-param.offscreen_mode = True # set to true if your system (GPU) is powerful enough
-param.vis_type = CustomVis.EGO # change if your system (GPU) is powerful enough
-param.simulation.record_video = True
-param.simulation.video_path = os.path.join(os.path.dirname(__file__), "video")
+param.offscreen_mode = False # set to true if your system (GPU) is powerful enough
+param.vis_type = CustomVis.NONE # change if your system (GPU) is powerful enough
+# param.simulation.record_video = False
+# param.simulation.video_path = os.path.join(os.path.dirname(__file__), "video")
 
 # Initialize CARLA-Interface and execute simulation
 ci = CarlaInterface(param)
-ci.replay(scenario, ego_id=2964, waypoint_control=True)
+ci.replay(scenario, waypoint_control=True)

@@ -3367,7 +3367,7 @@
         </point>
       </position>
       <orientation>
-        <exact>0.02</exact>
+        <exact>1.57079632679</exact>
       </orientation>
       <time>
         <exact>0</exact>
@@ -3385,7 +3385,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>1</exact>
@@ -3402,7 +3402,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>2</exact>
@@ -3419,7 +3419,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>3</exact>
@@ -3436,7 +3436,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>4</exact>
@@ -3453,7 +3453,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>5</exact>
@@ -3470,7 +3470,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>6</exact>
@@ -3487,7 +3487,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>7</exact>
@@ -3504,7 +3504,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>8</exact>
@@ -3521,7 +3521,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>9</exact>
@@ -3538,7 +3538,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>10</exact>
@@ -3555,7 +3555,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>11</exact>
@@ -3572,7 +3572,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>12</exact>
@@ -3589,7 +3589,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>13</exact>
@@ -3606,7 +3606,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>14</exact>
@@ -3623,7 +3623,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>15</exact>
@@ -3640,7 +3640,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>16</exact>
@@ -3657,7 +3657,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>17</exact>
@@ -3674,7 +3674,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>18</exact>
@@ -3691,7 +3691,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>19</exact>
@@ -3708,7 +3708,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>20</exact>
@@ -3725,7 +3725,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>21</exact>
@@ -3742,7 +3742,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>22</exact>
@@ -3759,7 +3759,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>23</exact>
@@ -3776,7 +3776,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>24</exact>
@@ -3793,7 +3793,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>25</exact>
@@ -3810,7 +3810,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>26</exact>
@@ -3827,7 +3827,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>27</exact>
@@ -3844,7 +3844,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>28</exact>
@@ -3861,7 +3861,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>29</exact>
@@ -3878,7 +3878,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>30</exact>
@@ -3895,7 +3895,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>31</exact>
@@ -3912,7 +3912,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>32</exact>
@@ -3929,7 +3929,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>33</exact>
@@ -3946,7 +3946,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>34</exact>
@@ -3963,7 +3963,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>35</exact>
@@ -3980,7 +3980,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>36</exact>
@@ -3997,7 +3997,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>37</exact>
@@ -4014,7 +4014,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>38</exact>
@@ -4031,7 +4031,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>39</exact>
@@ -4048,7 +4048,7 @@
           </point>
         </position>
         <orientation>
-          <exact>-0.01</exact>
+          <exact>1.57079632679</exact>
         </orientation>
         <time>
           <exact>40</exact>

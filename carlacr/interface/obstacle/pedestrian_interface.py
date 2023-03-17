@@ -1,4 +1,5 @@
 import logging
+import math
 from typing import Optional
 import carla
 
@@ -68,7 +69,7 @@ class PedestrianInterface(ObstacleInterface):
             control = carla.WalkerControl()
             control.speed = cur_state.velocity
             rotation = world.get_actor(self._carla_id).get_transform().rotation
-            rotation.yaw = cur_state.orientation
+            rotation.yaw = -cur_state.orientation * 180 / math.pi
             control.direction = rotation.get_forward_vector()
             self._world.get_actor(self._carla_id).apply_control(control)
         self._time_step += 1
