@@ -186,6 +186,6 @@ class VehicleInterface(ObstacleInterface):
         if not self.spawned:
             self._spawn(world, time_step, tm)
             self._init_controller()
-        else:
+        elif self._cr_base.obstacle_role is ObstacleRole.DYNAMIC:
             self._controller.control(self.cr_obstacle.state_at_time(time_step))
             self._set_light(self.cr_obstacle.signal_state_at_time_step(time_step))

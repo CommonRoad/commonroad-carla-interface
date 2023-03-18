@@ -42,7 +42,7 @@ class VehicleBehaviorAgentPathFollowingControl(CarlaController):
         self._agent = BehaviorAgent(actor)
 
     def control(self, state: Optional[TraceState] = None, tm: Optional[carla.TrafficManager] = None):
-        pass
+        self._agent.set_target_speed(state.velocity)
 
     def set_path(self, path: List[carla.Location]):
         self._agent.set_global_plan([(CarlaCRWaypoint(elem), None) for elem in path],
