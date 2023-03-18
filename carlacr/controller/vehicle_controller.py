@@ -1,10 +1,11 @@
+import dataclasses
 import logging
 from typing import Optional
 import carla
 import math
 
 from carlacr.helper.config import ControlParams
-from carlacr.controller.controller import CarlaController
+from carlacr.controller.controller import CarlaController, create_carla_transform
 from carlacr.agents.navigation.controller import VehiclePIDController
 
 from commonroad.scenario.state import TraceState
@@ -17,11 +18,14 @@ try:
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
 
+@dataclasses.dataclass
+class CarlaCRWaypoint:
+    transform: carla.Transform
 
 
 class VehiclePathFollowingControl(CarlaController):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, actor: carla.Actor):
+        super().__init__(actor)
 
     def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None,
                 tm: Optional[carla.TrafficManager] = None):
@@ -34,11 +38,11 @@ class VehiclePathFollowingControl(CarlaController):
 
 class PIDController(CarlaController):
     def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
-        super().__init__()
+        super().__init__(actor)
 
         self._pid = VehiclePIDController(actor, config.pid_lat_dict(), config.pid_lon_dict())
 
-    def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
+    def control(self, state: Optional[TraceState] = None):
         """
         Function controls the obstacle vehicle to drive along the planned route (for one step) and sets the lights.
 
@@ -49,24 +53,25 @@ class PIDController(CarlaController):
         :param state: state at the time step
         """
 
-        target = state.position
+        target = CarlaCRWaypoint(create_carla_transform(state))
         speed = state.velocity
 
         control = self._pid.run_step(speed, target)
-        actor.apply_control(control)
+        self._actor.apply_control(control)
 
 
 class AckermannController(CarlaController):
-    def __init__(self, config: ControlParams = ControlParams()):
-        super().__init__()
-        self.ackermann_settings = AckermannControllerSettings(speed_kp=config.ackermann_pid_speed_kp,
-                                                              speed_ki=config.ackermann_pid_speed_ki,
-                                                              speed_kd=config.ackermann_pid_speed_kd,
-                                                              accel_kp=config.ackermann_pid_accel_kp,
-                                                              accel_ki=config.ackermann_pid_accel_ki,
-                                                              accel_kd=config.ackermann_pid_accel_kd)
+    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
+        super().__init__(actor)
+        ackermann_settings = AckermannControllerSettings(speed_kp=config.ackermann_pid_speed_kp,
+                                                         speed_ki=config.ackermann_pid_speed_ki,
+                                                         speed_kd=config.ackermann_pid_speed_kd,
+                                                         accel_kp=config.ackermann_pid_accel_kp,
+                                                         accel_ki=config.ackermann_pid_accel_ki,
+                                                         accel_kd=config.ackermann_pid_accel_kd)
+        self._actor.apply_ackermann_controller_settings(ackermann_settings)
 
-    def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
+    def control(self, state: Optional[TraceState] = None):
         """
         Prepare to update the position with ackermann controller (version 0.9.14+ required).
 
@@ -90,18 +95,18 @@ class AckermannController(CarlaController):
             )
 
             # Set the parameters of the PID
-            actor.apply_ackermann_controller_settings(self.ackermann_settings)
+
 
             # Apply the Ackermann control to the vehicle
-            actor.apply_ackermann_control(ackermann_control)
+            self._actor.apply_ackermann_control(ackermann_control)
 
         except Exception as e:
             logger.error("Error while updating position")
             raise e
 
 class WheelController(CarlaController):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, actor: carla.Actor, ):
+        super().__init__(actor)
 
     def control(self, state: Optional[TraceState] = None):
         pass

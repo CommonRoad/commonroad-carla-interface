@@ -22,37 +22,34 @@ logger = logging.getLogger(__name__)
 class VehicleInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
-                 carla_id: Optional[int] = None, config: VehicleParams = VehicleParams()):
+    def __init__(self, cr_obstacle: DynamicObstacle,
+                 actor: Optional[carla.Vehicle] = None, config: VehicleParams = VehicleParams()):
         """
         Initializer of the obstacle.
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
-        super().__init__(cr_obstacle, config)
-        self._is_spawned = spawned
-        self._carla_id = carla_id
+        super().__init__(config, cr_obstacle, actor)
         self._hud = None
         self._vis_world = None
-        self._controller = self._init_controller()
 
     def _init_controller(self):
         if self._config.controller_type is VehicleControlType.TRANSFORM:
-            return TransformControl()
+            self._controller = TransformControl(self._actor)
         elif self._config.controller_type is VehicleControlType.PID:
-            return PIDController(actor=None, config=self._config.control)
+            self._controller = PIDController(actor=self._actor, config=self._config.control)
         elif self._config.controller_type is VehicleControlType.ACKERMANN:
-            return AckermannController(config=self._config.control)
+            self._controller = AckermannController(self._actor, config=self._config.control)
         elif self._config.controller_type is VehicleControlType.STEERING_WHEEL:
-            return WheelController()
+            self._controller = WheelController(self._actor)
         elif self._config.controller_type is VehicleControlType.KEYBOARD:
-            return KeyboardVehicleController()
+            self._controller = KeyboardVehicleController(self._actor)
         elif self._config.controller_type is VehicleControlType.PLANNER:
-            return None
+            self._controller = None
         elif self._config.controller_type is VehicleControlType.PATH_TM:
-            return VehiclePathFollowingControl()
+            self._controller = VehiclePathFollowingControl(self._actor)
         elif self._config.controller_type is VehicleControlType.PATH_AGENT:
-            return None
+            self._controller = None
 
 
     def _spawn(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
@@ -62,7 +59,6 @@ class VehicleInterface(ObstacleInterface):
         :param world: the CARLA world object
         :return: if spawn successful the according CARLA actor else None
         """
-        self._world = world
         if self._cr_base is None or time_step != self._cr_base.initial_state.time_step:
             self._spawn_v2(world, time_step)
 
@@ -73,8 +69,8 @@ class VehicleInterface(ObstacleInterface):
                  ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
             obstacle_blueprint = self._find_blueprint(world)
 
-            obstacle = world.try_spawn_actor(obstacle_blueprint, transform)
-            if not obstacle:
+            actor = world.try_spawn_actor(obstacle_blueprint, transform)
+            if not actor:
                 logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
                 spawn_points = world.get_map().get_spawn_points()
                 closest = None
@@ -84,27 +80,27 @@ class VehicleInterface(ObstacleInterface):
                     if dist < best_dist:
                         best_dist = dist
                         closest = point
-                obstacle = world.try_spawn_actor(obstacle_blueprint, closest)
+                actor = world.try_spawn_actor(obstacle_blueprint, closest)
                 logger.info(f"Obstacle {self.cr_obstacle.obstacle_id} spawned {best_dist}m away from original position")
 
-            obstacle.set_simulate_physics(self._config.physics)
-            logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._commonroad_id, obstacle.id)
+            actor.set_simulate_physics(self._config.physics)
+            logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_base.obstacle_id, actor.id)
             # Set up the lights to initial states:
-            vehicle = world.get_actor(obstacle.id)
+            vehicle = world.get_actor(actor.id)
             if self._cr_base.initial_signal_state:
                 if vehicle:
                     sig = self._cr_base.initial_signal_state
-                    self._set_traffic_light(vehicle=vehicle, sig=sig)
+                    self._set_light(sig=sig)
             yaw = transform.rotation.yaw * (math.pi / 180)
             vx = self._cr_base.initial_state.velocity * math.cos(yaw)
             vy = self._cr_base.initial_state.velocity * math.sin(yaw)
-            obstacle.set_target_velocity(carla.Vector3D(vx, vy, 0))
-            self._carla_id = obstacle.id
-            self._is_spawned = True
+            actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
         else:
             self._spawn_v2(world, time_step)
 
-        if self._config.controller_type == VehicleControlType.PATH:
+        self._actor = actor
+
+        if self._config.controller_type == VehicleControlType.PATH_TM:
             if self.get_role() == ObstacleRole.DYNAMIC:
                 tm.set_path(world.get_actor(self._carla_id), self._get_path())
 
@@ -124,7 +120,6 @@ class VehicleInterface(ObstacleInterface):
             ego_actor = world.try_spawn_actor(blueprint, spawn_point)
 
         # Save it in order to destroy it when closing program
-        self._is_spawned = True
         self._carla_id = ego_actor.id
         self._commonroad_id = 0
         self._spawn_timestep = time_step
@@ -144,7 +139,7 @@ class VehicleInterface(ObstacleInterface):
         obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
         return obstacle_blueprint
 
-    def _set_traffic_light(self, actor: carla.Actor, sig: SignalState):
+    def _set_light(self, sig: SignalState):
         """
         Sets up the lights of the Obstacle.
 
@@ -163,7 +158,7 @@ class VehicleInterface(ObstacleInterface):
             if sig.hazard_warning_lights:
                 z = z | carla.VehicleLightState.RightBlinker
                 z = z | carla.VehicleLightState.LeftBlinker
-            actor.set_light_state(carla.VehicleLightState(z))
+            self._actor.set_light_state(carla.VehicleLightState(z))
 
     def register_clock(self, clock):
         self._controller.register_clock(clock)
@@ -184,9 +179,9 @@ class VehicleInterface(ObstacleInterface):
             return path
 
     def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
-        if not self._is_spawned:
+        if not self.spawned:
             self._spawn(world, time_step, tm)
+            self._init_controller()
         else:
-            actor = world.get_actor(self._carla_id)
-            self._controller.control(actor, self.cr_obstacle.state_at_time(time_step))
-            self._set_traffic_light(actor, self.cr_obstacle.signal_state_at_time_step(time_step))
+            self._controller.control(self.cr_obstacle.state_at_time(time_step))
+            self._set_light(self.cr_obstacle.signal_state_at_time_step(time_step))

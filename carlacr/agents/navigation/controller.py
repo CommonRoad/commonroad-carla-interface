@@ -12,7 +12,7 @@ import carla
 from carlacr.agents.tools.misc import get_speed
 
 
-class VehiclePIDController():
+class VehiclePIDController:
     """
     VehiclePIDController is the combination of two PID controllers
     (lateral and longitudinal) to perform the
@@ -20,8 +20,8 @@ class VehiclePIDController():
     """
 
 
-    def __init__(self, vehicle, args_lateral, args_longitudinal, offset=0, max_throttle=0.75, max_brake=0.3,
-                 max_steering=0.8):
+    def __init__(self, vehicle: carla.Actor, args_lateral, args_longitudinal, offset=0, max_throttle=0.75,
+                 max_brake=0.3, max_steering=0.8):
         """
         Constructor method.
 
@@ -46,7 +46,6 @@ class VehiclePIDController():
         self.max_steer = max_steering
 
         self._vehicle = vehicle
-        self._world = self._vehicle.get_world()
         self.past_steering = self._vehicle.get_control().steer
         self._lon_controller = PIDLongitudinalController(self._vehicle, **args_longitudinal)
         self._lat_controller = PIDLateralController(self._vehicle, offset, **args_lateral)

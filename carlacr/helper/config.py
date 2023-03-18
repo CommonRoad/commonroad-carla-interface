@@ -2,7 +2,7 @@ import dataclasses
 import inspect
 from dataclasses import dataclass, field
 import pathlib
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 from omegaconf import OmegaConf
 from enum import Enum
 
@@ -169,11 +169,15 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_ki: float = 0.0
     ackermann_pid_accel_kd: float = 0.01
 
-    def pid_lat_dict(self):
-        pass # TODO
+    def pid_lat_dict(self) -> Dict[str, float]:
+        return {"K_P": self.basic_control_pid_lat_kp,
+                "K_I": self.basic_control_pid_lat_ki,
+                "K_D": self.basic_control_pid_lat_kd}
 
-    def pid_lon_dict(self):
-        pass # TODO
+    def pid_lon_dict(self) -> Dict[str, float]:
+        return {"K_P": self.basic_control_pid_lon_kp,
+                "K_I": self.basic_control_pid_lon_ki,
+                "K_D": self.basic_control_pid_lon_kd}
 
 @dataclass
 class VehicleParams(BaseParam):

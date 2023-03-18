@@ -17,14 +17,18 @@ def create_carla_transform(state: TraceState, z_position: float = 0.5):
     return transform
 
 class CarlaController(ABC):
-    def __init__(self):
+    def __init__(self, actor: carla.Actor):
+        self._actor = actor
         self._autopilot_enabled = False
-    def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
+    def control(self, state: Optional[TraceState] = None):
         pass
 
 
 class TransformControl(CarlaController):
-    def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
-        transform = create_carla_transform(state, actor.get_location().z)
-        actor.set_transform(transform)
+    def __init__(self, actor: carla.Actor):
+        super().__init__(actor)
+        self._actor = actor
+    def control(self, state: Optional[TraceState] = None):
+        transform = create_carla_transform(state, self._actor.get_location().z)
+        self._actor.set_transform(transform)
 

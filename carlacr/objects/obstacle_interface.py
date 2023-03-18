@@ -5,7 +5,7 @@ from abc import ABC
 import carla
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType
-from commonroad.scenario.trajectory import PMState, KSState, State
+from commonroad.scenario.trajectory import PMState, KSState
 
 from carlacr.helper.config import VehicleParams, PedestrianParams
 
@@ -15,25 +15,18 @@ logger = logging.getLogger(__name__)
 class ObstacleInterface(ABC):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, config: Union[VehicleParams, PedestrianParams]):
+    def __init__(self, config: Union[VehicleParams, PedestrianParams], cr_obstacle: DynamicObstacle,
+                 actor: Optional[Union[carla.Vehicle, carla.Walker]]):
         """
         Initializer of the obstacle.
 
         :param cr_obstacle: the underlying CommonRoad obstacle
         """
-        self._carla_id = None
-        self._is_spawned = False
+        self._actor = actor
         self._config = config
-        self._world = None
+        self._controller = None
         self._trajectory = []  # TODO delete later and use cr-io history
-        if cr_obstacle is not None:
-            self._commonroad_id = cr_obstacle.obstacle_id
-    #        self._time_step = cr_obstacle.initial_state.time_step
-            self._cr_base = cr_obstacle
-        else:
-            self._commonroad_id = None
-         #   self._time_step = None
-            self._cr_base: Optional[DynamicObstacle] = None
+        self._cr_base = cr_obstacle
 
     def _spawn(self, world: carla.World, time_step: int):
         """
@@ -47,16 +40,16 @@ class ObstacleInterface(ABC):
         pass
 
     @property
-    def is_spawned(self) -> bool:
-        return self._is_spawned
+    def spawned(self) -> bool:
+        return self._actor is not None
 
     @property
     def trajectory(self) -> List[Union[PMState, KSState]]:
         return self._trajectory
 
     @property
-    def carla_id(self) -> int:
-        return self._carla_id
+    def actor(self) -> carla.Actor:
+        return self._actor
 
     @property
     def cr_obstacle(self) -> DynamicObstacle:
@@ -84,7 +77,5 @@ class ObstacleInterface(ABC):
 
         :param world: the CARLA world object
         """
-        if self._is_spawned:
-            actor = world.get_actor(self._carla_id)
-            if actor:
-                actor.destroy()
+        if self._actor is not None:
+            self._actor.destroy()

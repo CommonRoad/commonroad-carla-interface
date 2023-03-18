@@ -353,23 +353,21 @@ class CarlaInterface:
             time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
                 self._ego.trajectory[-1].time_step + 1
             if self._config.vehicle.vehicle_ks_state:
-                state = create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+                state = create_cr_ks_state_from_actor(self._ego.actor, time_step)
             else:
-                state = create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id), time_step)
+                state = create_cr_pm_state_from_actor(self._ego.actor, time_step)
             self._ego.trajectory.append(state)
 
         for obs in self._cr_obstacles:
             time_step = obs.cr_obstacle.initial_state.time_step + 1 if len(obs.trajectory) == 0 else \
                 obs.trajectory[-1].time_step + 1
 
-            actor = world.get_actor(obs.carla_id)
-
             if obs.get_type() == ObstacleType.PEDESTRIAN:
-                state = create_cr_pm_state_from_actor(actor, time_step)
+                state = create_cr_pm_state_from_actor(obs.actor, time_step)
             elif self._config.vehicle.vehicle_ks_state:
-                state = create_cr_ks_state_from_actor(actor, time_step)
+                state = create_cr_ks_state_from_actor(obs.actor, time_step)
             else:
-                state = create_cr_pm_state_from_actor(actor, time_step)
+                state = create_cr_pm_state_from_actor(obs.actor, time_step)
             obs.trajectory.append(state)
 
         for tl in self.traffic_lights:
@@ -379,13 +377,11 @@ class CarlaInterface:
         sim_world = self._client.get_world()
         tm = self._client.get_trafficmanager()
         world = None
-
         time_step = 0
         clock = None
         display = None
 
         if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
-            self._ego.spawn(sim_world, time_step, tm)
             display = self._init_display()
             clock = pygame.time.Clock()
             if self._ego.control_type is VehicleControlType.KEYBOARD:
@@ -409,6 +405,11 @@ class CarlaInterface:
 
             if self._ego is not None:
                 self._ego.tick(sim_world, tm, time_step)
+            if obstacle_control:
+                for obs in self._cr_obstacles:
+                    obs.tick(sim_world, tm, time_step)
+                for tl in self.traffic_lights:
+                    tl.tick(sim_world, time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
                 clock.tick_busy_loop(60)
@@ -416,14 +417,6 @@ class CarlaInterface:
                 world.render(display)
                 pygame.display.flip()
 
-            if obstacle_control:
-                for obs in self._cr_obstacles:
-                    if obs.get_type() is not ObstacleType.PEDESTRIAN:
-                        obs.tick(sim_world, tm, time_step)
-                    else:
-                        obs.tick(sim_world, tm, time_step)
-                for tl in self.traffic_lights:
-                    tl.tick(sim_world, time_step)
             time_step += 1
             self.update_cr_state(sim_world)
 
