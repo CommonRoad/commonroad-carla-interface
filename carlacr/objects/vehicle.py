@@ -12,7 +12,7 @@ from carlacr.helper.config import VehicleParams, ApproximationType, VehicleContr
 from carlacr.objects.obstacle_interface import ObstacleInterface
 from carlacr.controller.controller import create_carla_transform, TransformControl
 from carlacr.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
-    VehiclePathFollowingControl
+    VehicleTMPathFollowingControl
 from carlacr.controller.keyboard_controller import KeyboardVehicleController
 from carlacr.helper.utils import create_cr_vehicle_from_actor
 
@@ -37,7 +37,8 @@ class VehicleInterface(ObstacleInterface):
         if self._config.controller_type is VehicleControlType.TRANSFORM:
             self._controller = TransformControl(self._actor)
         elif self._config.controller_type is VehicleControlType.PID:
-            self._controller = PIDController(actor=self._actor, config=self._config.control)
+            self._controller = PIDController(actor=self._actor, config=self._config.control,
+                                             dt=self._config.simulation.time_step)
         elif self._config.controller_type is VehicleControlType.ACKERMANN:
             self._controller = AckermannController(self._actor, config=self._config.control)
         elif self._config.controller_type is VehicleControlType.STEERING_WHEEL:
@@ -47,7 +48,7 @@ class VehicleInterface(ObstacleInterface):
         elif self._config.controller_type is VehicleControlType.PLANNER:
             self._controller = None
         elif self._config.controller_type is VehicleControlType.PATH_TM:
-            self._controller = VehiclePathFollowingControl(self._actor)
+            self._controller = VehicleTMPathFollowingControl(self._actor)
         elif self._config.controller_type is VehicleControlType.PATH_AGENT:
             self._controller = None
 
@@ -63,6 +64,7 @@ class VehicleInterface(ObstacleInterface):
             self._spawn_v2(world, time_step)
 
         transform = create_carla_transform(self._cr_base.initial_state)
+        actor = None
 
         if self._cr_base.obstacle_type in \
                 [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
@@ -100,9 +102,11 @@ class VehicleInterface(ObstacleInterface):
 
         self._actor = actor
 
-        if self._config.controller_type == VehicleControlType.PATH_TM:
-            if self.get_role() == ObstacleRole.DYNAMIC:
-                tm.set_path(world.get_actor(self._carla_id), self._get_path())
+        if self._cr_base.obstacle_role is ObstacleRole.DYNAMIC:
+            if self._config.controller_type == VehicleControlType.PATH_TM:
+                tm.set_path(self._actor, self._get_path())
+            elif self._config.controller_type == VehicleControlType.PATH_AGENT:
+                self._controller.set_path(self._get_path())
 
     def _spawn_v2(self, world, time_step):
         # function taken from CARLA

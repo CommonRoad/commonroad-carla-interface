@@ -1,12 +1,13 @@
 import dataclasses
 import logging
-from typing import Optional
+from typing import Optional, List
 import carla
 import math
 
 from carlacr.helper.config import ControlParams
 from carlacr.controller.controller import CarlaController, create_carla_transform
 from carlacr.agents.navigation.controller import VehiclePIDController
+from carlacr.agents.navigation.behavior_agent import BehaviorAgent
 
 from commonroad.scenario.state import TraceState
 
@@ -23,24 +24,36 @@ class CarlaCRWaypoint:
     transform: carla.Transform
 
 
-class VehiclePathFollowingControl(CarlaController):
+class VehicleTMPathFollowingControl(CarlaController):
     def __init__(self, actor: carla.Actor):
         super().__init__(actor)
 
-    def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None,
-                tm: Optional[carla.TrafficManager] = None):
+    def control(self, state: Optional[TraceState] = None, tm: Optional[carla.TrafficManager] = None):
         if hasattr(tm, "set_desired_speed"):
             if hasattr(state, "velocity_y"):
                 vel = math.sqrt(state.velocity ** 2 + state.velocity_y ** 2)
-                tm.set_desired_speed(actor, vel)
+                tm.set_desired_speed(self._actor, vel)
             else:
-                tm.set_desired_speed(actor, state.velocity)
+                tm.set_desired_speed(self._actor, state.velocity)
+
+class VehicleBehaviorAgentPathFollowingControl(CarlaController):
+    def __init__(self, actor: carla.Actor):
+        super().__init__(actor)
+        self._agent = BehaviorAgent(actor)
+
+    def control(self, state: Optional[TraceState] = None, tm: Optional[carla.TrafficManager] = None):
+        pass
+
+    def set_path(self, path: List[carla.Location]):
+        self._agent.set_global_plan([(CarlaCRWaypoint(elem), None) for elem in path],
+                                    stop_waypoint_creation=True, clean_queue=True)
+
 
 class PIDController(CarlaController):
-    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
+    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams(), dt: float = 0.1):
         super().__init__(actor)
 
-        self._pid = VehiclePIDController(actor, config.pid_lat_dict(), config.pid_lon_dict())
+        self._pid = VehiclePIDController(actor, config.pid_lat_dict(dt), config.pid_lon_dict(dt))
 
     def control(self, state: Optional[TraceState] = None):
         """
