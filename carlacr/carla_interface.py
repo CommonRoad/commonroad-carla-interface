@@ -318,6 +318,10 @@ class CarlaInterface:
                          vehicle_type: VehicleType = VehicleType.BMW_320i):
         logger.info("Start keyboard manual control.")
 
+        if not self._config.ego.controller_type is VehicleControlType.KEYBOARD:
+            self._config.ego.controller_type = VehicleControlType.KEYBOARD
+            logger.info("Keyboard control type not set for ego! Will be set.")
+
         if pp is not None:
             vehicle_params = VehicleParameterMapping.from_vehicle_type(vehicle_type)
             ego_obs = DynamicObstacle(0, ObstacleType.CAR, Rectangle(vehicle_params.l, vehicle_params.w),
@@ -326,7 +330,7 @@ class CarlaInterface:
             ego_obs = None
 
         logger.info("Init Manual Control.")
-        self._ego = VehicleInterface(ego_obs)
+        self._ego = VehicleInterface(ego_obs, config=self._config.ego)
 
         sim_world = self._client.get_world()
 
@@ -339,10 +343,9 @@ class CarlaInterface:
             obstacle_control = False
 
         logger.info("Spawn ego.")
-        self._ego.spawn(sim_world, 0)
+        self._ego.tick(sim_world, 0)
 
         self._run_simulation(obstacle_control=obstacle_control)
-        # TODO save CR scenario
 
 
     def update_cr_state(self, world: carla.World):
@@ -387,7 +390,7 @@ class CarlaInterface:
     def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
         sim_world = self._client.get_world()
         tm = self._client.get_trafficmanager()
-        world = None
+        vis_world = None
         time_step = 0
         clock = None
         display = None
@@ -395,17 +398,17 @@ class CarlaInterface:
         if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
             display = self._init_display()
             clock = pygame.time.Clock()
-            if self._ego.control_type is VehicleControlType.KEYBOARD:
-                self._ego.register_clock(clock)
 
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
-            world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
+            vis_world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, self._ego.actor)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
-            world = World3D(sim_world, hud, self._config.simulation, sim_world.get_actor(self._ego.carla_id))
+            vis_world = World3D(sim_world, hud, self._config.simulation, self._ego.actor)
+        if self._ego.control_type is VehicleControlType.KEYBOARD:
+            self._ego.register_clock(clock, hud, vis_world)
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
@@ -415,24 +418,24 @@ class CarlaInterface:
                 sim_world.wait_for_tick()
 
             if self._ego is not None:
-                self._ego.tick(sim_world, tm, time_step)
+                self._ego.tick(sim_world, time_step, tm)
             if obstacle_control:
                 for obs in self._cr_obstacles:
-                    obs.tick(sim_world, tm, time_step)
+                    obs.tick(sim_world, time_step, tm)
                 for tl in self.traffic_lights:
                     tl.tick(sim_world, time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
                 clock.tick_busy_loop(60)
-                world.tick(clock)
-                world.render(display)
+                vis_world.tick(clock)
+                vis_world.render(display)
                 pygame.display.flip()
 
             time_step += 1
             self.update_cr_state(sim_world)
 
         if self._config.vis_type is CustomVis.EGO:
-            world.destroy_sensors()
+            vis_world.destroy_sensors()
 
         if self._config.simulation.record_video:
             make_video(self._config.simulation.video_path, self._config.simulation.video_name)

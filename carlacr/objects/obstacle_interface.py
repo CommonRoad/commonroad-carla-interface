@@ -68,7 +68,7 @@ class ObstacleInterface(ABC):
     def control_type(self):
         return self._config.controller_type
 
-    def tick(self, clock, world: carla.World, tm: carla.TrafficManager):
+    def tick(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
         pass
 
     def destroy_carla_obstacle(self, world):

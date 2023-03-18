@@ -131,7 +131,7 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
         all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
     for actor in all_actors:
         cr_walkers_list.append(PedestrianInterface(
-                create_cr_pedestrian_from_walker(actor, cr_id, config.pedestrian_default_shape), True, actor.id))
+                create_cr_pedestrian_from_walker(actor, cr_id, config.pedestrian_default_shape), actor))
         cr_id += 1
 
     return cr_walkers_list
@@ -165,8 +165,7 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
   #      else:
         if spawned_actor is not None:
             vehicles_list.append(
-                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), True,
-                            spawned_actor.id))
+                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
             cr_id += 1

@@ -124,8 +124,6 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
-from carlacr.helper.traffic_generation import select_blueprint, extract_blueprints
-
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
@@ -248,7 +246,8 @@ class World3D:
 
     def render(self, display):
         self.camera_manager.render(display)
-        self.hud.render(display)
+        if self._config.vis_hud:
+            self.hud.render(display)
 
     def destroy_sensors(self):
         self.camera_manager.sensor.destroy()

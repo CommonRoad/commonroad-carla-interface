@@ -150,6 +150,7 @@ class SimulationParams(BaseParam):
     record_video: bool = False
     video_path: str = "./"
     video_name: str = "CommonRoad"
+    vis_hud: bool = True
 
 
 @dataclass

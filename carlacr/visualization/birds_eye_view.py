@@ -38,19 +38,11 @@ import glob
 import os
 import sys
 
-try:
-    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
-except IndexError:
-    pass
 
 # ==============================================================================
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
 
-from carlacr.controller.keyboard_controller import HERO_DEFAULT_SCALE, exit_game, is_quit_shortcut
 
 import carla
 from carla import TrafficLightState as tls
@@ -64,6 +56,7 @@ try:
     import pygame
     from pygame.locals import KMOD_CTRL
     from pygame.locals import KMOD_SHIFT
+    from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
     from pygame.locals import K_SLASH
     from pygame.locals import K_h
@@ -136,6 +129,15 @@ PIXELS_AHEAD_VEHICLE = 150
 # -- Util -----------------------------------------------------------
 # ==============================================================================
 
+
+def is_quit_shortcut(key):
+    """Returns True if one of the specified keys are pressed"""
+    return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
+
+def exit_game():
+    """Shuts down program and PyGame"""
+    pygame.quit()
+    sys.exit()
 
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
@@ -1256,7 +1258,8 @@ class World2D:
         display.fill(COLOR_ALUMINIUM_4)
 
         if self.actors_with_transforms is None:
-            self._hud.render(display)
+            if self.args.vis_hud:
+                self._hud.render(display)
             return
         self.result_surface.fill(COLOR_BLACK)
 
@@ -1340,7 +1343,8 @@ class World2D:
             display.blit(self.result_surface, (translation_offset[0] + center_offset[0],
                                                translation_offset[1]))
 
-        self._hud.render(display)
+        if self.args.vis_hud:
+            self._hud.render(display)
 
     def destroy(self):
         """Destroy the hero actor when class instance is destroyed"""

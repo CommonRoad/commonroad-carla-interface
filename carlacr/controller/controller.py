@@ -3,6 +3,10 @@ from typing import Optional
 from abc import ABC
 import math
 import carla
+import pygame
+
+# from carlacr.visualization.ego_view import HUD3D, World3D
+# from carlacr.visualization.birds_eye_view import HUD2D, World2D
 
 from commonroad.scenario.state import TraceState
 
@@ -21,6 +25,9 @@ class CarlaController(ABC):
         self._actor = actor
         self._autopilot_enabled = False
     def control(self, state: Optional[TraceState] = None):
+        pass
+
+    def register(self, clock: pygame.time.Clock, hud, vis_world):
         pass
 
 

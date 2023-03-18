@@ -65,7 +65,7 @@ class PedestrianInterface(ObstacleInterface):
             ai_actor.set_max_speed(max([state.velocity for state in self._cr_base.prediction.trajectory.state_list]))
         self._actor = actor
 
-    def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
+    def tick(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
         if not self.spawned:
             self._spawn(world, time_step)
             self._init_controller()

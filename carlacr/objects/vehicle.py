@@ -4,6 +4,7 @@ import carla
 import math
 import random
 
+import pygame.time
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, ObstacleRole
 from commonroad.scenario.obstacle import SignalState
 
@@ -164,8 +165,8 @@ class VehicleInterface(ObstacleInterface):
                 z = z | carla.VehicleLightState.LeftBlinker
             self._actor.set_light_state(carla.VehicleLightState(z))
 
-    def register_clock(self, clock):
-        self._controller.register_clock(clock)
+    def register_clock(self, clock: pygame.time.Clock, hud, vis_world):
+        self._controller.register(clock, hud, vis_world)
 
     def _get_path(self) -> List[carla.Location]:
         if self._cr_base.obstacle_role is not ObstacleRole.DYNAMIC:
@@ -182,10 +183,10 @@ class VehicleInterface(ObstacleInterface):
                 path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))
             return path
 
-    def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
+    def tick(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
         if not self.spawned:
             self._spawn(world, time_step, tm)
             self._init_controller()
-        elif self._cr_base.obstacle_role is ObstacleRole.DYNAMIC:
+        elif self._cr_base.obstacle_role is ObstacleRole.DYNAMIC and time_step > 0:
             self._controller.control(self.cr_obstacle.state_at_time(time_step))
             self._set_light(self.cr_obstacle.signal_state_at_time_step(time_step))
