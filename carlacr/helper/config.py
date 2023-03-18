@@ -17,8 +17,9 @@ class VehicleControlType(Enum):
     TRANSFORM = 3
     PID = 4
     ACKERMANN = 5
-    PATH = 6
-    PLANNER = 7
+    PATH_TM = 6
+    PATH_AGENT = 7
+    PLANNER = 8
 
 class CustomVis(Enum):
     BIRD = 0

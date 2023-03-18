@@ -5,7 +5,7 @@ import math
 import random
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, ObstacleRole
-from commonroad.scenario.trajectory import State
+from commonroad.scenario.obstacle import SignalState
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
 from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType
@@ -49,11 +49,13 @@ class VehicleInterface(ObstacleInterface):
             return KeyboardVehicleController()
         elif self._config.controller_type is VehicleControlType.PLANNER:
             return None
-        elif self._config.controller_type is VehicleControlType.PATH:
+        elif self._config.controller_type is VehicleControlType.PATH_TM:
             return VehiclePathFollowingControl()
+        elif self._config.controller_type is VehicleControlType.PATH_AGENT:
+            return None
 
 
-    def spawn(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
+    def _spawn(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 
@@ -92,7 +94,7 @@ class VehicleInterface(ObstacleInterface):
             if self._cr_base.initial_signal_state:
                 if vehicle:
                     sig = self._cr_base.initial_signal_state
-                    self._set_up_lights(vehicle=vehicle, sig=sig)
+                    self._set_traffic_light(vehicle=vehicle, sig=sig)
             yaw = transform.rotation.yaw * (math.pi / 180)
             vx = self._cr_base.initial_state.velocity * math.cos(yaw)
             vy = self._cr_base.initial_state.velocity * math.sin(yaw)
@@ -142,7 +144,7 @@ class VehicleInterface(ObstacleInterface):
         obstacle_blueprint = world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
         return obstacle_blueprint
 
-    def _set_up_lights(self, vehicle, state: State = None, sig=None):
+    def _set_traffic_light(self, actor: carla.Actor, sig: SignalState):
         """
         Sets up the lights of the Obstacle.
 
@@ -151,10 +153,7 @@ class VehicleInterface(ObstacleInterface):
         """
         # vehicle = world.get_actor(self.carla_id)
         z = carla.VehicleLightState.NONE
-        vehicle.set_light_state(z)
-        if sig is None and state is not None:
-            sig = self._cr_base.signal_state_at_time_step(state.time_step)
-        if sig:
+        if sig is not None:
             if sig.braking_lights:
                 z = z | carla.VehicleLightState.Brake
             if sig.indicator_left and not sig.hazard_warning_lights:
@@ -164,7 +163,7 @@ class VehicleInterface(ObstacleInterface):
             if sig.hazard_warning_lights:
                 z = z | carla.VehicleLightState.RightBlinker
                 z = z | carla.VehicleLightState.LeftBlinker
-            vehicle.set_light_state(carla.VehicleLightState(z))
+            actor.set_light_state(carla.VehicleLightState(z))
 
     def register_clock(self, clock):
         self._controller.register_clock(clock)
@@ -186,6 +185,8 @@ class VehicleInterface(ObstacleInterface):
 
     def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
         if not self._is_spawned:
-            self.spawn(world, time_step)
-        self._time_step += 1
-        self._controller.control(world.get_actor(self._carla_id), self.cr_obstacle.state_at_time(self._time_step))
+            self._spawn(world, time_step, tm)
+        else:
+            actor = world.get_actor(self._carla_id)
+            self._controller.control(actor, self.cr_obstacle.state_at_time(time_step))
+            self._set_traffic_light(actor, self.cr_obstacle.signal_state_at_time_step(time_step))

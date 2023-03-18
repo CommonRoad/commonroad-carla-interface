@@ -28,14 +28,14 @@ class ObstacleInterface(ABC):
         self._trajectory = []  # TODO delete later and use cr-io history
         if cr_obstacle is not None:
             self._commonroad_id = cr_obstacle.obstacle_id
-            self._time_step = cr_obstacle.initial_state.time_step
+    #        self._time_step = cr_obstacle.initial_state.time_step
             self._cr_base = cr_obstacle
         else:
             self._commonroad_id = None
-            self._time_step = None
+         #   self._time_step = None
             self._cr_base: Optional[DynamicObstacle] = None
 
-    def spawn(self, world: carla.World, time_step: int):
+    def _spawn(self, world: carla.World, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 

@@ -199,9 +199,9 @@ class CarlaInterface:
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
-                self._cr_obstacles.append(VehicleInterface(obs))
+                self._cr_obstacles.append(VehicleInterface(obs, config=self._config.vehicle))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
-                self._cr_obstacles.append(PedestrianInterface(obs))
+                self._cr_obstacles.append(PedestrianInterface(obs, config=self._config.pedestrian))
 
         for tl in sc.lanelet_network.traffic_lights:
             closest_tl = find_closest_traffic_light(self.traffic_lights, tl)

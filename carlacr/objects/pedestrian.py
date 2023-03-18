@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class PedestrianInterface(ObstacleInterface):
     """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, spawned: bool = False,
+    def __init__(self, cr_obstacle: DynamicObstacle,
                  carla_id: Optional[int] = None, config: PedestrianParams = PedestrianParams()):
         """
         Initializer of the obstacle.
@@ -24,8 +24,6 @@ class PedestrianInterface(ObstacleInterface):
         """
         super().__init__(cr_obstacle, config)
         self._carla_id = carla_id
-        self._is_spawned = spawned
-        self._time_step = cr_obstacle.initial_state.time_step
         self._ai_controller_id = None
         self._controller = self._init_controller()
 
@@ -38,7 +36,7 @@ class PedestrianInterface(ObstacleInterface):
             return ManualWalkerControl()
 
 
-    def spawn(self, world: carla.World, time_step: int):
+    def _spawn(self, world: carla.World, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
 
@@ -73,6 +71,6 @@ class PedestrianInterface(ObstacleInterface):
 
     def tick(self, world: carla.World, tm: carla.TrafficManager, time_step: int):
         if not self._is_spawned:
-            self.spawn(world, time_step)
-        self._time_step += 1
-        self._controller.control(world.get_actor(self._carla_id), self.cr_obstacle.state_at_time(self._time_step))
+            self._spawn(world, time_step)
+        else:
+            self._controller.control(world.get_actor(self._carla_id), self.cr_obstacle.state_at_time(time_step))

@@ -5,6 +5,7 @@ import math
 
 from carlacr.helper.config import ControlParams
 from carlacr.controller.controller import CarlaController
+from carlacr.agents.navigation.controller import VehiclePIDController
 
 from commonroad.scenario.state import TraceState
 
@@ -19,6 +20,9 @@ except ImportError:
 
 
 class VehiclePathFollowingControl(CarlaController):
+    def __init__(self):
+        super().__init__()
+
     def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None,
                 tm: Optional[carla.TrafficManager] = None):
         if hasattr(tm, "set_desired_speed"):
@@ -30,7 +34,8 @@ class VehiclePathFollowingControl(CarlaController):
 
 class PIDController(CarlaController):
     def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
-        from agents.navigation.controller import VehiclePIDController
+        super().__init__()
+
         self._pid = VehiclePIDController(actor, config.pid_lat_dict(), config.pid_lon_dict())
 
     def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
@@ -50,12 +55,10 @@ class PIDController(CarlaController):
         control = self._pid.run_step(speed, target)
         actor.apply_control(control)
 
-        # Do the lights:
-    #    self._set_up_lights(vehicle, state)
-
 
 class AckermannController(CarlaController):
     def __init__(self, config: ControlParams = ControlParams()):
+        super().__init__()
         self.ackermann_settings = AckermannControllerSettings(speed_kp=config.ackermann_pid_speed_kp,
                                                               speed_ki=config.ackermann_pid_speed_ki,
                                                               speed_kd=config.ackermann_pid_speed_kd,
@@ -92,13 +95,13 @@ class AckermannController(CarlaController):
             # Apply the Ackermann control to the vehicle
             actor.apply_ackermann_control(ackermann_control)
 
-            # Do the lights:
-            self._set_up_lights(actor, state)
-
         except Exception as e:
             logger.error("Error while updating position")
             raise e
 
 class WheelController(CarlaController):
+    def __init__(self):
+        super().__init__()
+
     def control(self, state: Optional[TraceState] = None):
         pass
