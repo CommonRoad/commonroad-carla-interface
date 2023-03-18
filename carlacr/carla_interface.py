@@ -14,7 +14,7 @@ import copy
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
-from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle
+from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, StaticObstacle
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.trajectory import Trajectory
@@ -216,6 +216,17 @@ class CarlaInterface:
                  vehicle_type=vehicle_type,
                  cost_function=cost_function,
                  trajectory=Trajectory(self._ego.trajectory[0].time_step, self._ego.trajectory))
+
+    def cr_obstacles(self) -> List[Union[DynamicObstacle, StaticObstacle]]:
+        for obs in self._cr_obstacles:
+            obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory),
+                                                              obs.cr_obstacle.obstacle_shape)
+        return [obs.cr_obstacle for obs in self._cr_obstacles]
+
+    def cr_ego_obstacle(self) -> DynamicObstacle:
+        self._ego.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, self._ego.trajectory),
+                                                                self._ego.cr_obstacle.obstacle_shape)
+        return self._ego.cr_obstacle
 
     def create_cr_map(self) -> Scenario:
         """Converts the CARLA map to Commonroad."""
