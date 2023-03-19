@@ -40,7 +40,11 @@ commonroad-drivability-checker = "~=2022.2.1"
 commonroad-vehicle-models = "~=3.0.2"
 psutil = "^5.9.4"
 
+[tool.poetry.group.tests]
+optional = true
 
+[tool.poetry.group.tests.dependencies]
+prospector = {extras = ["with-mypy"], version = "^1.9.0"}
 
 [build-system]
 requires = ["poetry-core"]

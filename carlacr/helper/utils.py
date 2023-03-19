@@ -1,13 +1,22 @@
 import carla
 import math
+import os
 import numpy as np
+from typing import Union, List
+import logging
+import psutil
+import shutil
+
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.geometry.shape import Rectangle, Circle
 from commonroad.scenario.state import InitialState, PMState, KSState, CustomState
 from commonroad.common.util import make_valid_orientation
 from commonroad.planning.goal import GoalRegion, Interval, AngleInterval
-from typing import Union
+from commonroad.scenario.scenario import Scenario
 
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 # def _get_nearby_vehicles(self, vehicles, ego, distance_th):
@@ -101,3 +110,54 @@ def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_sh
     return DynamicObstacle(cr_id, ObstacleType.PEDESTRIAN, shape,
                            InitialState(0, np.array([location.x, -location.y]),
                                         -((rotation.yaw * math.pi) / 180), vel, 0, 0, 0))
+
+
+def calc_max_timestep(sc: Scenario) -> int:
+    """
+    Calculates maximal time step of current scenario.
+
+    :param sc: scenario to calculate max time step
+    :return: length of scenario
+    """
+    time_steps = [obstacle.prediction.final_time_step for obstacle in sc.dynamic_obstacles]
+    return np.max(time_steps) if time_steps else 0
+
+
+def find_pid_by_name(process_name: str) -> List[int]:
+    """
+    Get a list of all the PIDs of a all the running process whose name contains
+    the given string processName
+
+    :returns List of possible PIDs
+    """
+    processes = []
+    for proc in psutil.process_iter():
+        try:
+            if process_name.lower() in proc.name().lower():
+                processes.append(proc.pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return processes
+
+
+def make_video(path: str, video_name: str):
+    """Creates a video of the images recorded by camera sensor using ffmepg.
+
+    @param path: Path to png images stored by camera sensor.
+    @param video_name: Name which new video should have.
+    """
+    tmp_path = os.path.join(path, "_tmp")
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if not os.path.exists(tmp_path):
+        os.mkdir(tmp_path)
+    try:
+        os.system(f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i \'{tmp_path}/*.png\'"
+                  f" -c:v libx264 -pix_fmt yuv420p {path}/{video_name}.mp4")
+        shutil.rmtree(tmp_path)
+    except Exception as e:
+        if os.path.exists(os.path.join(path, video_name + ".mp4")):
+            logger.debug("mp4 created!")
+            pass
+        else:
+            logger.error(e)
