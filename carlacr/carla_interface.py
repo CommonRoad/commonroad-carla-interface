@@ -136,10 +136,6 @@ class CarlaInterface:
         """Configures CARLA world."""
         logger.info("Init CARLA world.")
         world = self._client.get_world()
-        # Synchrony:
-        # Warning: If synchronous mode is enabled, and there is a Traffic Manager running, this must be set to sync
-        # mode too. Read this to learn how to do it.
-        # See: https://carla.readthedocs.io/en/latest/adv_synchrony_timestep/#setting-synchronous-mode
         settings = world.get_settings()
         settings.synchronous_mode = self._config.simulation.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
@@ -151,25 +147,22 @@ class CarlaInterface:
     def _init_carla_traffic_manager(self):
         """Configures CARLA traffic manager."""
         logger.info("Init CARLA traffic manager.")
-        traffic_manager = self._client.get_trafficmanager(self._config.simulation.tm_port)
+        traffic_manager = self._client.get_trafficmanager(self._config.simulation.tm.tm_port)
         traffic_manager.set_global_distance_to_leading_vehicle(
-                self._config.simulation.global_distance_to_leading_vehicle)
-        traffic_manager.global_percentage_speed_difference(self._config.simulation.global_percentage_speed_difference)
-        traffic_manager.set_hybrid_physics_mode(self._config.simulation.hybrid_physics_mode)
-        traffic_manager.set_hybrid_physics_radius(self._config.simulation.hybrid_physics_radius)
+                self._config.simulation.tm.global_distance_to_leading_vehicle)
+        traffic_manager.global_percentage_speed_difference(self._config.simulation.tm.global_percentage_speed_difference)
+        traffic_manager.set_hybrid_physics_mode(self._config.simulation.tm.hybrid_physics_mode)
+        traffic_manager.set_hybrid_physics_radius(self._config.simulation.tm.hybrid_physics_radius)
         traffic_manager.set_synchronous_mode(self._config.sync)
-        traffic_manager.set_random_device_seed(self._config.simulation.seed)
-        traffic_manager.set_osm_mode(self._config.simulation.osm_mode)
+        traffic_manager.set_random_device_seed(self._config.simulation.tm.seed)
+        traffic_manager.set_osm_mode(self._config.simulation.tm.osm_mode)
+        if hasattr(traffic_manager, "global_lane_offset"):  # starting in CARLA 0.9.14
+            traffic_manager.global_lane_offset(self._config.simulation.tm.global_lane_offset)
 
     def _load_map(self, map_name: str):
-        """
-        Loads OpenDRIVE map into CARLA.
+        """Loads OpenDRIVE map into CARLA.
 
-        Based on provided CARLA code: https://github.com/carla-simulator/carla/blob/master/PythonAPI/util/config.py
-        Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-        Barcelona (UAB).
-        This work is licensed under the terms of the MIT license.
-        For a copy, see <https://opensource.org/licenses/MIT>.
+        @param map_name: Name of map (for CARLA default maps) or path to OpenDRIVE map.
         """
         if map_name[0:4] == "Town":
             logger.info(f"Load CARLA default map: {map_name}")
@@ -394,6 +387,7 @@ class CarlaInterface:
         time_step = 0
         clock = None
         display = None
+        hud = None
 
         if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
             display = self._init_display()
@@ -407,7 +401,7 @@ class CarlaInterface:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
             vis_world = World3D(sim_world, hud, self._config.simulation, self._ego.actor)
-        if self._ego.control_type is VehicleControlType.KEYBOARD:
+        if self._ego is not None and self._ego.control_type is VehicleControlType.KEYBOARD:
             self._ego.register_clock(clock, hud, vis_world)
 
         logger.info("Loop.")

@@ -24,7 +24,7 @@ SpawnActor = carla.command.SpawnActor
 def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) -> List[Union[PedestrianInterface, VehicleInterface]]:
     traffic_manager = client.get_trafficmanager()
     world = client.get_world()
-    random.seed(config.seed if config.seed is not None else int(time.time()))
+    random.seed(config.tm.seed if config.tm.seed is not None else int(time.time()))
 
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
@@ -81,7 +81,7 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
             walker_bp.set_attribute('is_invincible', 'false')
         # set the max speed
         if walker_bp.has_attribute('speed'):
-            if (random.random() > config.percentage_pedestrians_running):
+            if random.random() > config.tm.global_percentage_pedestrians_running:
                 # walking
                 walker_speed.append(walker_bp.get_attribute('speed').recommended_values[1])
             else:
@@ -121,7 +121,7 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
 
     # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
     # set how many pedestrians can cross the road
-    world.set_pedestrians_cross_factor(config.percentage_pedestrians_crossing)
+    world.set_pedestrians_cross_factor(config.tm.global_percentage_pedestrians_crossing)
     for idx in range(0, len(all_id), 2):
         # start walker
         all_actors[idx].start()
@@ -158,16 +158,21 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
 
         # spawn the cars and set their autopilot and light state all together
         spawned_actor = world.try_spawn_actor(blueprint, transform)
-      #  batch.append(SpawnActor(blueprint, transform).then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
- #   for response in client.apply_batch_sync(batch, config.sync):
-  #      if response.error:
-  #          logging.error(response.error)
-  #      else:
+
         if spawned_actor is not None:
             vehicles_list.append(
                     VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
+            traffic_manager.ignore_walkers_percentage(spawned_actor, config.tm.ignore_walkers_percentage)
+            traffic_manager.keep_right_rule_percentage(spawned_actor, config.tm.keep_right_rule_percentage)
+            traffic_manager.ignore_vehicles_percentage(spawned_actor, config.tm.ignore_vehicles_percentage)
+            traffic_manager.ignore_signs_percentage(spawned_actor, config.tm.ignore_signs_percentage)
+            traffic_manager.ignore_lights_percentage(spawned_actor, config.tm.ignore_lights_percentage)
+            traffic_manager.random_left_lanechange_percentage(spawned_actor,
+                                                              config.tm.random_left_lane_change_percentage)
+            traffic_manager.random_right_lanechange_percentage(spawned_actor,
+                                                               config.tm.random_right_lane_change_percentage)
             cr_id += 1
             num_vehicles += 1
         else:

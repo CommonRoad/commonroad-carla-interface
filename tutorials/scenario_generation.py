@@ -15,9 +15,10 @@ param.map = "Town10HD"
 param.vehicle.vehicle_ks_state = False
 param.simulation.max_time_step = 120
 param.offscreen_mode = False
-param.simulation.number_vehicles = 2
-param.simulation.number_walkers = 2
+param.simulation.number_vehicles = 5
+param.simulation.number_walkers = 1
 param.simulation.osm_mode = True
+param.simulation.tm.ignore_lights_percentage = 100
 
 # Execute scenario generation
 ci = CarlaInterface(param)

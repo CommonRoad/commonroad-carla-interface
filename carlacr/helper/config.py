@@ -117,19 +117,53 @@ class BaseParam:
 
 
 @dataclass
+class TrafficManagerParams(BaseParam):
+    # port where the traffic manager is connected
+    tm_port: int = 8000
+    # vehicle's farther than a certain radius from the ego vehicle will have their physics disabled
+    hybrid_physics_mode: bool = False
+    # radius of the area where physics are enabled
+    hybrid_physics_radius: float = 70.0
+    # difference of the vehicle's intended speed and its current speed limit [%]
+    # exceeding a speed limit can be done using negative percentage
+    global_percentage_speed_difference: float = 0.0
+    # minimum distance that vehicles have to keep with the other vehicles [m]
+    # computed from center to center
+    global_distance_to_leading_vehicle: float = 1.0
+    # random seed for the traffic manager
+    seed: int = 0
+    # allows having dead-end streets; Normally, if vehicles cannot find the next waypoint, TM crashes.
+    # If OSM mode is enabled, it will show a warning, and destroy vehicles when necessary.
+    osm_mode: bool = False
+    # how many pedestrians will run [%]
+    global_percentage_pedestrians_running: float = 0
+    # how many pedestrians will walk through the road [%]
+    global_percentage_pedestrians_crossing: float = 0
+    # global lane offset displacement from the center line [%]
+    # Positive values imply a right offset while negative ones mean a left one.
+    global_lane_offset: float = 0.0
+    # collisions with walkers will be ignored for a vehicle [%]
+    ignore_walkers_percentage: float = 0.0
+    # chance that vehicle will follow the keep right rule, and stay in the right lane [%]
+    keep_right_rule_percentage: float = 0.0
+    # chance that collisions with another vehicle will be ignored for a vehicle [%]
+    ignore_vehicles_percentage: float = 0.0
+    # chance that stop signs will be ignored for a vehicle [%]
+    ignore_signs_percentage: float = 0.0
+    # chance that traffic lights will be ignored for a vehicle [%]
+    ignore_lights_percentage: float = 0.0
+    # probability that actor will perform a left lane change, dependent on lane change availability [%]
+    random_left_lane_change_percentage: float = 0.0
+    # probability that actor will perform a right lane change, dependent on lane change availability [%]
+    random_right_lane_change_percentage: float = 0.0
+
+
+@dataclass
 class SimulationParams(BaseParam):
+    tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
     time_step: float =  0.1
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10
-    tm_port: int = 8000
-    hybrid_physics_mode: bool = False
-    global_percentage_speed_difference: float = 0.0
-    global_distance_to_leading_vehicle: float = 1.0
-    hybrid_physics_radius: float = 70.0
-    seed: int = 0
-    osm_mode: bool = False
-    percentage_pedestrians_running: float = 0  # how many pedestrians will run
-    percentage_pedestrians_crossing: float = 0  # how many pedestrians will walk through the road
     number_walkers: int = 10
     number_vehicles: int = 30
     safe_vehicles: bool = True
