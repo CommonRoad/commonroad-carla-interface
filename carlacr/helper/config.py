@@ -159,8 +159,27 @@ class TrafficManagerParams(BaseParam):
 
 
 @dataclass
+class WeatherParams(BaseParam):
+    cloudiness: float = 0.0
+    precipitation: float = 0.0
+    precipitation_deposits: float = 0.0
+    wind_intensity: float = 0.0
+    sun_azimuth_angle: float = 0.0
+    sun_altitude_angle: float = 0.0
+    fog_density: float = 0.0
+    fog_distance: float = 0.0
+    wetness: float = 0.0
+    fog_falloff: float = 0.0
+    scattering_intensity: float = 0.0
+    mie_scattering_scale: float = 0.0
+    rayleigh_scattering_scale: float = 0.0331
+
+
+
+@dataclass
 class SimulationParams(BaseParam):
     tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
+    weather: WeatherParams = field(default_factory=WeatherParams)
     time_step: float =  0.1
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10

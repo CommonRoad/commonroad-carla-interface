@@ -18,7 +18,8 @@ param.offscreen_mode = False
 param.simulation.number_vehicles = 5
 param.simulation.number_walkers = 1
 param.simulation.osm_mode = True
-param.simulation.tm.ignore_lights_percentage = 100
+param.simulation.tm.ignore_lights_percentage = 50
+param.simulation.weather.fog_density = 50
 
 # Execute scenario generation
 ci = CarlaInterface(param)

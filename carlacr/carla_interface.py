@@ -25,7 +25,7 @@ from crdesigner.map_conversion.map_conversion_interface import opendrive_to_comm
 
 from carlacr.visualization.birds_eye_view import HUD2D, World2D
 from carlacr.visualization.ego_view import HUD3D, World3D
-from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType
+from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType, WeatherParams
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state
@@ -79,6 +79,8 @@ class CarlaInterface:
             if "light" in actor.type_id:
                 self.traffic_lights.append(CarlaTrafficLight(actor.id, actor.get_location()))
                 self.traffic_lights[-1].set_initial_color(actor.state)
+
+        self.set_weather(self._config.simulation.weather)
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -379,6 +381,14 @@ class CarlaInterface:
 
         for tl in self.traffic_lights:
             tl.add_color(world.get_actor(tl.carla_id).state)
+
+    def set_weather(self, config: WeatherParams = WeatherParams()):
+        self._client.get_world().set_weather(
+                carla.WeatherParameters(config.cloudiness, config.precipitation, config.precipitation_deposits,
+                                        config.wind_intensity, config.sun_azimuth_angle, config.sun_altitude_angle,
+                                        config.fog_density, config.fog_distance, config.wetness, config.fog_falloff,
+                                        config.scattering_intensity, config.mie_scattering_scale,
+                                        config.rayleigh_scattering_scale))
 
     def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
         sim_world = self._client.get_world()
