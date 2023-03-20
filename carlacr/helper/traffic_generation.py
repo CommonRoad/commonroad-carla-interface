@@ -53,7 +53,8 @@ def extract_blueprints(config: SimulationParams, world: carla.World):
     return blueprints_vehicles, blueprints_walkers
 
 
-def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int) -> List[PedestrianInterface]:
+def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int) \
+        -> List[PedestrianInterface]:
     logging.info("Traffic Generation spawn walkers.")
     walkers_list = []
     cr_walkers_list = []
@@ -129,9 +130,10 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
         all_actors[idx].go_to_location(world.get_random_location_from_navigation())
         # max speed
         all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
-    for actor in all_actors:
+    for idx in range(1, len(all_id), 2):
         cr_walkers_list.append(PedestrianInterface(
-                create_cr_pedestrian_from_walker(actor, cr_id, config.pedestrian_default_shape), actor))
+                create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
+                client.get_trafficmanager(), all_actors[idx]))
         cr_id += 1
 
     return cr_walkers_list
@@ -140,7 +142,6 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
 def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
                   traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
     logging.info("Traffic Generation spawn vehicles.")
-    batch = []
     vehicles_list = []
     world = client.get_world()
 
@@ -161,7 +162,8 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
 
         if spawned_actor is not None:
             vehicles_list.append(
-                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), spawned_actor))
+                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), world,
+                                     traffic_manager, spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
             traffic_manager.ignore_walkers_percentage(spawned_actor, config.tm.ignore_walkers_percentage)

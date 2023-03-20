@@ -48,10 +48,10 @@ class CarlaInterface:
 
         if self._config.start_carla_server:
             self._start_carla_server()
+
         self._client = carla.Client(self._config.host, self._config.port)
         self._client.set_timeout(self._config.client_init_timeout)
-        self._init_carla_world()
-        self._init_carla_traffic_manager()
+
         self._load_map(self._config.map)
         sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
@@ -59,14 +59,19 @@ class CarlaInterface:
         self._ego: Optional[VehicleInterface] = None
         self.traffic_lights: List[CarlaTrafficLight] = []
 
-        # Initialize the Lists to save the states of the traffic lights
-        for actor in self._client.get_world().get_actors():
-            if "light" in actor.type_id:
-                self.traffic_lights.append(CarlaTrafficLight(actor.id, actor.get_location()))
-                self.traffic_lights[-1].set_initial_color(actor.state)
+        self._world = self._client.get_world()
+        self._tm = self._client.get_trafficmanager()
+        self._init_carla_world()
+        self._init_carla_traffic_manager()
 
-        self._client.get_world().set_weather(carla.WeatherParameters.WetSunset)
+        # Initialize the Lists to save the states of the traffic lights
+        for actor in self._world.get_actors():
+            if "light" in actor.type_id:
+                self.traffic_lights.append(CarlaTrafficLight(actor))
+
+        self._world.set_weather(carla.WeatherParameters.WetSunset)
         self.set_weather(self._config.simulation.weather)
+
         logger.info("CARLA-Interface initialization finished.")
 
     def __del__(self):
@@ -108,30 +113,26 @@ class CarlaInterface:
     def _init_carla_world(self):
         """Configures CARLA world."""
         logger.info("Init CARLA world.")
-        world = self._client.get_world()
-        settings = world.get_settings()
+        settings = self._world.get_settings()
         settings.synchronous_mode = self._config.simulation.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
         settings.max_substep_delta_time = self._config.simulation.max_substep_delta_time
         settings.max_substeps = self._config.simulation.max_substeps
         settings.no_rendering_mode = self._config.vis_type == CustomVis.BIRD
-        world.apply_settings(settings)
+        self._world.apply_settings(settings)
 
     def _init_carla_traffic_manager(self):
         """Configures CARLA traffic manager."""
         logger.info("Init CARLA traffic manager.")
-        traffic_manager = self._client.get_trafficmanager(self._config.simulation.tm.tm_port)
-        traffic_manager.set_global_distance_to_leading_vehicle(
-            self._config.simulation.tm.global_distance_to_leading_vehicle)
-        traffic_manager.global_percentage_speed_difference(
-            self._config.simulation.tm.global_percentage_speed_difference)
-        traffic_manager.set_hybrid_physics_mode(self._config.simulation.tm.hybrid_physics_mode)
-        traffic_manager.set_hybrid_physics_radius(self._config.simulation.tm.hybrid_physics_radius)
-        traffic_manager.set_synchronous_mode(self._config.sync)
-        traffic_manager.set_random_device_seed(self._config.simulation.tm.seed)
-        traffic_manager.set_osm_mode(self._config.simulation.tm.osm_mode)
-        if hasattr(traffic_manager, "global_lane_offset"):  # starting in CARLA 0.9.14
-            traffic_manager.global_lane_offset(self._config.simulation.tm.global_lane_offset)
+        self._tm.set_global_distance_to_leading_vehicle(self._config.simulation.tm.global_distance_to_leading_vehicle)
+        self._tm.global_percentage_speed_difference(self._config.simulation.tm.global_percentage_speed_difference)
+        self._tm.set_hybrid_physics_mode(self._config.simulation.tm.hybrid_physics_mode)
+        self._tm.set_hybrid_physics_radius(self._config.simulation.tm.hybrid_physics_radius)
+        self._tm.set_synchronous_mode(self._config.sync)
+        self._tm.set_random_device_seed(self._config.simulation.tm.seed)
+        self._tm.set_osm_mode(self._config.simulation.tm.osm_mode)
+        if hasattr(self._tm, "global_lane_offset"):  # starting in CARLA 0.9.14
+            self._tm.global_lane_offset(self._config.simulation.tm.global_lane_offset)
 
     def _load_map(self, map_name: str):
         """
@@ -172,9 +173,10 @@ class CarlaInterface:
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
-                self._cr_obstacles.append(VehicleInterface(obs, config=self._config.vehicle))
+                self._cr_obstacles.append(VehicleInterface(obs, self._world, self._tm, config=self._config.vehicle))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
-                self._cr_obstacles.append(PedestrianInterface(obs, config=self._config.pedestrian))
+                self._cr_obstacles.append(PedestrianInterface(obs, self._world, self._tm,
+                                                              config=self._config.pedestrian))
 
         for tl in sc.lanelet_network.traffic_lights:
             closest_tl = find_closest_traffic_light(self.traffic_lights, tl)
@@ -226,7 +228,7 @@ class CarlaInterface:
 
         :return: Scenario containing converted map without obstacles.
         """
-        carla_map = self._client.get_world().get_map()
+        carla_map = self._world.get_map()
 
         # Convert the CARLA map into OpenDRIVE in a temporary file
         with open("temp.xodr", "w", encoding='UTF-8') as file:
@@ -269,7 +271,7 @@ class CarlaInterface:
                 obstacle_only = True
 
         if ego_id is not None:
-            self._ego = VehicleInterface(ego_obs)
+            self._ego = VehicleInterface(ego_obs, self._world, self._tm)
 
         self._set_scenario(sc)
 
@@ -350,9 +352,7 @@ class CarlaInterface:
             ego_obs = None
 
         logger.info("Init Manual Control.")
-        self._ego = VehicleInterface(ego_obs, config=self._config.ego)
-
-        sim_world = self._client.get_world()
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, config=self._config.ego)
 
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
@@ -363,11 +363,11 @@ class CarlaInterface:
             obstacle_control = False
 
         logger.info("Spawn ego.")
-        self._ego.tick(sim_world, 0)
+        self._ego.tick(0)
 
         self._run_simulation(obstacle_control=obstacle_control)
 
-    def _update_cr_state(self, world: carla.World):
+    def _update_cr_state(self):
         """
         Stores CommonRoad obstacles and traffic lights states based on current world status.
 
@@ -400,7 +400,7 @@ class CarlaInterface:
             time_step = obs.cr_obstacle.initial_state.time_step + 1 if len(obs.trajectory) == 0 else \
                 obs.trajectory[-1].time_step + 1
 
-            if obs.get_type() == ObstacleType.PEDESTRIAN:
+            if obs.cr_obstacle.obstacle_type == ObstacleType.PEDESTRIAN:
                 state = create_cr_pm_state_from_actor(obs.actor, time_step)
             elif self._config.vehicle.vehicle_ks_state:
                 state = create_cr_ks_state_from_actor(obs.actor, time_step)
@@ -409,15 +409,20 @@ class CarlaInterface:
             obs.trajectory.append(state)
 
         for tl in self.traffic_lights:
-            tl.add_color(world.get_actor(tl.carla_id).state)
+            tl.add_color(tl.carla_actor.state)
 
     def _set_cr_weather(self, env: Environment):
-        world = self._client.get_world()
+        """
+        Sets weather conditions specified in CommonRoad scenario.
+
+        @param env: CommonRoad environment storing time of day, underground and weather.
+        """
+        # TODO consider underground conditions
         if env.time_of_day is not TimeOfDay.NIGHT:
             if env.weather is Weather.HEAVY_RAIN:
-                world.set_weather(carla.WeatherParameters.HardRainNoon)
+                self._world.set_weather(carla.WeatherParameters.HardRainNoon)
             elif env.weather is Weather.LIGHT_RAIN:
-                world.set_weather(carla.WeatherParameters.SoftRainNoon)
+                self._world.set_weather(carla.WeatherParameters.SoftRainNoon)
             elif env.weather is Weather.FOG:
                 pass
                 # TODO set weather since fog in general supported by CARLA
@@ -426,12 +431,12 @@ class CarlaInterface:
             elif env.weather is Weather.SNOW:
                 logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
             elif env.weather is Weather.SUNNY:
-                world.set_weather(carla.WeatherParameters.ClearNoon)
+                self._world.set_weather(carla.WeatherParameters.ClearNoon)
         else:
             if env.weather is Weather.HEAVY_RAIN:
-                world.set_weather(carla.WeatherParameters.HardRainNight)
+                self._world.set_weather(carla.WeatherParameters.HardRainNight)
             elif env.weather is Weather.LIGHT_RAIN:
-                world.set_weather(carla.WeatherParameters.SoftRainNight)
+                self._world.set_weather(carla.WeatherParameters.SoftRainNight)
             elif env.weather is Weather.FOG:
                 pass
                 # TODO set weather since fog in general supported by CARLA
@@ -440,7 +445,7 @@ class CarlaInterface:
             elif env.weather is Weather.SNOW:
                 logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
             elif env.weather is Weather.SUNNY:
-                world.set_weather(carla.WeatherParameters.ClearNight)
+                self._world.set_weather(carla.WeatherParameters.ClearNight)
 
     def set_weather(self, config: WeatherParams = WeatherParams()):
         """
@@ -448,7 +453,7 @@ class CarlaInterface:
 
         @param config: Weather config parameters.
         """
-        self._client.get_world().\
+        self._world.\
             set_weather(carla.WeatherParameters(config.cloudiness, config.precipitation, config.precipitation_deposits,
                                                 config.wind_intensity, config.sun_azimuth_angle,
                                                 config.sun_altitude_angle, config.fog_density, config.fog_distance,
@@ -463,8 +468,6 @@ class CarlaInterface:
         @param obstacle_control: Boolean indicating whether obstacles are controlled based on CommonRoad scenario.
         @param obstacle_only: Boolean indicating whether only obstacles should be simulated, i.e. no ego vehicle.
         """
-        sim_world = self._client.get_world()
-        tm = self._client.get_trafficmanager()
         vis_world = None
         time_step = 0
         clock = None
@@ -478,28 +481,28 @@ class CarlaInterface:
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
-            vis_world = World2D("CARLA 2D", sim_world, hud, self._config.simulation, self._ego.actor)
+            vis_world = World2D("CARLA 2D", self._world, hud, self._config.simulation, self._ego.actor)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
-            vis_world = World3D(sim_world, hud, self._config.simulation, self._ego.actor)
+            vis_world = World3D(self._world, hud, self._config.simulation, self._ego.actor)
         if self._ego is not None and self._ego.control_type is VehicleControlType.KEYBOARD:
             self._ego.register_clock(clock, hud, vis_world)
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
             if self._config.sync:
-                sim_world.tick()
+                self._world.tick()
             else:
-                sim_world.wait_for_tick()
+                self._world.wait_for_tick()
 
             if self._ego is not None:
-                self._ego.tick(sim_world, time_step, tm)
+                self._ego.tick(time_step)
             if obstacle_control:
                 for obs in self._cr_obstacles:
-                    obs.tick(sim_world, time_step, tm)
+                    obs.tick(time_step)
                 for tl in self.traffic_lights:
-                    tl.tick(sim_world, time_step)
+                    tl.tick(time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
                 clock.tick_busy_loop(60)
@@ -508,7 +511,7 @@ class CarlaInterface:
                 pygame.display.flip()
 
             time_step += 1
-            self._update_cr_state(sim_world)
+            self._update_cr_state()
 
         if self._config.vis_type is CustomVis.EGO:
             vis_world.destroy_sensors()

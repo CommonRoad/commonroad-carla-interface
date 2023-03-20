@@ -5,27 +5,32 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
 from carlacr.helper.config import PedestrianParams, PedestrianControlType
-from carlacr.objects.obstacle_interface import ObstacleInterface
+from carlacr.objects.actor import ActorInterface
 from carlacr.controller.controller import create_carla_transform, TransformControl
 from carlacr.controller.pedestrian_controller import AIWalkerControl, ManualWalkerControl
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
-class PedestrianInterface(ObstacleInterface):
-    """One to one representation of a CommonRoad obstacle to be worked with in CARLA."""
+class PedestrianInterface(ActorInterface):
+    """Interface between CARLA walker and CommonRoad pedestrian."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle,
+    def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
                  actor: Optional[carla.Walker] = None, config: PedestrianParams = PedestrianParams()):
         """
-        Initializer of the obstacle.
+        Initializer of pedestrian interface.
 
-        :param cr_obstacle: the underlying CommonRoad obstacle
+        :param cr_obstacle: CommonRoad obstacle corresponding to the actor.
+        :param world: CARLA world
+        :param tm: CARLA traffic manager.
+        :param actor: New CARLA actor. None if actor is not spawned yet.
+        :param config: Vehicle or pedestrian config parameters.
         """
-        super().__init__(config, cr_obstacle, actor)
-        self._controller = None
+        super().__init__(cr_obstacle, world, tm, actor, config)
 
     def _init_controller(self):
+        """Initializes CARLA pedestrian controller used for walker."""
         if self._config.controller_type is PedestrianControlType.TRANSFORM:
             self._controller = TransformControl(self._actor)
         elif self._config.controller_type is PedestrianControlType.AI:
@@ -33,41 +38,43 @@ class PedestrianInterface(ObstacleInterface):
         elif self._config.controller_type is PedestrianControlType.WALKER:
             self._controller = ManualWalkerControl(self._actor)
 
-
-    def _spawn(self, world: carla.World, time_step: int):
+    def _spawn(self, time_step: int):
         """
-        Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world and returns the spawned vehicle.
+        Tries to spawn the walker in the given CARLA world at the provided time step.
 
-        :param world: the CARLA world object
-        :return: if spawn successful the according CARLA actor else None
+        :param time_step: Time step at which CARLA walker should be spawned.
         """
-        self._world = world
-        if time_step != self._cr_base.initial_state.time_step or self.spawned:
+        if time_step != self._cr_obstacle.initial_state.time_step or self.spawned:
             return
-        transform = create_carla_transform(self._cr_base.initial_state)
-        obstacle_blueprint_walker = world.get_blueprint_library().find('walker.pedestrian.0002')
+        transform = create_carla_transform(self._cr_obstacle.initial_state)
+        obstacle_blueprint_walker = self._world.get_blueprint_library().find('walker.pedestrian.0002')
         try:
-            actor = world.spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
+            actor = self._world.spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
             if actor:
                 actor.set_simulate_physics(self._config.physics)
-                logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_base.obstacle_id, actor.id)
+                logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
         except Exception as e:
             logger.error(f"Error while spawning PEDESTRIAN: {e}")
             raise e
 
         if self._config.controller_type is PedestrianControlType.AI:
-            walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-            ai_actor = world.spawn_actor(walker_controller_bp, carla.Transform(), actor)
+            walker_controller_bp = self._world.get_blueprint_library().find('controller.ai.walker')
+            ai_actor = self._world.spawn_actor(walker_controller_bp, carla.Transform(), actor)
             ai_actor.start()
-            position = self._cr_base.prediction.trajectory.final_state.position
+            position = self._cr_obstacle.prediction.trajectory.final_state.position
             location = carla.Location(x=position[0], y=-position[1], z=0.5)
             ai_actor.go_to_location(location)
-            ai_actor.set_max_speed(max([state.velocity for state in self._cr_base.prediction.trajectory.state_list]))
+            ai_actor.set_max_speed(max([state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list]))
         self._actor = actor
 
-    def tick(self, world: carla.World, time_step: int, tm: Optional[carla.TrafficManager] = None):
+    def tick(self, time_step: int):
+        """
+        Performs one-step planning/simulation. If actor is not spawned yet, it will be spawned.
+
+        :param time_step: Current time step.
+        """
         if not self.spawned:
-            self._spawn(world, time_step)
+            self._spawn(time_step)
             self._init_controller()
         else:
             self._controller.control(self.cr_obstacle.state_at_time(time_step))
