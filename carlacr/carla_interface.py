@@ -9,7 +9,7 @@ import pygame
 import time
 import copy
 
-from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.scenario import Scenario, Environment, TimeOfDay, Weather
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, StaticObstacle
 from commonroad.geometry.shape import Rectangle
@@ -65,7 +65,9 @@ class CarlaInterface:
                 self.traffic_lights.append(CarlaTrafficLight(actor.id, actor.get_location()))
                 self.traffic_lights[-1].set_initial_color(actor.state)
 
+        self._client.get_world().set_weather(carla.WeatherParameters.WetSunset)
         self.set_weather(self._config.simulation.weather)
+        logger.info("CARLA-Interface initialization finished.")
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
@@ -77,18 +79,16 @@ class CarlaInterface:
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
         path_to_carla = os.path.join(self._find_carla_distribution(), "CarlaUE4.sh")
-        logger.info("Kill existing CARLA servers.")
         for pid in find_pid_by_name("CarlaUE4-Linux-"):
+            logger.info("Kill existing CARLA servers.")
             os.killpg(os.getpgid(pid), signal.SIGTERM)
         logger.info("Start CARLA server.")
         if self._config.offscreen_mode:
-            with subprocess.Popen([path_to_carla, '-RenderOffScreen'],
-                                  stdout=subprocess.PIPE, preexec_fn=os.setsid) as pr:
-                self._carla_pid = pr
+            self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'],
+                                               stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in off-screen mode using PID %s.", self._carla_pid.pid)
         else:
-            with subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid) as pr:
-                self._carla_pid = pr
+            self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
         time.sleep(self._config.sleep_time)
 
@@ -181,6 +181,8 @@ class CarlaInterface:
             if closest_tl is not None:
                 logger.error("traffic light could not be matched")
                 closest_tl.set_cr_light(tl)
+
+        self._set_cr_weather(sc.location.environment)
 
     def solution(self, planning_problem_id: int, vehicle_model: VehicleModel, vehicle_type: VehicleType,
                  cost_function: CostFunction) -> PlanningProblemSolution:
@@ -408,6 +410,37 @@ class CarlaInterface:
 
         for tl in self.traffic_lights:
             tl.add_color(world.get_actor(tl.carla_id).state)
+
+    def _set_cr_weather(self, env: Environment):
+        world = self._client.get_world()
+        if env.time_of_day is not TimeOfDay.NIGHT:
+            if env.weather is Weather.HEAVY_RAIN:
+                world.set_weather(carla.WeatherParameters.HardRainNoon)
+            elif env.weather is Weather.LIGHT_RAIN:
+                world.set_weather(carla.WeatherParameters.SoftRainNoon)
+            elif env.weather is Weather.FOG:
+                pass
+                # TODO set weather since fog in general supported by CARLA
+            elif env.weather is Weather.HAIL:
+                logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
+            elif env.weather is Weather.SNOW:
+                logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
+            elif env.weather is Weather.SUNNY:
+                world.set_weather(carla.WeatherParameters.ClearNoon)
+        else:
+            if env.weather is Weather.HEAVY_RAIN:
+                world.set_weather(carla.WeatherParameters.HardRainNight)
+            elif env.weather is Weather.LIGHT_RAIN:
+                world.set_weather(carla.WeatherParameters.SoftRainNight)
+            elif env.weather is Weather.FOG:
+                pass
+                # TODO set weather since fog in general supported by CARLA
+            elif env.weather is Weather.HAIL:
+                logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
+            elif env.weather is Weather.SNOW:
+                logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
+            elif env.weather is Weather.SUNNY:
+                world.set_weather(carla.WeatherParameters.ClearNight)
 
     def set_weather(self, config: WeatherParams = WeatherParams()):
         """
