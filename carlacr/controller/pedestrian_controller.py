@@ -15,6 +15,7 @@ class AIWalkerControl(CarlaController):
     def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
         pass
 
+
 class ManualWalkerControl(CarlaController):
     def control(self, actor: Optional[carla.Actor] = None, state: Optional[TraceState] = None):
         control = carla.WalkerControl()

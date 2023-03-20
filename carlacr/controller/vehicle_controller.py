@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 import logging
 from typing import Optional, List
 import carla
@@ -19,7 +19,8 @@ try:
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
 
-@dataclasses.dataclass
+
+@dataclass
 class CarlaCRWaypoint:
     transform: carla.Transform
 
@@ -35,6 +36,7 @@ class VehicleTMPathFollowingControl(CarlaController):
                 tm.set_desired_speed(self._actor, vel)
             else:
                 tm.set_desired_speed(self._actor, state.velocity)
+
 
 class VehicleBehaviorAgentPathFollowingControl(CarlaController):
     def __init__(self, actor: carla.Actor):
@@ -107,15 +109,13 @@ class AckermannController(CarlaController):
                 jerk=_jerk
             )
 
-            # Set the parameters of the PID
-
-
             # Apply the Ackermann control to the vehicle
             self._actor.apply_ackermann_control(ackermann_control)
 
         except Exception as e:
             logger.error("Error while updating position")
             raise e
+
 
 class WheelController(CarlaController):
     def __init__(self, actor: carla.Actor, ):

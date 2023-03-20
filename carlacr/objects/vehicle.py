@@ -65,64 +65,68 @@ class VehicleInterface(ActorInterface):
 
         :param time_step: Current time step.
         """
-        if self._cr_obstacle is None or time_step != self._cr_obstacle.initial_state.time_step:
-            self._spawn_v2(time_step)
-
-        transform = create_carla_transform(self._cr_obstacle.initial_state)
-        actor = None
+        if self._cr_obstacle is None:
+            self._create_random_actor()
+        if time_step != self._cr_obstacle.initial_state.time_step or self.spawned:
+            return
 
         if self._cr_obstacle.obstacle_type in \
                 [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
                  ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
-            obstacle_blueprint = self._find_blueprint()
-
-            actor = self._world.try_spawn_actor(obstacle_blueprint, transform)
-            if not actor:
-                logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
-                spawn_points = self._world.get_map().get_spawn_points()
-                closest = None
-                best_dist = math.inf
-                for point in spawn_points:
-                    dist = point.location.distance(transform.location)
-                    if dist < best_dist:
-                        best_dist = dist
-                        closest = point
-                actor = self._world.try_spawn_actor(obstacle_blueprint, closest)
-                logger.info(f"Obstacle {self.cr_obstacle.obstacle_id} spawned {best_dist}m away from original position")
-
-            actor.set_simulate_physics(self._config.physics)
-            logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
-            # Set up the lights to initial states:
-            vehicle = self._world.get_actor(actor.id)
-            if self._cr_obstacle.initial_signal_state:
-                if vehicle:
-                    sig = self._cr_obstacle.initial_signal_state
-                    self._set_light(sig=sig)
-            yaw = transform.rotation.yaw * (math.pi / 180)
-            vx = self._cr_obstacle.initial_state.velocity * math.cos(yaw)
-            vy = self._cr_obstacle.initial_state.velocity * math.sin(yaw)
-            actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
+            self._actor = self._create_cr_actor()
         else:
-            self._spawn_v2(time_step)
+            raise RuntimeError("Unknown obstacle type")
 
-        self._actor = actor
-        self._world = actor.get_world()
+        # init traffic manager if vehicle will be controlled by it
+        self._init_tm_actor_path()
 
+    def _init_tm_actor_path(self):
+        """Initializes traffic manager for path if corresponding control type is used"""
         if self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC:
             if self._config.controller_type == VehicleControlType.PATH_TM:
                 self._tm.set_path(self._actor, self._get_path())
             elif self._config.controller_type == VehicleControlType.PATH_AGENT:
                 self._controller.set_path(self._get_path())
 
-    def _spawn_v2(self, time_step: int):
-        # function taken from CARLA
-        # Spawns the hero actor when the script runs"""
-        # Get a random blueprint.
+    def _create_cr_actor(self):
+        """ Creates CARLA vehicle given CommonRoad dynamic obstacle."""
+        obstacle_blueprint = self._match_blueprint()
+        transform = create_carla_transform(self._cr_obstacle.initial_state)
+        actor = self._world.try_spawn_actor(obstacle_blueprint, transform)
+        if not actor:
+            logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
+            spawn_points = self._world.get_map().get_spawn_points()
+            closest = None
+            best_dist = math.inf
+            for point in spawn_points:
+                dist = point.location.distance(transform.location)
+                if dist < best_dist:
+                    best_dist = dist
+                    closest = point
+            actor = self._world.try_spawn_actor(obstacle_blueprint, closest)
+            logger.info(f"Obstacle {self.cr_obstacle.obstacle_id} spawned {best_dist}m away from original position")
+        actor.set_simulate_physics(self._config.physics)
+        logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
+        # Set up the lights to initial states:
+        vehicle = self._world.get_actor(actor.id)
+        if self._cr_obstacle.initial_signal_state:
+            if vehicle:
+                sig = self._cr_obstacle.initial_signal_state
+                self._set_light(sig=sig)
+        yaw = transform.rotation.yaw * (math.pi / 180)
+        vx = self._cr_obstacle.initial_state.velocity * math.cos(yaw)
+        vy = self._cr_obstacle.initial_state.velocity * math.sin(yaw)
+        actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
+        return actor
+
+    def _create_random_actor(self):
+        """Creates a random actor"""
+        # TODO check whether this can be combined with function in traffic manager.
         blueprint = random.choice(self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle))
         if blueprint.has_attribute('color'):
             color = random.choice(blueprint.get_attribute('color').recommended_values)
             blueprint.set_attribute('color', color)
-        # Spawn the player.
+
         ego_actor = None
         while ego_actor is None:
             spawn_points = self._world.get_map().get_spawn_points()
@@ -130,8 +134,10 @@ class VehicleInterface(ActorInterface):
             ego_actor = self._world.try_spawn_actor(blueprint, spawn_point)
 
         self._cr_obstacle = create_cr_vehicle_from_actor(ego_actor, 0)
+        self._actor = ego_actor
 
-    def _find_blueprint(self):
+    def _match_blueprint(self):
+        """Matches actor dimensions to available CARLA actor blueprint based on length, with, or area."""
         nearest_vehicle_type = None
         if self._config.approximation_type == ApproximationType.LENGTH:
             nearest_vehicle_type = similar_by_length(self._cr_obstacle.obstacle_shape.length,
@@ -151,7 +157,6 @@ class VehicleInterface(ActorInterface):
 
         :param sig: Current signals of vehicle.
         """
-        # vehicle = world.get_actor(self.carla_id)
         z = carla.VehicleLightState.NONE
         if sig is not None:
             if sig.braking_lights:
@@ -169,6 +174,11 @@ class VehicleInterface(ActorInterface):
         self._controller.register(clock, hud, vis_world)
 
     def _get_path(self) -> List[carla.Location]:
+        """
+        Computes path which will be followed by CARLA traffic manager given CommonRoad trajectory.
+
+        :return: List of CARLA locations.
+        """
         if self._cr_obstacle.obstacle_role is not ObstacleRole.DYNAMIC:
             return [carla.Location(x=self._cr_obstacle.initial_state.position[0],
                                    y=-self._cr_obstacle.initial_state.position[1],
@@ -184,6 +194,11 @@ class VehicleInterface(ActorInterface):
             return path
 
     def tick(self, time_step: int):
+        """
+        Performs one-step planning/simulation. If actor is not spawned yet, it will be spawned.
+
+        :param time_step: Current time step.
+        """
         if not self.spawned:
             self._spawn(time_step)
             self._init_controller()
