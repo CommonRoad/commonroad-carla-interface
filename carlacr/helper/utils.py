@@ -37,21 +37,35 @@ logger.setLevel(logging.DEBUG)
 #     self._hud.add_info('NEARBY VEHICLES', info_text)
 
 def create_goal_region_from_state(state: Union[KSState, PMState], ks_state: bool = True) -> GoalRegion:
+    """
+    Creates a CommonRoad goal region object given a state for a planning problem.
+
+    :param state: CommonRoad state.
+    :param ks_state: Boolean indicating whether given state is of a kinematic single-track model state.
+    :return: CommonRoad goal region.
+    """
     if ks_state:
         return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
                                        position=Circle(3, state.position),
                                        velocity=Interval(max(0.0, state.velocity - 10), state.velocity + 10),
                                        orientation=AngleInterval(state.orientation - 0.25, state.orientation + 0.25))])
-    else:
-        velocity = max(state.velocity, state.velocity_y)
-        orientation = math.atan2(state.velocity_y, state.velocity)
-        return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
-                                       position=Circle(10, state.position),
-                                       velocity=Interval(max(0.0, velocity - 10), velocity + 10),
-                                       orientation=AngleInterval(orientation - 0.25, orientation + 0.25))])
+
+    velocity = max(state.velocity, state.velocity_y)
+    orientation = math.atan2(state.velocity_y, state.velocity)
+    return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
+                                   position=Circle(10, state.position),
+                                   velocity=Interval(max(0.0, velocity - 10), velocity + 10),
+                                   orientation=AngleInterval(orientation - 0.25, orientation + 0.25))])
 
 
-def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObstacle:
+def create_cr_vehicle_from_actor(actor: carla.Vehicle, cr_id: int) -> DynamicObstacle:
+    """
+    Creates CommonRoad dynamic obstacle of type car given a CARLA actor.
+
+    :param actor: CARLA vehicle actor.
+    :param cr_id: CommonRoad ID which the dynamic obstacle should have.
+    :return: CommonRoad dynamic obstacle of type car.
+    """
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
@@ -65,6 +79,13 @@ def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObsta
 
 
 def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState:
+    """
+    Creates point-mass model state of a CARLA actor at a time step.
+
+    :param actor: CARLA actor.
+    :param time_step: Time step of interest.
+    :return: CommonRoad point-mass model state.
+    """
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
@@ -76,6 +97,13 @@ def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState
 
 
 def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSState:
+    """
+    Creates kinematic single-track model state of a CARLA vehicle actor at a time step.
+
+    :param actor: CARLA vehicle actor.
+    :param time_step: Time step of interest.
+    :return: CommonRoad kinematic single-track model state.
+    """
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
@@ -89,10 +117,23 @@ def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSSta
     steering_angle = make_valid_orientation(steer * (math.pi/180))
     return KSState(time_step, np.array([location.x, -location.y]), steering_angle, vel, orientation)
 
- #   slow_vehicles: {'vehicle.seat.leon', 'vehicle.dodge.charger_2020', 'vehicle.audi.tt', 'vehicle.chevrolet.impala', 'vehicle.mercedes.coupe', 'vehicle.lincoln.mkz_2017', 'vehicle.volkswagen.t2_2021', 'vehicle.citroen.c3', 'vehicle.bmw.grandtourer', 'vehicle.mini.cooper_s_2021', 'vehicle.nissan.micra', 'vehicle.dodge.charger_police_2020', 'vehicle.tesla.model3', 'vehicle.nissan.patrol_2021', 'vehicle.jeep.wrangler_rubicon', 'vehicle.audi.etron', 'vehicle.ford.crown', 'vehicle.mini.cooper_s'}
+
+#   slow_vehicles: {'vehicle.seat.leon', 'vehicle.dodge.charger_2020', 'vehicle.audi.tt', 'vehicle.chevrolet.impala',
+#   'vehicle.mercedes.coupe', 'vehicle.lincoln.mkz_2017', 'vehicle.volkswagen.t2_2021', 'vehicle.citroen.c3',
+#   'vehicle.bmw.grandtourer', 'vehicle.mini.cooper_s_2021', 'vehicle.nissan.micra',
+#   'vehicle.dodge.charger_police_2020', 'vehicle.tesla.model3', 'vehicle.nissan.patrol_2021',
+#   'vehicle.jeep.wrangler_rubicon', 'vehicle.audi.etron', 'vehicle.ford.crown', 'vehicle.mini.cooper_s'}
 
 
 def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_shape: bool = False) -> DynamicObstacle:
+    """
+    Creates CommonRoad dynamic obstacle of type pedestrian given a CARLA walker.
+
+    :param actor: CARLA walker.
+    :param cr_id: CommonRoad ID which the dynamic obstacle should have.
+    :param default_shape: Boolean indicating whether default shape should (circle) be used.
+    :return: CommonRoad dynamic obstacle of type walker.
+    """
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
     transform = actor.get_transform()
@@ -101,7 +142,7 @@ def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_sh
     length = actor.bounding_box.extent.x * 2
     width = actor.bounding_box.extent.y * 2
     if default_shape:
-        shape = Circle(0.4)
+        shape = Circle(0.4)  # TODO default shape size as config parameter
     elif abs(length) == math.inf or abs(width) == math.inf:
         shape = Circle(0.4)
     elif length == width:
@@ -126,10 +167,11 @@ def calc_max_timestep(sc: Scenario) -> int:
 
 def find_pid_by_name(process_name: str) -> List[int]:
     """
-    Get a list of all the PIDs of a all the running process whose name contains
+    Get a list of all the PIDs of all the running process whose name contains
     the given string processName
 
-    :returns List of possible PIDs
+    :param process_name: Name of process for which PID should be extracted.
+    :return: List of possible PIDs
     """
     processes = []
     for proc in psutil.process_iter():
@@ -137,12 +179,14 @@ def find_pid_by_name(process_name: str) -> List[int]:
             if process_name.lower() in proc.name().lower():
                 processes.append(proc.pid)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
+            logger.error("Error finding process.")
+
     return processes
 
 
 def make_video(path: str, video_name: str):
-    """Creates a video of the images recorded by camera sensor using ffmepg.
+    """
+    Creates a video of the images recorded by camera sensor using ffmepg.
 
     @param path: Path to png images stored by camera sensor.
     @param video_name: Name which new video should have.
@@ -159,6 +203,5 @@ def make_video(path: str, video_name: str):
     except Exception as e:
         if os.path.exists(os.path.join(path, video_name + ".mp4")):
             logger.debug("mp4 created!")
-            pass
         else:
             logger.error(e)

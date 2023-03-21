@@ -69,7 +69,7 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
     for i in range(config.number_walkers):
         spawn_point = carla.Transform()
         loc = world.get_random_location_from_navigation()
-        if (loc != None):
+        if loc is not None:
             spawn_point.location = loc
             spawn_points.append(spawn_point)
 
@@ -95,11 +95,11 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
         batch.append(SpawnActor(walker_bp, spawn_point))
     results = client.apply_batch_sync(batch, True)
     walker_speed2 = []
-    for i in range(len(results)):
-        if results[i].error:
-            logging.error(results[i].error)
+    for i, res in enumerate(results):
+        if res.error:
+            logging.error(res.error)
         else:
-            walkers_list.append({"id": results[i].actor_id})
+            walkers_list.append({"id": res.actor_id})
             walker_speed2.append(walker_speed[i])
     walker_speed = walker_speed2
 
@@ -109,16 +109,16 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
     for i in range(len(walkers_list)):
         batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walkers_list[i]["id"]))
     results = client.apply_batch_sync(batch, True)
-    for i in range(len(results)):
-        if results[i].error:
-            logging.error(results[i].error)
+    for i, res in enumerate(results):
+        if res.error:
+            logging.error(res.error)
         else:
-            walkers_list[i]["con"] = results[i].actor_id
+            walkers_list[i]["con"] = res.actor_id
 
     # 4. we put together the walkers and controllers id to get the objects from their id
-    for i in range(len(walkers_list)):
-        all_id.append(walkers_list[i]["con"])
-        all_id.append(walkers_list[i]["id"])
+    for walker in walkers_list:
+        all_id.append(walker["con"])
+        all_id.append(walker["id"])
     all_actors = world.get_actors(all_id)
 
     # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
