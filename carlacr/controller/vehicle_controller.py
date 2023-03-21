@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 import logging
 from typing import Optional, List
 import carla
@@ -19,7 +19,7 @@ try:
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
 
-@dataclasses.dataclass
+@dataclass
 class CarlaCRWaypoint:
     transform: carla.Transform
 
@@ -106,9 +106,6 @@ class AckermannController(CarlaController):
                 acceleration=_acceleration,
                 jerk=_jerk
             )
-
-            # Set the parameters of the PID
-
 
             # Apply the Ackermann control to the vehicle
             self._actor.apply_ackermann_control(ackermann_control)
