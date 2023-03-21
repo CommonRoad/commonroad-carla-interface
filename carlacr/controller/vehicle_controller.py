@@ -22,14 +22,23 @@ except ImportError:
 
 @dataclass
 class CarlaCRWaypoint:
+    """Wrapper class for CARLA waypoint."""
+
+    # CARLA transform
     transform: carla.Transform
 
 
 class VehicleTMPathFollowingControl(CarlaController):
-    def __init__(self, actor: carla.Actor):
-        super().__init__(actor)
+    """Controller which uses the CARLA traffic manager to follow a path."""
 
     def control(self, state: Optional[TraceState] = None, tm: Optional[carla.TrafficManager] = None):
+        """
+        Applies CARLA traffic manager path following control. Only adapts current speed.
+        This feature is only available for CARLA versions >= 0.9.14.
+
+        :param state: State which should be reached at next time step.
+        :param tm: CARLA traffic manager.
+        """
         if hasattr(tm, "set_desired_speed"):
             if hasattr(state, "velocity_y"):
                 vel = math.sqrt(state.velocity ** 2 + state.velocity_y ** 2)
@@ -39,35 +48,55 @@ class VehicleTMPathFollowingControl(CarlaController):
 
 
 class VehicleBehaviorAgentPathFollowingControl(CarlaController):
+    """Controller which uses the CARLA agent models to follow a path."""
+
     def __init__(self, actor: carla.Actor):
+        """
+        Initialization of CARLA agent path following controller.
+
+        :param actor: CARLA actor which will be controlled.
+        """
         super().__init__(actor)
         self._agent = BehaviorAgent(actor)
 
     def control(self, state: Optional[TraceState] = None):
+        """
+        Applies CARLA agent path following control. Only adapts current speed.
+
+        :param state: State which should be reached at next time step.
+        """
         self._agent.set_target_speed(state.velocity)
 
     def set_path(self, path: List[carla.Location]):
+        """
+        Sets path which should be followed by CARLA agent.
+
+        :param path: List of CARLA locations.
+        """
         self._agent.set_global_plan([(CarlaCRWaypoint(elem), None) for elem in path],
                                     stop_waypoint_creation=True, clean_queue=True)
 
 
 class PIDController(CarlaController):
-    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams(), dt: float = 0.1):
-        super().__init__(actor)
+    """Controller which uses CARLA's PID controller to control the vehicle."""
 
+    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams(), dt: float = 0.1):
+        """
+        Initialization of PID controller.
+
+        :param actor: CARLA actor which will be controlled.
+        :param config: Controller configuration.
+        :param dt: Time step size.
+        """
+        super().__init__(actor)
         self._pid = VehiclePIDController(actor, config.pid_lat_dict(dt), config.pid_lon_dict(dt))
 
     def control(self, state: Optional[TraceState] = None):
         """
-        Function controls the obstacle vehicle to drive along the planned route (for one step) and sets the lights.
+        Computes and applies CARLA PID control for one time step.
 
-        From the motion planner of the autonomous vehicle a CommonRoad trajectory is expected. From the trajectory the
-        desired velocity and the waypoint(position) can be extracted.
-
-        :param world: the CARLA world object
-        :param state: state at the time step
+        :param state: State which should be reached at next time step.
         """
-
         target = CarlaCRWaypoint(create_carla_transform(state))
         speed = state.velocity
 
@@ -76,7 +105,15 @@ class PIDController(CarlaController):
 
 
 class AckermannController(CarlaController):
+    """Controller which uses CARLA's Ackermann controller to control the vehicle."""
+
     def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
+        """
+        Initialization of Ackermann controller.
+
+        :param actor: CARLA actor which will be controlled.
+        :param config: Controller configuration.
+        """
         super().__init__(actor)
         ackermann_settings = AckermannControllerSettings(speed_kp=config.ackermann_pid_speed_kp,
                                                          speed_ki=config.ackermann_pid_speed_ki,
@@ -88,10 +125,9 @@ class AckermannController(CarlaController):
 
     def control(self, state: Optional[TraceState] = None):
         """
-        Prepare to update the position with ackermann controller (version 0.9.14+ required).
+        Computes and applies CARLA Ackermann control for one time step.
 
-        :param world: the CARLA world object
-        :param state:state at the time step
+        :param state: State which should be reached at next time step.
         """
         try:
             _steering_angle = self.trajectory.steering_angle(state.time_step)
@@ -118,8 +154,11 @@ class AckermannController(CarlaController):
 
 
 class WheelController(CarlaController):
-    def __init__(self, actor: carla.Actor, ):
-        super().__init__(actor)
+    """Controller which uses steering wheel as input."""
 
     def control(self, state: Optional[TraceState] = None):
-        pass
+        """
+        Computes and applies CARLA steering wheel control.
+
+        :param state: State which should be reached at next time step.
+        """

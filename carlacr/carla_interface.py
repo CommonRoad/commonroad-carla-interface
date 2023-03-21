@@ -87,6 +87,7 @@ class CarlaInterface:
             logger.info("Kill existing CARLA servers.")
             os.killpg(os.getpgid(pid), signal.SIGTERM)
         logger.info("Start CARLA server.")
+        # pylint: disable=consider-using-with
         if self._config.offscreen_mode:
             self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'],
                                                stdout=subprocess.PIPE, preexec_fn=os.setsid)

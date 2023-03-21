@@ -21,7 +21,8 @@ FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
 
-def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) -> List[Union[PedestrianInterface, VehicleInterface]]:
+def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) \
+        -> List[Union[PedestrianInterface, VehicleInterface]]:
     traffic_manager = client.get_trafficmanager()
     world = client.get_world()
     random.seed(config.tm.seed if config.tm.seed is not None else int(time.time()))

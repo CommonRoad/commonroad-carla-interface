@@ -14,15 +14,22 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def create_carla_transform(state: TraceState, z_position: float = 0.5):
-    transform = carla.Transform(
-            carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
-            carla.Rotation(yaw=(-(180 * state.orientation) / math.pi)))
+def create_carla_transform(state: TraceState, z_position: float = 0.5) -> carla.Transform:
+    """
+    Computes CARLA transform given CommonRoad state and a z-position.
+
+    :param state: CommonRoad state.
+    :param z_position: z-position which transform object should have.
+    :return: CARLA transform.
+    """
+    transform = carla.Transform(carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
+                                carla.Rotation(yaw=(-(180 * state.orientation) / math.pi)))
     return transform
 
 
 class CarlaController(ABC):
     """Interface for CARLA controllers."""
+
     def __init__(self, actor: carla.Actor):
         """
         Initialization of general CARLA controller properties.
@@ -38,7 +45,6 @@ class CarlaController(ABC):
 
         :param state: State which should be reached at next time step.
         """
-        pass
 
     def register(self, clock: pygame.time.Clock, hud, vis_world):
         """
@@ -47,18 +53,10 @@ class CarlaController(ABC):
 
         TODO parameters
         """
-        pass
 
 
 class TransformControl(CarlaController):
     """Controller which translates and rotates actor based on CommonRoad state."""
-    def __init__(self, actor: carla.Actor):
-        """
-        Initialization of transform controller.
-
-        :param actor: CARLA actor which will be controlled.
-        """
-        super().__init__(actor)
 
     def control(self, state: Optional[TraceState] = None):
         """

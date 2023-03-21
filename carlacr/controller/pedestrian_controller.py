@@ -14,6 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 class AIWalkerControl(CarlaController):
     """Interface to CARLA AI controller for walkers."""
+
     def __init__(self, actor: carla.Actor, final_pos: np.array, max_speed: float):
         """
         Initialization of AI walker controller.
@@ -37,18 +38,10 @@ class AIWalkerControl(CarlaController):
 
         :param state: State which should be reached at next time step.
         """
-        pass
 
 
 class ManualWalkerControl(CarlaController):
     """Interface to manual walker control of CARLA."""
-    def __init__(self, actor: carla.Actor):
-        """
-        Initialization of walker controller.
-
-        :param actor: CARLA actor which will be controlled.
-        """
-        super().__init__(actor)
 
     def control(self, state: Optional[TraceState] = None):
         """
@@ -56,7 +49,6 @@ class ManualWalkerControl(CarlaController):
 
         :param state: State which should be reached at next time step.
         """
-
         control = carla.WalkerControl()
         control.speed = state.velocity
         rotation = self._actor.get_transform().rotation
