@@ -25,7 +25,7 @@ from carlacr.visualization.ego_view import HUD3D, World3D
 from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType, WeatherParams
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
-    create_goal_region_from_state, find_pid_by_name, calc_max_timestep, make_video
+    create_goal_region_from_state, find_pid_by_name, calc_max_timestep, make_video, find_carla_distribution
 from carlacr.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
 from carlacr.objects.vehicle import VehicleInterface
 from carlacr.objects.pedestrian import PedestrianInterface
@@ -53,7 +53,6 @@ class CarlaInterface:
         self._client.set_timeout(self._config.client_init_timeout)
 
         self._load_map(self._config.map)
-     #   sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
         self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
         self._ego: Optional[VehicleInterface] = None
@@ -83,7 +82,7 @@ class CarlaInterface:
 
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
-        path_to_carla = os.path.join(self._find_carla_distribution(), "CarlaUE4.sh")
+        path_to_carla = os.path.join(find_carla_distribution(self._config.default_carla_paths), "CarlaUE4.sh")
         for pid in find_pid_by_name("CarlaUE4-Linux-"):
             logger.info("Kill existing CARLA servers.")
             os.killpg(os.getpgid(pid), signal.SIGTERM)
@@ -97,19 +96,6 @@ class CarlaInterface:
             self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
         time.sleep(self._config.sleep_time)
-
-    def _find_carla_distribution(self) -> str:
-        """
-        Searches for CARLA executable in provided paths.
-
-        :return: Path to CARLa executable as string.
-        """
-        logger.info("Search CARLA server executable.")
-        for default_path in self._config.default_carla_paths:
-            path = default_path.replace("/~", os.path.expanduser("~"))
-            if os.path.exists(path):
-                return path
-        raise FileNotFoundError("CARLA executable not found.")
 
     def _init_carla_world(self):
         """Configures CARLA world."""

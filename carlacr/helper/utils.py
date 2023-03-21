@@ -7,6 +7,8 @@ import logging
 import psutil
 import shutil
 
+from carlacr.helper.config import BaseParam
+
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.geometry.shape import Rectangle, Circle
 from commonroad.scenario.state import InitialState, PMState, KSState, CustomState
@@ -205,3 +207,18 @@ def make_video(path: str, video_name: str):
             logger.debug("mp4 created!")
         else:
             logger.error(e)
+
+def find_carla_distribution(default_carla_paths: List[str]) -> str:
+    """
+    Finds path of CARLA executable script based on given default paths.
+
+    :param default_carla_paths: Paths to search for CARLA distribution.
+    :return: Detected path.
+    """
+    if default_carla_paths is None:
+        default_carla_paths = BaseParam().default_carla_paths
+    for default_path in default_carla_paths:
+        path = default_path.replace("/~", os.path.expanduser("~"))
+        if os.path.exists(path):
+            return path
+    raise FileNotFoundError("CARLA executable not found.")
