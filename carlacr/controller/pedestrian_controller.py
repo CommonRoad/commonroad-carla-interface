@@ -39,6 +39,7 @@ class AIWalkerControl(CarlaController):
         """
         pass
 
+
 class ManualWalkerControl(CarlaController):
     """Interface to manual walker control of CARLA."""
     def __init__(self, actor: carla.Actor):

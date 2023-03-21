@@ -36,6 +36,7 @@ class VehicleTMPathFollowingControl(CarlaController):
             else:
                 tm.set_desired_speed(self._actor, state.velocity)
 
+
 class VehicleBehaviorAgentPathFollowingControl(CarlaController):
     def __init__(self, actor: carla.Actor):
         super().__init__(actor)
@@ -113,6 +114,7 @@ class AckermannController(CarlaController):
         except Exception as e:
             logger.error("Error while updating position")
             raise e
+
 
 class WheelController(CarlaController):
     def __init__(self, actor: carla.Actor, ):

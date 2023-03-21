@@ -20,6 +20,7 @@ def create_carla_transform(state: TraceState, z_position: float = 0.5):
             carla.Rotation(yaw=(-(180 * state.orientation) / math.pi)))
     return transform
 
+
 class CarlaController(ABC):
     """Interface for CARLA controllers."""
     def __init__(self, actor: carla.Actor):
@@ -67,4 +68,3 @@ class TransformControl(CarlaController):
         """
         transform = create_carla_transform(state, self._actor.get_location().z)
         self._actor.set_transform(transform)
-

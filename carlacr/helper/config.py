@@ -160,20 +160,19 @@ class TrafficManagerParams(BaseParam):
 
 @dataclass
 class WeatherParams(BaseParam):
-    cloudiness: float = 0.0
+    cloudiness: float = 20.0
     precipitation: float = 0.0
     precipitation_deposits: float = 0.0
-    wind_intensity: float = 0.0
-    sun_azimuth_angle: float = 0.0
-    sun_altitude_angle: float = 0.0
-    fog_density: float = 0.0
-    fog_distance: float = 0.0
+    wind_intensity: float = 10.0
+    sun_azimuth_angle: float = 300.0
+    sun_altitude_angle: float = 45.0
+    fog_density: float = 2.0
+    fog_distance: float = 0.75
     wetness: float = 0.0
-    fog_falloff: float = 0.0
-    scattering_intensity: float = 0.0
-    mie_scattering_scale: float = 0.0
+    fog_falloff: float = 0.1
+    scattering_intensity: float = 1.0
+    mie_scattering_scale: float = 0.03
     rayleigh_scattering_scale: float = 0.0331
-
 
 
 @dataclass

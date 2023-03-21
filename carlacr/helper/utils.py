@@ -50,6 +50,7 @@ def create_goal_region_from_state(state: Union[KSState, PMState], ks_state: bool
                                        velocity=Interval(max(0.0, velocity - 10), velocity + 10),
                                        orientation=AngleInterval(orientation - 0.25, orientation + 0.25))])
 
+
 def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObstacle:
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
@@ -62,6 +63,7 @@ def create_cr_vehicle_from_actor(actor: carla.Actor, cr_id: int) -> DynamicObsta
                            InitialState(0, np.array([location.x, -location.y]),
                                         orientation, vel, 0, 0, 0))
 
+
 def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState:
     vel_vec = actor.get_velocity()
     vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
@@ -72,7 +74,6 @@ def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState
     velocity_y = math.sin(orientation) * vel
     return PMState(time_step, np.array([location.x, -location.y]), velocity_x, velocity_y)
 
-vehicles = set()
 
 def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSState:
     vel_vec = actor.get_velocity()
