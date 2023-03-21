@@ -14,33 +14,32 @@ logger.setLevel(logging.DEBUG)
 def _match_carla_traffic_light_state_to_cr(carla_state: carla.TrafficLightState) -> TrafficLightState:
     if carla_state == carla.TrafficLightState.Green:
         return TrafficLightState.GREEN
-    elif carla_state == carla.TrafficLightState.Red:
+    if carla_state == carla.TrafficLightState.Red:
         return TrafficLightState.RED
-    elif carla_state == carla.TrafficLightState.Yellow:
+    if carla_state == carla.TrafficLightState.Yellow:
         return TrafficLightState.YELLOW
-    elif carla_state == carla.TrafficLightState.Off:
+    if carla_state == carla.TrafficLightState.Off:
         return TrafficLightState.INACTIVE
-    else:
-        return TrafficLightState.RED
+    return TrafficLightState.RED
 
 
 def _match_cr_traffic_light_state_to_carla(cr_state: TrafficLightState) -> carla.TrafficLightState:
     if cr_state == TrafficLightState.GREEN:
         return carla.TrafficLightState.Green
-    elif cr_state == TrafficLightState.RED:
+    if cr_state == TrafficLightState.RED:
         return carla.TrafficLightState.Red
-    elif cr_state == TrafficLightState.YELLOW:
+    if cr_state == TrafficLightState.YELLOW:
         return carla.TrafficLightState.Yellow
-    elif cr_state == TrafficLightState.INACTIVE:
+    if cr_state == TrafficLightState.INACTIVE:
         return carla.TrafficLightState.Off
-    elif cr_state == TrafficLightState.RED_YELLOW:
+    if cr_state == TrafficLightState.RED_YELLOW:
         return carla.TrafficLightState.Yellow
-    else:
-        return carla.TrafficLightState.Red
+    return carla.TrafficLightState.Red
 
 
 class CarlaTrafficLight:
     """Interface between CARLA traffic light and CommonRoad traffic light"""
+
     def __init__(self, actor: carla.TrafficLight, cr_tl: Optional[TrafficLight] = None):
         """
         Initializer carla traffic light interface.
@@ -79,7 +78,7 @@ class CarlaTrafficLight:
         self._cr_tl = cr_light
 
     def tick(self, time_step: int):
-        """"
+        """
         Update traffic light state for time step.
 
         :param time_step: Current time step.

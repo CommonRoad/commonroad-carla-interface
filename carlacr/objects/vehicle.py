@@ -89,12 +89,12 @@ class VehicleInterface(ActorInterface):
                 self._controller.set_path(self._get_path())
 
     def _create_cr_actor(self):
-        """ Creates CARLA vehicle given CommonRoad dynamic obstacle."""
+        """Creates CARLA vehicle given CommonRoad dynamic obstacle."""
         obstacle_blueprint = self._match_blueprint()
         transform = create_carla_transform(self._cr_obstacle.initial_state)
         actor = self._world.try_spawn_actor(obstacle_blueprint, transform)
         if not actor:
-            logger.error(f"Error while spawning CR obstacle: {self.cr_obstacle.obstacle_id}")
+            logger.error("Error while spawning CR obstacle: %s", self.cr_obstacle.obstacle_id)
             spawn_points = self._world.get_map().get_spawn_points()
             closest = None
             best_dist = math.inf
@@ -104,7 +104,7 @@ class VehicleInterface(ActorInterface):
                     best_dist = dist
                     closest = point
             actor = self._world.try_spawn_actor(obstacle_blueprint, closest)
-            logger.info(f"Obstacle {self.cr_obstacle.obstacle_id} spawned {best_dist}m away from original position")
+            logger.info("Obstacle %s spawned %s m away from original position", self.cr_obstacle.obstacle_id, best_dist)
         actor.set_simulate_physics(self._config.physics)
         logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
         # Set up the lights to initial states:
@@ -183,15 +183,14 @@ class VehicleInterface(ActorInterface):
             return [carla.Location(x=self._cr_obstacle.initial_state.position[0],
                                    y=-self._cr_obstacle.initial_state.position[1],
                                    z=0.5)]
-        else:
-            path = []
-            for time_step in range(0, len(self._cr_obstacle.prediction.trajectory.state_list), self._config.path_sampling):
-                state = self._cr_obstacle.prediction.trajectory.state_list[time_step]
-                path.append(carla.Location(x=state.position[0],  y=-state.position[1], z=0.5))
-            if len(self._cr_obstacle.prediction.trajectory.state_list) % self._config.path_sampling != 0:
-                state = self._cr_obstacle.prediction.trajectory.state_list[-1]
-                path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))
-            return path
+        path = []
+        for time_step in range(0, len(self._cr_obstacle.prediction.trajectory.state_list), self._config.path_sampling):
+            state = self._cr_obstacle.prediction.trajectory.state_list[time_step]
+            path.append(carla.Location(x=state.position[0],  y=-state.position[1], z=0.5))
+        if len(self._cr_obstacle.prediction.trajectory.state_list) % self._config.path_sampling != 0:
+            state = self._cr_obstacle.prediction.trajectory.state_list[-1]
+            path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))
+        return path
 
     def tick(self, time_step: int):
         """
