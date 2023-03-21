@@ -6,8 +6,8 @@ import math
 
 from carlacr.helper.config import ControlParams
 from carlacr.controller.controller import CarlaController, create_carla_transform
-from carlacr.agents.navigation.controller import VehiclePIDController
-from carlacr.agents.navigation.behavior_agent import BehaviorAgent
+from agents.navigation.controller import VehiclePIDController
+from agents.navigation.behavior_agent import BehaviorAgent
 
 from commonroad.scenario.state import TraceState
 
@@ -18,6 +18,7 @@ try:
     from carla import VehicleAckermannControl, AckermannControllerSettings
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
+
 
 @dataclass
 class CarlaCRWaypoint:
@@ -42,7 +43,7 @@ class VehicleBehaviorAgentPathFollowingControl(CarlaController):
         super().__init__(actor)
         self._agent = BehaviorAgent(actor)
 
-    def control(self, state: Optional[TraceState] = None, tm: Optional[carla.TrafficManager] = None):
+    def control(self, state: Optional[TraceState] = None):
         self._agent.set_target_speed(state.velocity)
 
     def set_path(self, path: List[carla.Location]):

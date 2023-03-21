@@ -53,7 +53,6 @@ class CarlaInterface:
         self._client.set_timeout(self._config.client_init_timeout)
 
         self._load_map(self._config.map)
-        sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
         self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
         self._ego: Optional[VehicleInterface] = None

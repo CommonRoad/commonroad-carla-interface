@@ -43,11 +43,9 @@ class ActorInterface(ABC):
         :param time_step: Current time step.
 
         """
-        pass
 
     def _init_controller(self):
         """Initializes CARLA controller used for. Concrete implementation is actor type specific."""
-        pass
 
     @property
     def spawned(self) -> bool:
@@ -100,7 +98,6 @@ class ActorInterface(ABC):
 
         :param time_step: Current time step.
         """
-        pass
 
     def destroy_carla_obstacle(self):
         """Destroys vehicle in CARLA."""

@@ -36,7 +36,7 @@ class PedestrianInterface(ActorInterface):
         elif self._config.controller_type is PedestrianControlType.AI:
             self._controller = \
                 AIWalkerControl(self._actor, self._cr_obstacle.prediction.trajectory.final_state.position,
-                                max([state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list]))
+                                max(state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list))
         elif self._config.controller_type is PedestrianControlType.WALKER:
             self._controller = ManualWalkerControl(self._actor)
 
@@ -56,7 +56,7 @@ class PedestrianInterface(ActorInterface):
                 actor.set_simulate_physics(self._config.physics)
                 logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
         except Exception as e:
-            logger.error(f"Error while spawning PEDESTRIAN: {e}")
+            logger.error("Error while spawning PEDESTRIAN: %s", e)
             raise e
 
         self._actor = actor
