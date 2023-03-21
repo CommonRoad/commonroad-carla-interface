@@ -35,8 +35,8 @@ class PedestrianInterface(ActorInterface):
             self._controller = TransformControl(self._actor)
         elif self._config.controller_type is PedestrianControlType.AI:
             self._controller = \
-                AIWalkerControl(self._actor, self._cr_base.prediction.trajectory.final_state.position,
-                                max([state.velocity for state in self._cr_base.prediction.trajectory.state_list]))
+                AIWalkerControl(self._actor, self._cr_obstacle.prediction.trajectory.final_state.position,
+                                max([state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list]))
         elif self._config.controller_type is PedestrianControlType.WALKER:
             self._controller = ManualWalkerControl(self._actor)
 
