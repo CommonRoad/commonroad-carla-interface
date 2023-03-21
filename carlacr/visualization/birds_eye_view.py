@@ -130,7 +130,7 @@ PIXELS_AHEAD_VEHICLE = 150
 # ==============================================================================
 
 
-def is_quit_shortcut(key):
+def is_quit_shortcut(key: pygame.key):
     """Returns True if one of the specified keys are pressed"""
     return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
 
@@ -139,12 +139,13 @@ def exit_game():
     pygame.quit()
     sys.exit()
 
+
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 
-class Util(object):
+class Util:
 
     @staticmethod
     def blits(destination_surface, source_surfaces, rect=None, blend_mode=0):
@@ -176,7 +177,7 @@ class Util(object):
 # ==============================================================================
 
 
-class FadingText(object):
+class FadingText:
     """Renders texts that fades out after some seconds that the user specifies"""
 
     def __init__(self, font, dim, pos):
@@ -211,7 +212,7 @@ class FadingText(object):
 # ==============================================================================
 
 
-class HelpText(object):
+class HelpText:
     def __init__(self, font, width, height):
         """Renders the help text that shows the controls for using no rendering mode"""
         lines = __doc__.split('\n')
@@ -242,7 +243,7 @@ class HelpText(object):
 # ==============================================================================
 
 
-class HUD2D (object):
+class HUD2D :
     """Class encharged of rendering the HUD that displays information about the world and the hero vehicle"""
 
     def __init__(self, name, width, height):
@@ -364,7 +365,7 @@ class HUD2D (object):
 # ==============================================================================
 
 
-class TrafficLightSurfaces(object):
+class TrafficLightSurfaces:
     """Holds the surfaces (scaled and rotated) for painting traffic lights"""
 
     def __init__(self):
@@ -409,7 +410,7 @@ class TrafficLightSurfaces(object):
 # ==============================================================================
 
 
-class MapImage(object):
+class MapImage:
     """Class encharged of rendering a 2D image from top view of a carla world. Please note that a cache system is used,
     so if the OpenDrive content
     of a Carla town has not changed, it will read and use the stored image if it was rendered in a previous execution"""
@@ -1350,4 +1351,3 @@ class World2D:
         """Destroy the hero actor when class instance is destroyed"""
         if self.spawned_hero is not None:
             self.spawned_hero.destroy()
-
