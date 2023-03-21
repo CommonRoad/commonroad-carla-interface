@@ -1,15 +1,7 @@
-#!/usr/bin/env python
-
-# Copyright (c) 2021 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
-
 import time
 import logging
 from numpy import random
-from typing import List, Union
+from typing import List, Union, Tuple, Dict
 import carla
 from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_pedestrian_from_walker
 from carlacr.objects.vehicle import VehicleInterface
@@ -21,24 +13,39 @@ FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
 
-def create_actors(client: carla.Client, config: SimulationParams, cr_id: int) \
+def create_actors(world: carla.World, tm: carla.TrafficManager, config: SimulationParams, cr_id: int) \
         -> List[Union[PedestrianInterface, VehicleInterface]]:
-    traffic_manager = client.get_trafficmanager()
-    world = client.get_world()
+    """
+    Spawns actors in CARLA as defined in configuration.
+
+    :param world: CARLA world.
+    :param tm: CARLA traffic manager.
+    :param config: Simulation configuration.
+    :param cr_id: Initial ID for CommonRoad obstacles.
+    """
     random.seed(config.tm.seed if config.tm.seed is not None else int(time.time()))
 
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, traffic_manager, cr_id)
+    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, world, tm, cr_id)
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker(config, blueprints_walkers, client, cr_id)
+    all_walker_actors = spawn_walker_with_control(config, blueprints_walkers, world, cr_id)
 
     return all_vehicle_actors + all_walker_actors
 
-def extract_blueprints(config: SimulationParams, world: carla.World):
+
+def extract_blueprints(config: SimulationParams, world: carla.World) \
+        -> Tuple[List[carla.ActorBlueprint], List[carla.ActorBlueprint]]:
+    """
+    Extracts available blueprints for vehicles and walkers.
+
+    :param config: Simulation config.
+    :param world: CARLA world.
+    :return: List of vehicle blueprints and list of walker blueprints
+    """
     blueprints_vehicles = world.get_blueprint_library().filter(config.filter_vehicle)
     blueprints_walkers = world.get_blueprint_library().filter(config.filter_pedestrian)
     if config.safe_vehicles:
@@ -51,31 +58,106 @@ def extract_blueprints(config: SimulationParams, world: carla.World):
         blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('firetruck')]
         blueprints_vehicles = [x for x in blueprints_vehicles if not x.id.endswith('ambulance')]
     blueprints_vehicles = sorted(blueprints_vehicles, key=lambda bp: bp.id)
-    return blueprints_vehicles, blueprints_walkers
+    return blueprints_vehicles, list(blueprints_walkers)
 
 
-def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Client, cr_id: int) \
-        -> List[PedestrianInterface]:
+def spawn_walker_with_control(config: SimulationParams, blueprints_walkers: List[carla.ActorBlueprint],
+                              world: carla.World, cr_id: int) -> List[PedestrianInterface]:
+    """
+    Spawns walkers as defined in provided config.
+
+    :param config: Simulation configuration.
+    :param blueprints_walkers: Available CARLA blueprints for walkers.
+    :param world: CARLA world.
+    :param cr_id: Initial ID for CommonRoad obstacles.
+    """
     logging.info("Traffic Generation spawn walkers.")
-    walkers_list = []
-    cr_walkers_list = []
-    all_id = []
-    world = client.get_world()
     if config.seed_walker:
         world.set_pedestrians_seed(config.seed_walker)
         random.seed(config.seed_walker)
     # 1. take all the random locations to spawn
+    spawn_points = extract_spawn_points(config, world)
+
+    # 2. we spawn the walker object
+    walker_speed, walkers_list = spawn_walkers(blueprints_walkers, config, spawn_points)
+
+    # 3. we spawn the walker controller
+    all_actors, all_id = spawn_walker_controller(walkers_list, world)
+
+    # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
+    # set how many pedestrians can cross the road
+    cr_walkers_list = init_walker_controller_traffic_generation(all_actors, all_id, config, cr_id, walker_speed, world)
+
+    return cr_walkers_list
+
+
+def extract_spawn_points(config: SimulationParams, world: carla.World) -> List[carla.Transform]:
+    """
+    Extracts available spawn points.
+
+    :param config: Simulation config.
+    :param world: CARLA world.
+    :return: List of CARLA transform objects.
+    """
     spawn_points = []
-    for i in range(config.number_walkers):
+    while len(spawn_points) < config.number_walkers:
         spawn_point = carla.Transform()
         loc = world.get_random_location_from_navigation()
         if loc is not None:
             spawn_point.location = loc
             spawn_points.append(spawn_point)
+    return spawn_points
 
-    # 2. we spawn the walker object
+
+def init_walker_controller_traffic_generation(all_actors, all_id, config: SimulationParams, cr_id: int, cr_walkers_list, walker_speed, world):
+    world.set_pedestrians_cross_factor(config.tm.global_percentage_pedestrians_crossing)
+    for idx in range(0, len(all_id), 2):
+        # start walker
+        all_actors[idx].start()
+        # set walk to random point
+        all_actors[idx].go_to_location(world.get_random_location_from_navigation())
+        # max speed
+        all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
+    for idx in range(1, len(all_id), 2):
+        cr_walkers_list.append(PedestrianInterface(
+                create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
+                client.get_trafficmanager(), all_actors[idx]))
+        cr_id += 1
+
+
+def spawn_walker_controller(walkers_list: List[carla.Walker], world:carla.World) -> Tuple[List[carla.Actor], List[int]]:
+    batch = []
+    all_id = []
+    walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
+    for i in range(len(walkers_list)):
+        batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walkers_list[i]["id"]))
+    results = client.apply_batch_sync(batch, True)
+    for i, res in enumerate(results):
+        if res.error:
+            logging.error(res.error)
+        else:
+            walkers_list[i]["con"] = res.actor_id
+    # 4. we put together the walkers and controllers id to get the objects from their id
+    for walker in walkers_list:
+        all_id.append(walker["con"])
+        all_id.append(walker["id"])
+    all_actors = world.get_actors(all_id)
+    return all_actors, all_id
+
+
+def spawn_walkers(blueprints_walkers: List[carla.ActorBlueprint], config: SimulationParams,
+                  spawn_points: List[carla.Transform]) -> Tuple[List[float], List[Dict[str, int]]]:
+    """
+    Spawns walkers.
+
+    :param blueprints_walkers: Available walker blueprints.
+    :param config: Simulation config.
+    :param spawn_points: Available spawn points.
+    :return: Maximum walker speed and dictionary containing actor IDs.
+    """
     batch = []
     walker_speed = []
+    walkers_list = []
     for spawn_point in spawn_points:
         walker_bp = random.choice(blueprints_walkers)
         # set as not invincible
@@ -102,49 +184,22 @@ def spawn_walker(config: SimulationParams, blueprints_walkers, client: carla.Cli
             walkers_list.append({"id": res.actor_id})
             walker_speed2.append(walker_speed[i])
     walker_speed = walker_speed2
-
-    # 3. we spawn the walker controller
-    batch = []
-    walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-    for i in range(len(walkers_list)):
-        batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walkers_list[i]["id"]))
-    results = client.apply_batch_sync(batch, True)
-    for i, res in enumerate(results):
-        if res.error:
-            logging.error(res.error)
-        else:
-            walkers_list[i]["con"] = res.actor_id
-
-    # 4. we put together the walkers and controllers id to get the objects from their id
-    for walker in walkers_list:
-        all_id.append(walker["con"])
-        all_id.append(walker["id"])
-    all_actors = world.get_actors(all_id)
-
-    # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
-    # set how many pedestrians can cross the road
-    world.set_pedestrians_cross_factor(config.tm.global_percentage_pedestrians_crossing)
-    for idx in range(0, len(all_id), 2):
-        # start walker
-        all_actors[idx].start()
-        # set walk to random point
-        all_actors[idx].go_to_location(world.get_random_location_from_navigation())
-        # max speed
-        all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
-    for idx in range(1, len(all_id), 2):
-        cr_walkers_list.append(PedestrianInterface(
-                create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
-                client.get_trafficmanager(), all_actors[idx]))
-        cr_id += 1
-
-    return cr_walkers_list
+    return walker_speed, walkers_list
 
 
-def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
+def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint], world: carla.World,
                   traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
+    """
+    Spawns vehicles as defined in provided config.
+
+    :param config: Simulation configuration.
+    :param blueprints: Available CARLA blueprints for vehicles.
+    :param world: CARLA world.
+    :param traffic_manager: CARLA traffic manager.
+    :param cr_id: Initial ID for CommonRoad obstacles.
+    """
     logging.info("Traffic Generation spawn vehicles.")
     vehicles_list = []
-    world = client.get_world()
 
     spawn_points = world.get_map().get_spawn_points()
     number_of_spawn_points = len(spawn_points)
@@ -184,7 +239,12 @@ def spawn_vehicle(config: SimulationParams, blueprints, client: carla.Client,
     return vehicles_list
 
 
-def select_blueprint(blueprints):
+def select_blueprint(blueprints: List[carla.ActorBlueprint]) -> carla.ActorBlueprint:
+    """
+    Selects random blueprint from available ones anc configures it randomly. e.g., color, id, etc.
+
+    :param blueprints: List of available CARLA actor blueprints.
+    """
     blueprint = random.choice(blueprints)
     if blueprint.has_attribute('color'):
         color = random.choice(blueprint.get_attribute('color').recommended_values)

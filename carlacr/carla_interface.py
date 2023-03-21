@@ -53,6 +53,7 @@ class CarlaInterface:
         self._client.set_timeout(self._config.client_init_timeout)
 
         self._load_map(self._config.map)
+     #   sys.path.append(os.path.join(self._find_carla_distribution(), "PythonAPI"))
 
         self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
         self._ego: Optional[VehicleInterface] = None
@@ -302,7 +303,7 @@ class CarlaInterface:
         assert self._config.sync is True
 
         logger.info("Scenario generation: Create actors.")
-        self._cr_obstacles = create_actors(self._client, self._config.simulation, sc.generate_object_id())
+        self._cr_obstacles = create_actors(self._world, self._tm, self._config.simulation, sc.generate_object_id())
 
         logger.info("Scenario generation: Start Simulation.")
         self._run_simulation(obstacle_only=True)
@@ -359,7 +360,7 @@ class CarlaInterface:
             self._set_scenario(sc)
             obstacle_control = True
         else:
-            self._cr_obstacles = create_actors(self._client, self._config.simulation, 1)
+            self._cr_obstacles = create_actors(self._world, self._tm, self._config.simulation, 1)
             obstacle_control = False
 
         logger.info("Spawn ego.")
