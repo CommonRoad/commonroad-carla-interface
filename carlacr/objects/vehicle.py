@@ -171,6 +171,13 @@ class VehicleInterface(ActorInterface):
             self._actor.set_light_state(carla.VehicleLightState(z))
 
     def register_clock(self, clock: pygame.time.Clock, hud, vis_world):
+        """
+        Registers some properties required for some controllers.
+
+        :param clock: Pygame clock.
+        :param hud: Head-up display object.
+        :param vis_world: Visualized world.
+        """
         self._controller.register(clock, hud, vis_world)
 
     def _get_path(self) -> List[carla.Location]:

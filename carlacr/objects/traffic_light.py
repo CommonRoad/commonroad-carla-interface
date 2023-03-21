@@ -12,6 +12,12 @@ logger.setLevel(logging.DEBUG)
 
 
 def _match_carla_traffic_light_state_to_cr(carla_state: carla.TrafficLightState) -> TrafficLightState:
+    """
+    Match CARLA traffic light state to CommonRoad traffic light state
+
+    :param carla_state: CARLA traffic light state.
+    :return: CommonRoad traffic light state
+    """
     if carla_state == carla.TrafficLightState.Green:
         return TrafficLightState.GREEN
     if carla_state == carla.TrafficLightState.Red:
@@ -24,6 +30,12 @@ def _match_carla_traffic_light_state_to_cr(carla_state: carla.TrafficLightState)
 
 
 def _match_cr_traffic_light_state_to_carla(cr_state: TrafficLightState) -> carla.TrafficLightState:
+    """
+    Match CommonRoad traffic light state to CARLA traffic light state
+
+    :param cr_state: CommonRoad traffic light state.
+    :return: CARLA traffic light state
+    """
     if cr_state == TrafficLightState.GREEN:
         return carla.TrafficLightState.Green
     if cr_state == TrafficLightState.RED:
@@ -66,7 +78,11 @@ class CarlaTrafficLight:
             self._signal_profile[0] = _match_carla_traffic_light_state_to_cr(color)
 
     def add_color(self, color: carla.TrafficLightState):
-        """Appends CARLA traffic light color to signal profile."""
+        """
+        Appends CARLA traffic light color to signal profile.
+
+        :param color: CARLA traffic light state color.
+        """
         self._signal_profile.append(_match_carla_traffic_light_state_to_cr(color))
 
     def set_cr_light(self, cr_light: TrafficLight):
@@ -106,10 +122,9 @@ class CarlaTrafficLight:
 
     def create_traffic_light_cycle(self) -> List[TrafficLightCycleElement]:
         """
-        Creates a traffic light cycle for the given traffic light.
+        Creates a CommonRoad traffic light cycle for traffic light.
 
-        :param traffic_light: the traffic light for the traffic light cycle is to be created
-        :param starting_state: the state of the traffic light at the start
+        :return: List of CommonRoad traffic light cycle elements.
         """
         cycle = []
         current_state = self._signal_profile[0]
@@ -132,20 +147,32 @@ class CarlaTrafficLight:
 
 
 def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLight]) -> TrafficLight:
+    """
+    Creates traffic light interface given CommonRoad traffic light and all available CARLA traffic light.
+    Uses the closest CARLA traffic light.
 
-    best_carla_traffic_light = find_closest_traffic_light(carla_lights, cr_light)
+    :param cr_light: CommonRoad traffic light.
+    :param carla_lights: List of CARLA traffic lights.
+    :return: Traffic light interface.
+    """
+    best_carla_traffic_light = find_closest_traffic_light(carla_lights, cr_light.position)
 
     return TrafficLight(cr_light.traffic_light_id, best_carla_traffic_light.create_traffic_light_cycle(),
                         cr_light.position, time_offset=0, direction=cr_light.direction, active=True)
 
 
-def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], cr_light: TrafficLight):
+def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: np.array):
+    """
+    Extracts the closes CARLA traffic light for a given position using Euclidean distance.
+
+    :param carla_lights: List of CARLA traffic lights.
+    :param position: Position for which closes CARLA traffic lights should be extracted.
+    """
     best_carla_traffic_light = None
-    best_diff = math.inf  # A big enough number
-    cr_position = cr_light.position
+    best_diff = math.inf
     for light in carla_lights:
-        diff_x = abs(light.carla_position[0] - cr_position[0])
-        diff_y = abs(light.carla_position[1] + cr_position[1])  # We add since OPDR to CR Conversion inverses the sign
+        diff_x = abs(light.carla_position[0] - position[0])
+        diff_y = abs(light.carla_position[1] + position[1])  # We add since map is mirrored compared to CommonRoad
         cur_diff = math.sqrt(diff_x ** 2 + diff_y ** 2)
 
         if cur_diff < best_diff:
