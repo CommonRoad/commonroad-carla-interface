@@ -208,6 +208,7 @@ def make_video(path: str, video_name: str):
         else:
             logger.error(e)
 
+
 def find_carla_distribution(default_carla_paths: List[str]) -> str:
     """
     Finds path of CARLA executable script based on given default paths.

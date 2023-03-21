@@ -65,8 +65,15 @@ vehicle_dict: Dict[str, Dict[str, Union[float, ObstacleType]]] = {
 }
 
 
-def similar_by_length(length: float, width: float, height: float):
-    """Returns Carla BluePrint name of closest vehicle regarding length (second: width, third: height)."""
+def similar_by_length(length: float, width: float, height: float) -> str:
+    """
+    Returns Carla BluePrint name of the closest vehicle regarding length (second: width, third: height).
+
+    :param length: Length of vehicle.
+    :param width: Width of vehicle.
+    :param height: Height of vehicle.
+    :return: CARLA name of vehicle.
+    """
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_x': abs(length - current_best[1]['x']),
@@ -94,8 +101,15 @@ def similar_by_length(length: float, width: float, height: float):
     return current_best
 
 
-def similar_by_width(length: float, width: float, height: float):
-    """Returns Carla BluePrint name of closest vehicle regarding width (second: length, third: height)."""
+def similar_by_width(length: float, width: float, height: float) -> str:
+    """
+    Returns Carla BluePrint name of the closest vehicle regarding width (second: length, third: height).
+
+    :param length: Length of vehicle.
+    :param width: Width of vehicle.
+    :param height: Height of vehicle.
+    :return: CARLA name of vehicle.
+    """
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_x': abs(length - current_best[1]['x']),
@@ -123,8 +137,15 @@ def similar_by_width(length: float, width: float, height: float):
     return current_best
 
 
-def similar_by_area(length: float, width: float, height: float):
-    """Returns Carla BluePrint name of closest vehicle regarding area (= length * width) (second: height)."""
+def similar_by_area(length: float, width: float, height: float) -> str:
+    """
+    Returns Carla BluePrint name of the closest vehicle regarding area (length * width) (second: height).
+
+    :param length: Length of vehicle.
+    :param width: Width of vehicle.
+    :param height: Height of vehicle.
+    :return: CARLA name of vehicle.
+    """
     current_best = list(vehicle_dict.items())[0]
     current_diff = {
         'dif_area': abs(length - current_best[1]['x']) * abs(length - current_best[1]['y']),

@@ -2,16 +2,22 @@ import dataclasses
 import inspect
 from dataclasses import dataclass, field
 import pathlib
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Any
 from omegaconf import OmegaConf
 from enum import Enum
 
+
 class PedestrianControlType(Enum):
+    """Available controller types for walkers."""
+
     AI = 1
     WALKER = 2
     TRANSFORM = 3
 
+
 class VehicleControlType(Enum):
+    """Available controller types for vehicles."""
+
     KEYBOARD = 1
     STEERING_WHEEL = 2
     TRANSFORM = 3
@@ -21,7 +27,10 @@ class VehicleControlType(Enum):
     PATH_AGENT = 7
     PLANNER = 8
 
+
 class CustomVis(Enum):
+    """Available visualization types."""
+
     BIRD = 0
     EGO = 1
     NONE = 2
@@ -29,14 +38,19 @@ class CustomVis(Enum):
 
 class ApproximationType(Enum):
     """Approximation type with fix length, width and area."""
+
     LENGTH = 0
     WIDTH = 1
     AREA = 2
 
 
-def _dict_to_params(dict_params: Dict, cls):
+def _dict_to_params(dict_params: Dict, cls: Any) -> Any:
     """
+    Converts dictionary to parameter class.
 
+    :param dict_params: Dictionary containing parameters.
+    :param cls: Parameter dataclass to which dictionary should be converted to.
+    :return: Parameter class.
     """
     fields = dataclasses.fields(cls)
     cls_map = {f.name: f.type for f in fields}
@@ -53,6 +67,8 @@ def _dict_to_params(dict_params: Dict, cls):
 
 @dataclass
 class BaseParam:
+    """CommonRoad-CARLA Interface base parameters."""
+
     host: str = "localhost"  # carla host setting
     port: int = 2000  # carla default port setting
     sleep_time: float = 10.0  # time to move your view in carla-window
@@ -69,6 +85,8 @@ class BaseParam:
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
+        """Post initialization of base parameter class."""
+        # pylint: disable=unused-private-member
         self.__initialized = True
         # Make sure that the base parameters are propagated to all sub-parameters
         # This cannot be done in the init method, because the sub-parameters are not yet initialized.
@@ -86,21 +104,40 @@ class BaseParam:
         self.autopilot = self.autopilot
         self.vis_type = self.vis_type
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
+        """
+        Getter for base parameter value.
+
+        :param: Item for which content should be returned.
+        :return: Item value.
+        """
         try:
             value = self.__getattribute__(item)
-        except AttributeError:
-            raise KeyError(f"{item} is not a parameter of {self.__class__.__name__}")
+        except AttributeError as e:
+            raise KeyError(f"{item} is not a parameter of {self.__class__.__name__}") from e
         return value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
+        """
+        Setter for item.
+
+        :param key: Name of item.
+        :param value: Value of item.
+        """
         try:
             self.__setattr__(key, value)
-        except AttributeError:
-            raise KeyError(f"{key} is not a parameter of {self.__class__.__name__}")
+        except AttributeError as e:
+            raise KeyError(f"{key} is not a parameter of {self.__class__.__name__}") from e
 
     @classmethod
-    def load(cls, file_path: Union[pathlib.Path, str], validate_types: bool = True):
+    def load(cls, file_path: Union[pathlib.Path, str], validate_types: bool = True) -> 'BaseParam':
+        """
+        Loads config file and creates parameter class.
+
+        :param file_path: Path to yaml file containing config parameters.
+        :param validate_types:  Boolean indicating whether loaded config should be validated against CARLA parameters.
+        :return: Base parameter class.
+        """
         file_path = pathlib.Path(file_path)
         assert file_path.suffix == ".yaml", f"File type {file_path.suffix} is unsupported! Please use .yaml!"
         loaded_yaml = OmegaConf.load(file_path)
@@ -110,6 +147,11 @@ class BaseParam:
         return params
 
     def save(self, file_path: Union[pathlib.Path, str]):
+        """
+        Save config parameters to yaml file.
+
+        :param file_path: Path where yaml file should be stored.
+        """
         # Avoid saving private attributes
         dict_cfg = dataclasses.asdict(self, dict_factory=lambda items: {key: val for key, val in items if
                                                                         not key.startswith("_")})
@@ -118,6 +160,8 @@ class BaseParam:
 
 @dataclass
 class TrafficManagerParams(BaseParam):
+    """Parameters related to traffic manager and traffic generation."""
+
     # port where the traffic manager is connected
     tm_port: int = 8000
     # vehicle's farther than a certain radius from the ego vehicle will have their physics disabled
@@ -160,6 +204,8 @@ class TrafficManagerParams(BaseParam):
 
 @dataclass
 class WeatherParams(BaseParam):
+    """Parameters related to weather."""
+
     cloudiness: float = 20.0
     precipitation: float = 0.0
     precipitation_deposits: float = 0.0
@@ -177,9 +223,11 @@ class WeatherParams(BaseParam):
 
 @dataclass
 class SimulationParams(BaseParam):
+    """Parameters related to simulation in general."""
+
     tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
     weather: WeatherParams = field(default_factory=WeatherParams)
-    time_step: float =  0.1
+    time_step: float = 0.1
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10
     number_walkers: int = 10
@@ -207,6 +255,8 @@ class SimulationParams(BaseParam):
 
 @dataclass
 class ControlParams(BaseParam):
+    """Parameters for control interfaces."""
+
     basic_control_pid_lat_kp: float = 1.95
     basic_control_pid_lat_ki: float = 0.05
     basic_control_pid_lat_kd: float = 0.2
@@ -223,29 +273,47 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_kd: float = 0.01
 
     def pid_lat_dict(self, dt: float) -> Dict[str, float]:
+        """
+        Converts lateral PID parameters to dictionary.
+
+        :param dt: Time step size.
+        :return: Dictionary of control parameter name to value.
+        """
         return {"K_P": self.basic_control_pid_lat_kp,
                 "K_I": self.basic_control_pid_lat_ki,
                 "K_D": self.basic_control_pid_lat_kd,
                 "dt": dt}
 
     def pid_lon_dict(self, dt: float) -> Dict[str, float]:
+        """
+        Converts longitudinal PID parameters to dictionary.
+
+        :param dt: Time step size.
+        :return: Dictionary of control parameter name to value.
+        """
         return {"K_P": self.basic_control_pid_lon_kp,
                 "K_I": self.basic_control_pid_lon_ki,
                 "K_D": self.basic_control_pid_lon_kd,
                 "dt": dt}
 
+
 @dataclass
 class VehicleParams(BaseParam):
+    """Parameters related to vehicles."""
+
     approximation_type: ApproximationType = ApproximationType.LENGTH  # based on what approximation of the vehicle
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     control: ControlParams = field(default_factory=ControlParams)
     simulation: SimulationParams = field(default_factory=SimulationParams)
     vehicle_ks_state: bool = True
-    path_sampling: int = 10 # use every path_sampling time step for path to follow CR trajectory
+    path_sampling: int = 10  # use every path_sampling time step for path to follow CR trajectory
     controller_type: VehicleControlType = VehicleControlType.TRANSFORM
 
+
 class PedestrianParams(BaseParam):
+    """Parameters related to walkers/pedestrians"""
+
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     simulation: SimulationParams = field(default_factory=SimulationParams)
@@ -254,6 +322,8 @@ class PedestrianParams(BaseParam):
 
 @dataclass
 class MapParams(BaseParam):
+    """Parameters related to map."""
+
     vertex_distance: float = 2.0  # in meters
     max_road_length: float = 500.0  # in meters
     wall_height: float = 1.0  # in meters
@@ -262,6 +332,8 @@ class MapParams(BaseParam):
 
 @dataclass
 class CarlaParams(BaseParam):
+    """All CARLA-Interface parameters"""
+
     simulation: SimulationParams = field(default_factory=SimulationParams)
     pedestrian: PedestrianParams = field(default_factory=PedestrianParams)
     vehicle: VehicleParams = field(default_factory=VehicleParams)

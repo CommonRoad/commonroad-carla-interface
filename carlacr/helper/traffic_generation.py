@@ -13,11 +13,12 @@ FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
 
-def create_actors(world: carla.World, tm: carla.TrafficManager, config: SimulationParams, cr_id: int) \
-        -> List[Union[PedestrianInterface, VehicleInterface]]:
+def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficManager,
+                  config: SimulationParams, cr_id: int) -> List[Union[PedestrianInterface, VehicleInterface]]:
     """
     Spawns actors in CARLA as defined in configuration.
 
+    :param client: CARLA client.
     :param world: CARLA world.
     :param tm: CARLA traffic manager.
     :param config: Simulation configuration.
@@ -28,11 +29,11 @@ def create_actors(world: carla.World, tm: carla.TrafficManager, config: Simulati
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, world, tm, cr_id)
+    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, world, tm, cr_id)
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
-    all_walker_actors = spawn_walker_with_control(config, blueprints_walkers, world, cr_id)
+    all_walker_actors = spawn_walker_with_control(config, blueprints_walkers, client, world, cr_id)
 
     return all_vehicle_actors + all_walker_actors
 
@@ -62,12 +63,13 @@ def extract_blueprints(config: SimulationParams, world: carla.World) \
 
 
 def spawn_walker_with_control(config: SimulationParams, blueprints_walkers: List[carla.ActorBlueprint],
-                              world: carla.World, cr_id: int) -> List[PedestrianInterface]:
+                              client: carla.Client, world: carla.World, cr_id: int) -> List[PedestrianInterface]:
     """
     Spawns walkers as defined in provided config.
 
     :param config: Simulation configuration.
     :param blueprints_walkers: Available CARLA blueprints for walkers.
+    :param client: CARLA client.
     :param world: CARLA world.
     :param cr_id: Initial ID for CommonRoad obstacles.
     """
@@ -79,14 +81,15 @@ def spawn_walker_with_control(config: SimulationParams, blueprints_walkers: List
     spawn_points = extract_spawn_points(config, world)
 
     # 2. we spawn the walker object
-    walker_speed, walkers_list = spawn_walkers(blueprints_walkers, config, spawn_points)
+    walker_speed, walkers_list = spawn_walkers(blueprints_walkers, config, spawn_points, client)
 
     # 3. we spawn the walker controller
-    all_actors, all_id = spawn_walker_controller(walkers_list, world)
+    all_actors, all_id = spawn_walker_controller(walkers_list, client, world)
 
     # 5. initialize each controller and set target to walk to (list is [controler, actor, controller, actor ...])
     # set how many pedestrians can cross the road
-    cr_walkers_list = init_walker_controller_traffic_generation(all_actors, all_id, config, cr_id, walker_speed, world)
+    cr_walkers_list = init_walker_controller_traffic_generation(all_actors, all_id, config, cr_id, walker_speed,
+                                                                client, world)
 
     return cr_walkers_list
 
@@ -109,7 +112,23 @@ def extract_spawn_points(config: SimulationParams, world: carla.World) -> List[c
     return spawn_points
 
 
-def init_walker_controller_traffic_generation(all_actors, all_id, config: SimulationParams, cr_id: int, cr_walkers_list, walker_speed, world):
+def init_walker_controller_traffic_generation(all_actors: List[carla.Actor], all_id: List[int],
+                                              config: SimulationParams, cr_id: int,
+                                              walker_speed: List[float], client: carla.Client,
+                                              world: carla.World) -> List[PedestrianInterface]:
+    """
+    Initializes AI Walker controllers and creates pedestrian interface object.
+
+    :param all_actors: List of all CARLA actors.
+    :param all_id:  List of all CARLA actor IDs.
+    :param config: Simulation config.
+    :param cr_id: Initial CommonRoad obstacle ID.
+    :param walker_speed: Maximum speed for each walker.
+    :param client: CARLA client.
+    :param world: CARLA world.
+    :return: List of pedestrian interfaces.
+    """
+    cr_walkers_list = []
     world.set_pedestrians_cross_factor(config.tm.global_percentage_pedestrians_crossing)
     for idx in range(0, len(all_id), 2):
         # start walker
@@ -120,17 +139,27 @@ def init_walker_controller_traffic_generation(all_actors, all_id, config: Simula
         all_actors[idx].set_max_speed(float(walker_speed[int(idx / 2)]))
     for idx in range(1, len(all_id), 2):
         cr_walkers_list.append(PedestrianInterface(
-                create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
-                client.get_trafficmanager(), all_actors[idx]))
+            create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
+            client.get_trafficmanager(), all_actors[idx]))
         cr_id += 1
+    return cr_walkers_list
 
 
-def spawn_walker_controller(walkers_list: List[carla.Walker], world:carla.World) -> Tuple[List[carla.Actor], List[int]]:
+def spawn_walker_controller(walkers_list: List[Dict[str, int]], client: carla.Client, world: carla.World) \
+        -> Tuple[List[carla.Actor], List[int]]:
+    """
+    Spawns walker AI controller.
+
+    :param walkers_list: List of walker IDs.
+    :param client: CARLA client.
+    :param world: CARLA world.
+    :return: List of all actors and list of all actor IDs.
+    """
     batch = []
     all_id = []
     walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
-    for i in range(len(walkers_list)):
-        batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walkers_list[i]["id"]))
+    for walker in walkers_list:
+        batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walker["id"]))
     results = client.apply_batch_sync(batch, True)
     for i, res in enumerate(results):
         if res.error:
@@ -146,13 +175,15 @@ def spawn_walker_controller(walkers_list: List[carla.Walker], world:carla.World)
 
 
 def spawn_walkers(blueprints_walkers: List[carla.ActorBlueprint], config: SimulationParams,
-                  spawn_points: List[carla.Transform]) -> Tuple[List[float], List[Dict[str, int]]]:
+                  spawn_points: List[carla.Transform], client: carla.Client) \
+        -> Tuple[List[float], List[Dict[str, int]]]:
     """
     Spawns walkers.
 
     :param blueprints_walkers: Available walker blueprints.
     :param config: Simulation config.
     :param spawn_points: Available spawn points.
+    :param client: CARLA client.
     :return: Maximum walker speed and dictionary containing actor IDs.
     """
     batch = []
@@ -187,13 +218,14 @@ def spawn_walkers(blueprints_walkers: List[carla.ActorBlueprint], config: Simula
     return walker_speed, walkers_list
 
 
-def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint], world: carla.World,
-                  traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
+def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint], client: carla.Client,
+                  world: carla.World, traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
     """
     Spawns vehicles as defined in provided config.
 
     :param config: Simulation configuration.
     :param blueprints: Available CARLA blueprints for vehicles.
+    :param client: CARLA client.
     :param world: CARLA world.
     :param traffic_manager: CARLA traffic manager.
     :param cr_id: Initial ID for CommonRoad obstacles.
@@ -217,9 +249,8 @@ def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprin
         spawned_actor = world.try_spawn_actor(blueprint, transform)
 
         if spawned_actor is not None:
-            vehicles_list.append(
-                    VehicleInterface(create_cr_vehicle_from_actor(world.get_actor(spawned_actor.id), cr_id), world,
-                                     traffic_manager, spawned_actor))
+            cr_obstacle = create_cr_vehicle_from_actor(spawned_actor, cr_id)
+            vehicles_list.append(VehicleInterface(cr_obstacle, world, traffic_manager, spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
             traffic_manager.ignore_walkers_percentage(spawned_actor, config.tm.ignore_walkers_percentage)
