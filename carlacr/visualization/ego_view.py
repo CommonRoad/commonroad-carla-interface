@@ -56,77 +56,16 @@ Use ARROWS or WASD keys for control.
 
 from __future__ import print_function
 
-# ==============================================================================
-# -- find carla module ---------------------------------------------------------
-# ==============================================================================
-
-
-
 import os
 import sys
-
-import carla
-
-from carla import ColorConverter as cc
-
 import collections
 import datetime
 import math
 import re
 import weakref
-
-try:
-    import pygame
-    from pygame.locals import KMOD_CTRL
-    from pygame.locals import KMOD_SHIFT
-    from pygame.locals import K_0
-    from pygame.locals import K_9
-    from pygame.locals import K_BACKQUOTE
-    from pygame.locals import K_BACKSPACE
-    from pygame.locals import K_COMMA
-    from pygame.locals import K_DOWN
-    from pygame.locals import K_ESCAPE
-    from pygame.locals import K_F1
-    from pygame.locals import K_LEFT
-    from pygame.locals import K_PERIOD
-    from pygame.locals import K_RIGHT
-    from pygame.locals import K_SLASH
-    from pygame.locals import K_SPACE
-    from pygame.locals import K_TAB
-    from pygame.locals import K_UP
-    from pygame.locals import K_a
-    from pygame.locals import K_b
-    from pygame.locals import K_c
-    from pygame.locals import K_d
-    from pygame.locals import K_g
-    from pygame.locals import K_h
-    from pygame.locals import K_i
-    from pygame.locals import K_l
-    from pygame.locals import K_m
-    from pygame.locals import K_n
-    from pygame.locals import K_o
-    from pygame.locals import K_p
-    from pygame.locals import K_q
-    from pygame.locals import K_r
-    from pygame.locals import K_s
-    from pygame.locals import K_t
-    from pygame.locals import K_v
-    from pygame.locals import K_w
-    from pygame.locals import K_x
-    from pygame.locals import K_z
-    from pygame.locals import K_MINUS
-    from pygame.locals import K_EQUALS
-except ImportError:
-    raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
-# ==============================================================================
-# -- Global functions ----------------------------------------------------------
-# ==============================================================================
+import numpy as np
+import pygame
+import carla
 
 
 def find_weather_presets():
@@ -677,21 +616,22 @@ class CameraManager:
                 (carla.Transform(carla.Location(x=0, y=-2.5, z=-0.0), carla.Rotation(yaw=90.0)), Attachment.Rigid)]
 
         self.transform_index = 1
-        self.sensors = [['sensor.camera.rgb', cc.Raw, 'Camera RGB', {}],
-            ['sensor.camera.depth', cc.Raw, 'Camera Depth (Raw)', {}],
-            ['sensor.camera.depth', cc.Depth, 'Camera Depth (Gray Scale)', {}],
-            ['sensor.camera.depth', cc.LogarithmicDepth, 'Camera Depth (Logarithmic Gray Scale)', {}],
-            ['sensor.camera.semantic_segmentation', cc.Raw, 'Camera Semantic Segmentation (Raw)', {}],
-            ['sensor.camera.semantic_segmentation', cc.CityScapesPalette,
+        self.sensors = [['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB', {}],
+            ['sensor.camera.depth', carla.ColorConverter.Raw, 'Camera Depth (Raw)', {}],
+            ['sensor.camera.depth', carla.ColorConverter.Depth, 'Camera Depth (Gray Scale)', {}],
+            ['sensor.camera.depth', carla.ColorConverter.LogarithmicDepth, 'Camera Depth (Logarithmic Gray Scale)', {}],
+            ['sensor.camera.semantic_segmentation', carla.ColorConverter.Raw, 'Camera Semantic Segmentation (Raw)', {}],
+            ['sensor.camera.semantic_segmentation', carla.ColorConverter.CityScapesPalette,
              'Camera Semantic Segmentation (CityScapes Palette)', {}],
-            ['sensor.camera.instance_segmentation', cc.CityScapesPalette,
+            ['sensor.camera.instance_segmentation', carla.ColorConverter.CityScapesPalette,
              'Camera Instance Segmentation (CityScapes Palette)', {}],
-            ['sensor.camera.instance_segmentation', cc.Raw, 'Camera Instance Segmentation (Raw)', {}],
+            ['sensor.camera.instance_segmentation', carla.ColorConverter.Raw, 'Camera Instance Segmentation (Raw)', {}],
             ['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)', {'range': '50'}],
-            ['sensor.camera.dvs', cc.Raw, 'Dynamic Vision Sensor', {}],
-            ['sensor.camera.rgb', cc.Raw, 'Camera RGB Distorted',
+            ['sensor.camera.dvs', carla.ColorConverter.Raw, 'Dynamic Vision Sensor', {}],
+            ['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB Distorted',
              {'lens_circle_multiplier': '3.0', 'lens_circle_falloff': '3.0', 'chromatic_aberration_intensity': '0.5',
-              'chromatic_aberration_offset': '0'}], ['sensor.camera.optical_flow', cc.Raw, 'Optical Flow', {}], ]
+              'chromatic_aberration_offset': '0'}],
+                        ['sensor.camera.optical_flow', carla.ColorConverter.Raw, 'Optical Flow', {}], ]
         world = self._parent.get_world()
         bp_library = world.get_blueprint_library()
         for item in self.sensors:

@@ -238,8 +238,8 @@ class SimulationParams(BaseParam):
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
-    width: float = 1280
-    height: float = 720
+    width: int = 1280
+    height: int = 720
     rolename: str = "hero"
     generation: str = "2"
     gamma: float = 2.2

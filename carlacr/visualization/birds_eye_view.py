@@ -30,44 +30,18 @@ Welcome to CARLA No-Rendering Mode Visualizer
     ESC          : quit
 """
 
-# ==============================================================================
-# -- find carla module ---------------------------------------------------------
-# ==============================================================================
-
 import glob
 import os
 import sys
-
-
-# ==============================================================================
-# -- imports -------------------------------------------------------------------
-# ==============================================================================
-
-
 import carla
-from carla import TrafficLightState as tls
-
 import datetime
 import weakref
 import math
 import hashlib
+from typing import Tuple
+import pygame
+import pygame.locals as keys
 
-try:
-    import pygame
-    from pygame.locals import KMOD_CTRL
-    from pygame.locals import KMOD_SHIFT
-    from pygame.locals import K_ESCAPE
-    from pygame.locals import K_F1
-    from pygame.locals import K_SLASH
-    from pygame.locals import K_h
-    from pygame.locals import K_i
-    from pygame.locals import K_q
-except ImportError:
-    raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-# ==============================================================================
-# -- Constants -----------------------------------------------------------------
-# ==============================================================================
 
 # Colors
 
@@ -132,7 +106,8 @@ PIXELS_AHEAD_VEHICLE = 150
 
 def is_quit_shortcut(key: pygame.key):
     """Returns True if one of the specified keys are pressed"""
-    return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
+    return (key == keys.K_ESCAPE) or (key == keys.K_q and pygame.key.get_mods() & keys.KMOD_CTRL)
+
 
 def exit_game():
     """Shuts down program and PyGame"""
@@ -180,8 +155,14 @@ class Util:
 class FadingText:
     """Renders texts that fades out after some seconds that the user specifies"""
 
-    def __init__(self, font, dim, pos):
-        """Initializes variables such as text font, dimensions and position"""
+    def __init__(self, font: pygame.font.Font, dim: Tuple[int, int], pos: Tuple[int, int]):
+        """
+        Initializes variables such as text font, dimensions and position
+
+        :param font: Font type used for fading text.
+        :param dim: Dimensions of fading text.
+        :param pos: Position of fading text.
+        """
         self.font = font
         self.dim = dim
         self.pos = pos
@@ -213,8 +194,14 @@ class FadingText:
 
 
 class HelpText:
-    def __init__(self, font, width, height):
-        """Renders the help text that shows the controls for using no rendering mode"""
+    def __init__(self, font: pygame.font.Font, width: int, height: int):
+        """
+        Renders the help text that shows the controls for using no rendering mode
+
+        :param: font: Font type of help text.
+        :param width: Width of pygame window [px] (used to position text)
+        :param height: Height of pygame window [px] (used to position text)
+        """
         lines = __doc__.split('\n')
         self.font = font
         self.dim = (680, len(lines) * 22 + 12)
@@ -246,8 +233,14 @@ class HelpText:
 class HUD2D :
     """Class encharged of rendering the HUD that displays information about the world and the hero vehicle"""
 
-    def __init__(self, name, width, height):
-        """Initializes default HUD params and content data parameters that will be displayed"""
+    def __init__(self, name: str, width: int, height: int):
+        """
+        Initializes default HUD params and content data parameters that will be displayed.
+
+        :param name: Name which will be displayed at top of pygame window.
+        :param width: Width of pygame window [px]
+        :param height: Height of pygame window [px]
+        """
         self.name = name
         self.dim = (width, height)
         self._init_hud_params()
@@ -383,19 +376,22 @@ class TrafficLightSurfaces:
                 green = COLOR_CHAMELEON_0
 
                 # Draws the corresponding color if is on, otherwise it will be gray if its off
-                pygame.draw.circle(surface, red if tl == tls.Red else off, (hw, hw), int(0.4 * w))
-                pygame.draw.circle(surface, yellow if tl == tls.Yellow else off, (hw, w + hw), int(0.4 * w))
-                pygame.draw.circle(surface, green if tl == tls.Green else off, (hw, 2 * w + hw), int(0.4 * w))
+                pygame.draw.circle(
+                        surface, red if tl == carla.TrafficLightState.Red else off, (hw, hw), int(0.4 * w))
+                pygame.draw.circle(
+                        surface, yellow if tl == carla.TrafficLightState.Yellow else off, (hw, w + hw), int(0.4 * w))
+                pygame.draw.circle(
+                        surface, green if tl == carla.TrafficLightState.Green else off, (hw, 2 * w + hw), int(0.4 * w))
 
             return pygame.transform.smoothscale(surface, (15, 45) if tl != 'h' else (19, 49))
 
         self._original_surfaces = {
             'h': make_surface('h'),
-            tls.Red: make_surface(tls.Red),
-            tls.Yellow: make_surface(tls.Yellow),
-            tls.Green: make_surface(tls.Green),
-            tls.Off: make_surface(tls.Off),
-            tls.Unknown: make_surface(tls.Unknown)
+            carla.TrafficLightState.Red: make_surface(carla.TrafficLightState.Red),
+            carla.TrafficLightState.Yellow: make_surface(carla.TrafficLightState.Yellow),
+            carla.TrafficLightState.Green: make_surface(carla.TrafficLightState.Green),
+            carla.TrafficLightState.Off: make_surface(carla.TrafficLightState.Off),
+            carla.TrafficLightState.Unknown: make_surface(carla.TrafficLightState.Unknown)
         }
         self.surfaces = dict(self._original_surfaces)
 
@@ -405,19 +401,24 @@ class TrafficLightSurfaces:
             self.surfaces[key] = pygame.transform.rotozoom(surface, angle, scale)
 
 
-# ==============================================================================
-# -- World ---------------------------------------------------------------------
-# ==============================================================================
-
-
 class MapImage:
     """Class encharged of rendering a 2D image from top view of a carla world. Please note that a cache system is used,
     so if the OpenDrive content
     of a Carla town has not changed, it will read and use the stored image if it was rendered in a previous execution"""
 
-    def __init__(self, carla_world, carla_map, pixels_per_meter, show_triggers, show_connections, show_spawn_points):
-        """ Renders the map image generated based on the world, its map and additional flags that provide extra
-        information about the road network"""
+    def __init__(self, carla_world: carla.World, carla_map: carla.Map, pixels_per_meter: int, show_triggers: bool,
+                 show_connections: bool, show_spawn_points: bool):
+        """
+        Renders the map image generated based on the world, its map and additional flags that provide extra
+        information about the road network
+
+        :param carla_world: CARLA world.
+        :param carla_map: CARLA map.
+        :param pixels_per_meter: Number of pixels corresponding to one meter
+        :param show_triggers:
+        :param show_connections:
+        :param show_spawn_points:
+        """
         self._pixels_per_meter = pixels_per_meter
         self.scale = 1.0
         self.show_triggers = show_triggers
@@ -968,11 +969,11 @@ class World2D:
             elif event.type == pygame.KEYUP:
                 if is_quit_shortcut(event.key):
                     exit_game()
-                elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
+                elif event.key == keys.K_h or (event.key == keys.K_SLASH and pygame.key.get_mods() & keys.KMOD_SHIFT):
                     self._hud.help.toggle()
-                elif event.key == K_F1:
+                elif event.key == keys.K_F1:
                     self._hud.show_info = not self._hud.show_info
-                elif event.key == K_i:
+                elif event.key == keys.K_i:
                     self._hud.show_actor_ids = not self._hud.show_actor_ids
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Handle mouse wheel for zooming in and out
