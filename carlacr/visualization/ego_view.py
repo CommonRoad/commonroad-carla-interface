@@ -20,9 +20,6 @@ Use ARROWS or WASD keys for control.
     Q            : toggle reverse
     Space        : hand-brake
     P            : toggle autopilot
-    M            : toggle manual transmission
-    ,/.          : gear up/down
-    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -30,24 +27,9 @@ Use ARROWS or WASD keys for control.
     I            : toggle interior light
 
     TAB          : change sensor position
-    ` or N       : next sensor
-    [1-9]        : change to sensor [1-9]
-    G            : toggle radar visualization
-    C            : change weather (Shift+C reverse)
-    Backspace    : change vehicle
 
     O            : open/close all doors of vehicle
     T            : toggle vehicle's telemetry
-
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
-
-    R            : toggle recording images to disk
-
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
     F1           : toggle HUD
     H/?          : toggle help
@@ -71,11 +53,6 @@ def get_actor_display_name(actor, truncate=250):
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 
-# ==============================================================================
-# -- World ---------------------------------------------------------------------
-# ==============================================================================
-
-
 class World3D:
     def __init__(self, carla_world, hud, config, player):
         self.world = carla_world
@@ -90,8 +67,6 @@ class World3D:
         self.camera_manager = None
         self.restart()
         self.world.on_tick(hud.on_world_tick)
-     #   self.recording_enabled = False
-    #    self.recording_start = 0
         self.show_vehicle_telemetry = False
         self.doors_are_open = False
         self.current_map_layer = 0
@@ -142,11 +117,6 @@ class World3D:
                 sensor.destroy()
         if self.player is not None:
             self.player.destroy()
-
-
-# ==============================================================================
-# -- HUD -----------------------------------------------------------------------
-# ==============================================================================
 
 
 class HUD3D:
@@ -269,11 +239,6 @@ class HUD3D:
         self.help.render(display)
 
 
-# ==============================================================================
-# -- FadingText ----------------------------------------------------------------
-# ==============================================================================
-
-
 class FadingText:
     def __init__(self, font, dim, pos):
         self.font = font
@@ -296,11 +261,6 @@ class FadingText:
 
     def render(self, display):
         display.blit(self.surface, self.pos)
-
-
-# ==============================================================================
-# -- HelpText ------------------------------------------------------------------
-# ==============================================================================
 
 
 class HelpText:
@@ -327,11 +287,6 @@ class HelpText:
     def render(self, display):
         if self._render:
             display.blit(self.surface, self.pos)
-
-
-# ==============================================================================
-# -- CollisionSensor -----------------------------------------------------------
-# ==============================================================================
 
 
 class CollisionSensor:
@@ -368,11 +323,6 @@ class CollisionSensor:
             self.history.pop(0)
 
 
-# ==============================================================================
-# -- LaneInvasionSensor --------------------------------------------------------
-# ==============================================================================
-
-
 class LaneInvasionSensor:
     def __init__(self, parent_actor, hud):
         self.sensor = None
@@ -399,11 +349,6 @@ class LaneInvasionSensor:
         self.hud.notification('Crossed line %s' % ' and '.join(text))
 
 
-# ==============================================================================
-# -- GnssSensor ----------------------------------------------------------------
-# ==============================================================================
-
-
 class GnssSensor:
     def __init__(self, parent_actor):
         self.sensor = None
@@ -427,11 +372,6 @@ class GnssSensor:
         self.lon = event.longitude
 
 
-# ==============================================================================
-# -- IMUSensor -----------------------------------------------------------------
-# ==============================================================================
-
-
 class IMUSensor:
     def __init__(self, parent_actor):
         self.sensor = None
@@ -445,10 +385,10 @@ class IMUSensor:
         # We need to pass the lambda a weak reference to self to avoid circular
         # reference.
         weak_self = weakref.ref(self)
-        self.sensor.listen(lambda sensor_data: IMUSensor._IMU_callback(weak_self, sensor_data))
+        self.sensor.listen(lambda sensor_data: IMUSensor._imu_callback(weak_self, sensor_data))
 
     @staticmethod
-    def _IMU_callback(weak_self, sensor_data):
+    def _imu_callback(weak_self, sensor_data):
         self = weak_self()
         if not self:
             return
@@ -550,9 +490,6 @@ class CameraManager:
             self.hud.notification(self.sensors[index][2])
         self.index = index
 
-    def next_sensor(self):
-        self.set_sensor(self.index + 1)
-
     def toggle_recording(self):
         self.recording = not self.recording
         self.hud.notification('Recording %s' % ('On' if self.recording else 'Off'))
@@ -575,13 +512,6 @@ class CameraManager:
             # Blue is positive, red is negative
             dvs_img[dvs_events[:]['y'], dvs_events[:]['x'], dvs_events[:]['pol'] * 2] = 255
             self.surface = pygame.surfarray.make_surface(dvs_img.swapaxes(0, 1))
-        elif self.sensors[self.index][0].startswith('sensor.camera.optical_flow'):
-            image = image.get_color_coded_flow()
-            array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-            array = np.reshape(array, (image.height, image.width, 4))
-            array = array[:, :, :3]
-            array = array[:, :, ::-1]
-            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
         else:
             image.convert(self.sensors[self.index][1])
             array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
