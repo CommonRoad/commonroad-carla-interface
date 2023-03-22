@@ -2,10 +2,7 @@ from typing import Optional
 import pygame
 import pygame.locals as keys
 import carla
-
-from carlacr.visualization.birds_eye_view import is_quit_shortcut
 from carlacr.controller.controller import CarlaController
-
 from commonroad.scenario.state import TraceState
 
 
@@ -39,47 +36,33 @@ class KeyboardVehicleController(CarlaController):
             if event.type == pygame.QUIT:
                 break
             if event.type == pygame.KEYUP:
-                if is_quit_shortcut(event.key):
-                    break
-                if isinstance(self._control, carla.VehicleControl):
-                    if event.key == keys.K_q:
-                        self._control.gear = 1 if self._control.reverse else -1
-                    elif event.key == keys.K_m:
-                        self._control.manual_gear_shift = not self._control.manual_gear_shift
-                        self._control.gear = self._actor.get_control().gear
-                    #    self._hud.notification(
-                    #        f"{'Manual' if self._control.manual_gear_shift else 'Automatic'} Transmission")
-                    elif self._control.manual_gear_shift and event.key == keys.K_COMMA:
-                        self._control.gear = max(-1, self._control.gear - 1)
-                    elif self._control.manual_gear_shift and event.key == keys.K_PERIOD:
-                        self._control.gear = self._control.gear + 1
-                    elif event.key == keys.K_l and pygame.key.get_mods() & keys.KMOD_CTRL:
-                        current_lights ^= carla.VehicleLightState.Special1
-                    elif event.key == keys.K_l and pygame.key.get_mods() & keys.KMOD_SHIFT:
-                        current_lights ^= carla.VehicleLightState.HighBeam
-                    elif event.key == keys.K_l:
-                        # Use 'L' key to switch between lights:
-                        # closed -> position -> low beam -> fog
-                        if not self._lights & carla.VehicleLightState.Position:
-                            #  world.hud.notification("Position lights")
-                            current_lights |= carla.VehicleLightState.Position
-                        else:
-                            #  world.hud.notification("Low beam lights")
-                            current_lights |= carla.VehicleLightState.LowBeam
-                        if self._lights & carla.VehicleLightState.LowBeam:
-                            #  world.hud.notification("Fog lights")
-                            current_lights |= carla.VehicleLightState.Fog
-                        if self._lights & carla.VehicleLightState.Fog:
-                            #  world.hud.notification("Lights off")
-                            current_lights ^= carla.VehicleLightState.Position
-                            current_lights ^= carla.VehicleLightState.LowBeam
-                            current_lights ^= carla.VehicleLightState.Fog
-                    elif event.key == keys.K_i:
-                        current_lights ^= carla.VehicleLightState.Interior
-                    elif event.key == keys.K_z:
-                        current_lights ^= carla.VehicleLightState.LeftBlinker
-                    elif event.key == keys.K_x:
-                        current_lights ^= carla.VehicleLightState.RightBlinker
+                if event.key == keys.K_l and pygame.key.get_mods() & keys.KMOD_CTRL:
+                    current_lights ^= carla.VehicleLightState.Special1
+                elif event.key == keys.K_l and pygame.key.get_mods() & keys.KMOD_SHIFT:
+                    current_lights ^= carla.VehicleLightState.HighBeam
+                elif event.key == keys.K_l:
+                    # Use 'L' key to switch between lights:
+                    # closed -> position -> low beam -> fog
+                    if not self._lights & carla.VehicleLightState.Position:
+                        #  world.hud.notification("Position lights")
+                        current_lights |= carla.VehicleLightState.Position
+                    else:
+                        #  world.hud.notification("Low beam lights")
+                        current_lights |= carla.VehicleLightState.LowBeam
+                    if self._lights & carla.VehicleLightState.LowBeam:
+                        #  world.hud.notification("Fog lights")
+                        current_lights |= carla.VehicleLightState.Fog
+                    if self._lights & carla.VehicleLightState.Fog:
+                        #  world.hud.notification("Lights off")
+                        current_lights ^= carla.VehicleLightState.Position
+                        current_lights ^= carla.VehicleLightState.LowBeam
+                        current_lights ^= carla.VehicleLightState.Fog
+                elif event.key == keys.K_i:
+                    current_lights ^= carla.VehicleLightState.Interior
+                elif event.key == keys.K_z:
+                    current_lights ^= carla.VehicleLightState.LeftBlinker
+                elif event.key == keys.K_x:
+                    current_lights ^= carla.VehicleLightState.RightBlinker
 
     def _parse_vehicle_keys(self):
         """Parses control-related key inputs (steering, acceleration)."""
