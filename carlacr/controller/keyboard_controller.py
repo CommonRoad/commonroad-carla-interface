@@ -9,21 +9,17 @@ from carlacr.controller.controller import CarlaController
 from commonroad.scenario.state import TraceState
 
 
-
-
 class KeyboardVehicleController(CarlaController):
     """Class that handles input received such as keyboard and mouse."""
 
-    def __init__(self, actor: carla.Actor):
+    def __init__(self, actor: carla.Actor, dt: float = 0.1):
         """
         Initializes input member variables when instance is created.
 
         :param actor:
         """
         super().__init__(actor)
-        self._clock = None
-        self._hud = None
-        self._vis_world = None
+        self._dt = dt
         self._control = carla.VehicleControl()
         self._lights = carla.VehicleLightState.NONE
         self._steer_cache = 0.0
@@ -50,9 +46,9 @@ class KeyboardVehicleController(CarlaController):
                         self._control.gear = 1 if self._control.reverse else -1
                     elif event.key == keys.K_m:
                         self._control.manual_gear_shift = not self._control.manual_gear_shift
-                        self._control.gear = self._vis_world.player.get_control().gear
-                        self._hud.notification(
-                            f"{'Manual' if self._control.manual_gear_shift else 'Automatic'} Transmission")
+                        self._control.gear = self._actor.get_control().gear
+                    #    self._hud.notification(
+                    #        f"{'Manual' if self._control.manual_gear_shift else 'Automatic'} Transmission")
                     elif self._control.manual_gear_shift and event.key == keys.K_COMMA:
                         self._control.gear = max(-1, self._control.gear - 1)
                     elif self._control.manual_gear_shift and event.key == keys.K_PERIOD:
@@ -91,7 +87,7 @@ class KeyboardVehicleController(CarlaController):
         self._control.throttle = min(self._control.throttle + 0.01, 1.00) \
             if pressed_keys[keys.K_UP] or pressed_keys[keys.K_w] else 0.0
         #  self._control.throttle = 1.0 if keys[K_UP] or keys[K_w] else 0.0
-        steer_increment = 5e-4 * self._clock.get_time()
+        steer_increment = 5e-4 * self._dt
         if pressed_keys[keys.K_LEFT] or pressed_keys[keys.K_a]:
             if self._steer_cache > 0:
                 self._steer_cache = 0

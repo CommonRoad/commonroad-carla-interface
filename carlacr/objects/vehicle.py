@@ -36,8 +36,6 @@ class VehicleInterface(ActorInterface):
         :param actor: New CARLA actor. None if actor is not spawned yet.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
-        self._hud = None
-        self._vis_world = None
 
     def _init_controller(self):
         """Initializes CARLA vehicle controller."""
@@ -51,7 +49,7 @@ class VehicleInterface(ActorInterface):
         elif self._config.controller_type is VehicleControlType.STEERING_WHEEL:
             self._controller = WheelController(self._actor)
         elif self._config.controller_type is VehicleControlType.KEYBOARD:
-            self._controller = KeyboardVehicleController(self._actor)
+            self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
         elif self._config.controller_type is VehicleControlType.PLANNER:
             self._controller = None
         elif self._config.controller_type is VehicleControlType.PATH_TM:
@@ -169,16 +167,6 @@ class VehicleInterface(ActorInterface):
                 z = z | carla.VehicleLightState.RightBlinker
                 z = z | carla.VehicleLightState.LeftBlinker
             self._actor.set_light_state(carla.VehicleLightState(z))
-
-    def register_clock(self, clock: pygame.time.Clock, hud, vis_world):
-        """
-        Registers some properties required for some controllers.
-
-        :param clock: Pygame clock.
-        :param hud: Head-up display object.
-        :param vis_world: Visualized world.
-        """
-        self._controller.register(clock, hud, vis_world)
 
     def _get_path(self) -> List[carla.Location]:
         """

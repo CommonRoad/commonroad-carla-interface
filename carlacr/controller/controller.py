@@ -3,10 +3,6 @@ from typing import Optional
 from abc import ABC
 import math
 import carla
-import pygame
-
-# from carlacr.visualization.ego_view import HUD3D, World3D
-# from carlacr.visualization.birds_eye_view import HUD2D, World2D
 
 from commonroad.scenario.state import TraceState
 
@@ -44,14 +40,6 @@ class CarlaController(ABC):
         Computes and applies vehicle/walker input. Concrete implementation in corresponding controller.
 
         :param state: State which should be reached at next time step.
-        """
-
-    def register(self, clock: pygame.time.Clock, hud, vis_world):
-        """
-        Registers some external information for controller.
-        For example, if some controller-specific information should be rendered.
-
-        TODO parameters
         """
 
 

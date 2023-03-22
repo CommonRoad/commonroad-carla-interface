@@ -460,7 +460,6 @@ class CarlaInterface:
         time_step = 0
         clock = None
         display = None
-        hud = None
 
         if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
             display = self._init_display()
@@ -474,8 +473,6 @@ class CarlaInterface:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)
             vis_world = World3D(self._world, hud, self._config.simulation, self._ego.actor)
-        if self._ego is not None and self._ego.control_type is VehicleControlType.KEYBOARD:
-            self._ego.register_clock(clock, hud, vis_world)
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
