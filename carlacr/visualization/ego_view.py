@@ -439,20 +439,10 @@ class CameraManager:
 
         self.transform_index = 1
         self.sensors = [['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB', {}],
-            ['sensor.camera.depth', carla.ColorConverter.Raw, 'Camera Depth (Raw)', {}],
-            ['sensor.camera.depth', carla.ColorConverter.Depth, 'Camera Depth (Gray Scale)', {}],
-            ['sensor.camera.depth', carla.ColorConverter.LogarithmicDepth, 'Camera Depth (Logarithmic Gray Scale)', {}],
-            ['sensor.camera.semantic_segmentation', carla.ColorConverter.Raw, 'Camera Semantic Segmentation (Raw)', {}],
-            ['sensor.camera.semantic_segmentation', carla.ColorConverter.CityScapesPalette,
-             'Camera Semantic Segmentation (CityScapes Palette)', {}],
-            ['sensor.camera.instance_segmentation', carla.ColorConverter.CityScapesPalette,
-             'Camera Instance Segmentation (CityScapes Palette)', {}],
-            ['sensor.camera.instance_segmentation', carla.ColorConverter.Raw, 'Camera Instance Segmentation (Raw)', {}],
             ['sensor.camera.dvs', carla.ColorConverter.Raw, 'Dynamic Vision Sensor', {}],
             ['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB Distorted',
              {'lens_circle_multiplier': '3.0', 'lens_circle_falloff': '3.0', 'chromatic_aberration_intensity': '0.5',
-              'chromatic_aberration_offset': '0'}],
-                        ['sensor.camera.optical_flow', carla.ColorConverter.Raw, 'Optical Flow', {}], ]
+              'chromatic_aberration_offset': '0'}],]
         world = self._parent.get_world()
         bp_library = world.get_blueprint_library()
         for item in self.sensors:
