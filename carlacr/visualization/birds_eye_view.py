@@ -32,15 +32,16 @@ Welcome to CARLA No-Rendering Mode Visualizer
 
 import glob
 import os
-import sys
 import carla
 import datetime
 import weakref
 import math
 import hashlib
-from typing import Tuple
+from typing import Tuple, List
 import pygame
 import pygame.locals as keys
+from carlacr.helper.config import BirdsEyeParams
+from carlacr.visualization.common import FadingText, HelpText, get_actor_display_name
 
 
 # Colors
@@ -87,55 +88,45 @@ COLOR_ALUMINIUM_5 = pygame.Color(46, 52, 54)
 COLOR_WHITE = pygame.Color(255, 255, 255)
 COLOR_BLACK = pygame.Color(0, 0, 0)
 
-# Module Defines
-TITLE_WORLD = 'WORLD'
-TITLE_HUD = 'HUD'
-TITLE_INPUT = 'INPUT'
-
 PIXELS_PER_METER = 12
 
-MAP_DEFAULT_SCALE = 0.1
 HERO_DEFAULT_SCALE = 1.0
 
 PIXELS_AHEAD_VEHICLE = 150
 
-# ==============================================================================
-# -- Util -----------------------------------------------------------
-# ==============================================================================
-
-
-def is_quit_shortcut(key: pygame.key):
-    """Returns True if one of the specified keys are pressed"""
-    return (key == keys.K_ESCAPE) or (key == keys.K_q and pygame.key.get_mods() & keys.KMOD_CTRL)
-
-
-def exit_game():
-    """Shuts down program and PyGame"""
-    pygame.quit()
-    sys.exit()
-
-
-def get_actor_display_name(actor, truncate=250):
-    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
-    return (name[:truncate - 1] + '\u2026') if len(name) > truncate else name
-
 
 class Util:
+    """Collection of utility functions."""
 
     @staticmethod
-    def blits(destination_surface, source_surfaces, rect=None, blend_mode=0):
-        """Function that renders the all the source surfaces in a destination source"""
+    def blits(destination_surface: pygame.Surface, source_surfaces: List[pygame.Surface], rect = None, blend_mode = 0):
+        """
+        Function that renders all source surfaces in a destination source
+
+        :param destination_surface:
+        :param source_surfaces:
+        :param rect:
+        :param blend_mode:
+        """
         for surface in source_surfaces:
             destination_surface.blit(surface[0], surface[1], rect, blend_mode)
 
     @staticmethod
-    def length(v):
-        """Returns the length of a vector"""
+    def length(v: carla.Vector3D):
+        """
+        Returns the length of a vector
+
+        :param v: CARLA 3D vector.
+        """
         return math.sqrt(v.x**2 + v.y**2 + v.z**2)
 
     @staticmethod
-    def get_bounding_box(actor):
-        """Gets the bounding box corners of an actor in world space"""
+    def get_bounding_box(actor: carla.Actor):
+        """
+        Gets the bounding box corners of an actor in world space
+
+        :param actor: CARLA actor.
+        """
         bb = actor.trigger_volume.extent
         corners = [carla.Location(x=-bb.x, y=-bb.y),
                    carla.Location(x=bb.x, y=-bb.y),
@@ -146,88 +137,6 @@ class Util:
         t = actor.get_transform()
         t.transform(corners)
         return corners
-
-# ==============================================================================
-# -- FadingText ----------------------------------------------------------------
-# ==============================================================================
-
-
-class FadingText:
-    """Renders texts that fades out after some seconds that the user specifies"""
-
-    def __init__(self, font: pygame.font.Font, dim: Tuple[int, int], pos: Tuple[int, int]):
-        """
-        Initializes variables such as text font, dimensions and position
-
-        :param font: Font type used for fading text.
-        :param dim: Dimensions of fading text.
-        :param pos: Position of fading text.
-        """
-        self.font = font
-        self.dim = dim
-        self.pos = pos
-        self.seconds_left = 0
-        self.surface = pygame.Surface(self.dim)
-
-    def set_text(self, text, color=COLOR_WHITE, seconds=2.0):
-        """Sets the text, color and seconds until fade out"""
-        text_texture = self.font.render(text, True, color)
-        self.surface = pygame.Surface(self.dim)
-        self.seconds_left = seconds
-        self.surface.fill(COLOR_BLACK)
-        self.surface.blit(text_texture, (10, 11))
-
-    def tick(self, clock):
-        """Each frame, it shows the displayed text for some specified seconds, if any"""
-        delta_seconds = 1e-3 * clock.get_time()
-        self.seconds_left = max(0.0, self.seconds_left - delta_seconds)
-        self.surface.set_alpha(500.0 * self.seconds_left)
-
-    def render(self, display):
-        """Renders the text in its surface and its position"""
-        display.blit(self.surface, self.pos)
-
-
-# ==============================================================================
-# -- HelpText ------------------------------------------------------------------
-# ==============================================================================
-
-
-class HelpText:
-    def __init__(self, font: pygame.font.Font, width: int, height: int):
-        """
-        Renders the help text that shows the controls for using no rendering mode
-
-        :param: font: Font type of help text.
-        :param width: Width of pygame window [px] (used to position text)
-        :param height: Height of pygame window [px] (used to position text)
-        """
-        lines = __doc__.split('\n')
-        self.font = font
-        self.dim = (680, len(lines) * 22 + 12)
-        self.pos = (0.5 * width - 0.5 * self.dim[0], 0.5 * height - 0.5 * self.dim[1])
-        self.seconds_left = 0
-        self.surface = pygame.Surface(self.dim)
-        self.surface.fill(COLOR_BLACK)
-        for n, line in enumerate(lines):
-            text_texture = self.font.render(line, True, COLOR_WHITE)
-            self.surface.blit(text_texture, (22, n * 22))
-            self._render = False
-        self.surface.set_alpha(220)
-
-    def toggle(self):
-        """Toggles display of help text"""
-        self._render = not self._render
-
-    def render(self, display):
-        """Renders the help text, if enabled"""
-        if self._render:
-            display.blit(self.surface, self.pos)
-
-
-# ==============================================================================
-# -- HUD -----------------------------------------------------------------
-# ==============================================================================
 
 
 class HUD2D:
@@ -261,21 +170,35 @@ class HUD2D:
             (self.dim[0], 40), (0, self.dim[1] - 40))
 
     def _init_data_params(self):
-        """Initializes the content data structures"""
+        """Initializes the content data structures."""
         self.show_info = True
         self.show_actor_ids = False
         self._info_text = {}
 
-    def notification(self, text, seconds=2.0):
-        """Shows fading texts for some specified seconds"""
+    def notification(self, text: str, seconds: float = 2.0):
+        """
+        Shows fading texts for some specified seconds
+
+        :param text: Text which should be visualized.
+        :param seconds: Time how long the text should be displayed.
+        """
         self._notifications.set_text(text, seconds=seconds)
 
-    def tick(self, clock):
-        """Updated the fading texts each frame"""
+    def tick(self, clock: pygame.time.Clock):
+        """
+        Updated the fading texts each frame
+
+        :param clock: Pygame clock.
+        """
         self._notifications.tick(clock)
 
-    def add_info(self, title, info):
-        """Adds a block of information in the left HUD panel of the visualizer"""
+    def add_info(self, title: str, info: List[str]):
+        """
+        Adds a block of information in the left HUD panel of the visualizer.
+
+        :param title: Title visualized above information.
+        :param info: Information which should be displayed. Each element in list corresponds to one line.
+        """
         self._info_text[title] = info
 
     def render_vehicles_ids(self, vehicle_id_surface, list_actors, world_to_pixel, hero_actor, hero_transform):
@@ -354,15 +277,12 @@ class HUD2D:
         self.help.render(display)
 
 
-# ==============================================================================
-# -- TrafficLightSurfaces ------------------------------------------------------
-# ==============================================================================
-
-
 class TrafficLightSurfaces:
     """Holds the surfaces (scaled and rotated) for painting traffic lights"""
 
     def __init__(self):
+        """Initializes traffic light surfaces."""
+
         def make_surface(tl):
             """
             Draws a traffic light, which is composed of a dark background surface with 3 circles
@@ -396,12 +316,16 @@ class TrafficLightSurfaces:
             carla.TrafficLightState.Off: make_surface(carla.TrafficLightState.Off),
             carla.TrafficLightState.Unknown: make_surface(carla.TrafficLightState.Unknown)
         }
-        self.surfaces = dict(self._original_surfaces)
+        self._surfaces = dict(self._original_surfaces)
 
     def rotozoom(self, angle, scale):
         """Rotates and scales the traffic light surface"""
         for key, surface in self._original_surfaces.items():
-            self.surfaces[key] = pygame.transform.rotozoom(surface, angle, scale)
+            self._surfaces[key] = pygame.transform.rotozoom(surface, angle, scale)
+
+    @property
+    def surfaces(self):
+        return self._surfaces
 
 
 class MapImage:
@@ -425,10 +349,10 @@ class MapImage:
         :param show_spawn_points:
         """
         self._pixels_per_meter = pixels_per_meter
-        self.scale = 1.0
-        self.show_triggers = show_triggers
-        self.show_connections = show_connections
-        self.show_spawn_points = show_spawn_points
+        self._scale = 1.0
+        self._show_triggers = show_triggers
+        self._show_connections = show_connections
+        self._show_spawn_points = show_spawn_points
 
         waypoints = carla_map.generate_waypoints(2)
         margin = 50
@@ -437,21 +361,21 @@ class MapImage:
         min_x = min(waypoints, key=lambda x: x.transform.location.x).transform.location.x - margin
         min_y = min(waypoints, key=lambda x: x.transform.location.y).transform.location.y - margin
 
-        self.width = max(max_x - min_x, max_y - min_y)
-        self.world_offset = (min_x, min_y)
+        self._width = max(max_x - min_x, max_y - min_y)
+        self._world_offset = (min_x, min_y)
 
         # Maximum size of a Pygame surface
         width_in_pixels = (1 << 14) - 1
 
         # Adapt Pixels per meter to make world fit in surface
-        surface_pixel_per_meter = int(width_in_pixels / self.width)
+        surface_pixel_per_meter = int(width_in_pixels / self._width)
         if surface_pixel_per_meter > PIXELS_PER_METER:
             surface_pixel_per_meter = PIXELS_PER_METER
 
         self._pixels_per_meter = surface_pixel_per_meter
-        width_in_pixels = int(self._pixels_per_meter * self.width)
+        width_in_pixels = int(self._pixels_per_meter * self._width)
 
-        self.big_map_surface = pygame.Surface((width_in_pixels, width_in_pixels)).convert()
+        self._big_map_surface = pygame.Surface((width_in_pixels, width_in_pixels)).convert()
 
         # Load OpenDrive content
         opendrive_content = carla_map.to_opendrive()
@@ -468,11 +392,11 @@ class MapImage:
 
         if os.path.isfile(full_path):
             # Load Image
-            self.big_map_surface = pygame.image.load(full_path)
+            self._big_map_surface = pygame.image.load(full_path)
         else:
             # Render map
             self.draw_road_map(
-                self.big_map_surface,
+                self._big_map_surface,
                 carla_world,
                 carla_map,
                 self.world_to_pixel,
@@ -488,9 +412,25 @@ class MapImage:
                 os.remove(town_filename)
 
             # Save rendered map for next executions of same map
-            pygame.image.save(self.big_map_surface, full_path)
+            pygame.image.save(self._big_map_surface, full_path)
 
-        self.surface = self.big_map_surface
+        self._surface = self._big_map_surface
+
+    @property
+    def big_map_surface(self):
+        return self._big_map_surface
+
+    @property
+    def surface(self):
+        return self._surface
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def scale(self):
+        return self._scale
 
     def draw_road_map(self, map_surface, carla_world, carla_map, world_to_pixel, world_to_pixel_width):
         """Draws all the roads, including lane markings, arrows and traffic signs"""
@@ -679,7 +619,7 @@ class MapImage:
             pygame.draw.lines(surface, color, True, line_pixel, 2)
 
             # Draw bounding box of the stop trigger
-            if self.show_triggers:
+            if self._show_triggers:
                 corners = Util.get_bounding_box(actor)
                 corners = [world_to_pixel(p) for p in corners]
                 pygame.draw.lines(surface, trigger_color, True, corners, 2)
@@ -812,11 +752,11 @@ class MapImage:
         topology = carla_map.get_topology()
         draw_topology(topology, 0)
 
-        if self.show_spawn_points:
+        if self._show_spawn_points:
             for sp in carla_map.get_spawn_points():
                 draw_arrow(map_surface, sp, color=COLOR_CHOCOLATE_0)
 
-        if self.show_connections:
+        if self._show_connections:
             dist = 1.5
 
             def to_pixel(wp): return world_to_pixel(wp.transform.location)
@@ -856,31 +796,41 @@ class MapImage:
         for ts_yield in yields:
             draw_traffic_signs(map_surface, yield_font_surface, ts_yield, trigger_color=COLOR_ORANGE_1)
 
-    def world_to_pixel(self, location, offset=(0, 0)):
-        """Converts the world coordinates to pixel coordinates"""
-        x = self.scale * self._pixels_per_meter * (location.x - self.world_offset[0])
-        y = self.scale * self._pixels_per_meter * (location.y - self.world_offset[1])
+    def world_to_pixel(self, location: carla.Location, offset: Tuple[float, float]=(0, 0)) -> List[int]:
+        """
+        Converts the world coordinates to pixel coordinates
+
+        :param location: Location of CARLA object which should be rendered.
+        :param offset: Offset which should be considered.
+        """
+        x = self._scale * self._pixels_per_meter * (location.x - self._world_offset[0])
+        y = self._scale * self._pixels_per_meter * (location.y - self._world_offset[1])
         return [int(x - offset[0]), int(y - offset[1])]
 
     def world_to_pixel_width(self, width):
         """Converts the world units to pixel units"""
-        return int(self.scale * self._pixels_per_meter * width)
+        return int(self._scale * self._pixels_per_meter * width)
 
-    def scale_map(self, scale):
-        """Scales the map surface"""
-        if scale != self.scale:
-            self.scale = scale
-            width = int(self.big_map_surface.get_width() * self.scale)
-            self.surface = pygame.transform.smoothscale(self.big_map_surface, (width, width))
+    def scale_map(self, scale: float):
+        """
+        Scales the map surface.
+
+        :param scale: Factor how much map should be scaled.
+        """
+        if scale != self._scale:
+            self._scale = scale
+            width = int(self._big_map_surface.get_width() * self._scale)
+            self._surface = pygame.transform.smoothscale(self._big_map_surface, (width, width))
 
 
 class World2D:
     """Class that contains all the information of a carla world that is running on the server side"""
 
-    def __init__(self, name, world, hud, args, ego):
+    def __init__(self, name: str, world: carla.World, hud: HUD2D, ego: carla.Vehicle,
+                 config: BirdsEyeParams = BirdsEyeParams()):
         self.name = name
         self.world = world
-        self.args = args
+        self._config = config
         self.server_fps = 0.0
         self.simulation_time = 0
         self.server_clock = pygame.time.Clock()
@@ -898,16 +848,16 @@ class World2D:
 
         self._hud = hud
 
-        self.surface_size = [0, 0]
+        self._surface_size = [0, 0]
         self.prev_scaled_size = 0
-        self.scaled_size = 0
+        self._scaled_size = 0
 
         # Hero actor
         self.hero_actor = ego
         self.spawned_hero = ego
         self.hero_transform = None
 
-        self.scale_offset = [0, 0]
+        self._scale_offset = [0, 0]
 
         self.vehicle_id_surface = None
         self.result_surface = None
@@ -931,23 +881,23 @@ class World2D:
             carla_world=self.world,
             carla_map=self.town_map,
             pixels_per_meter=PIXELS_PER_METER,
-            show_triggers=self.args.show_triggers,
-            show_connections=self.args.show_connections,
-            show_spawn_points=self.args.show_spawn_points)
+            show_triggers=self._config.show_triggers,
+            show_connections=self._config.show_connections,
+            show_spawn_points=self._config.show_spawn_points)
 
         self._hud.notification("Press 'H' or '?' for help.", seconds=4.0)
 
         self.original_surface_size = min(self._hud.dim[0], self._hud.dim[1])
-        self.surface_size = self.map_image.big_map_surface.get_width()
+        self._surface_size = self.map_image.big_map_surface.get_width()
 
-        self.scaled_size = int(self.surface_size)
-        self.prev_scaled_size = int(self.surface_size)
+        self._scaled_size = int(self._surface_size)
+        self.prev_scaled_size = int(self._surface_size)
 
         # Render Actors
         self.actors_surface = pygame.Surface((self.map_image.surface.get_width(), self.map_image.surface.get_height()))
         self.actors_surface.set_colorkey(COLOR_BLACK)
 
-        self.vehicle_id_surface = pygame.Surface((self.surface_size, self.surface_size)).convert()
+        self.vehicle_id_surface = pygame.Surface((self._surface_size, self._surface_size)).convert()
         self.vehicle_id_surface.set_colorkey(COLOR_BLACK)
 
         self.border_round_surface = pygame.Surface(self._hud.dim, pygame.SRCALPHA).convert()
@@ -962,7 +912,7 @@ class World2D:
         scaled_original_size = self.original_surface_size * (1.0 / 0.9)
         self.hero_surface = pygame.Surface((scaled_original_size, scaled_original_size)).convert()
 
-        self.result_surface = pygame.Surface((self.surface_size, self.surface_size)).convert()
+        self.result_surface = pygame.Surface((self._surface_size, self._surface_size)).convert()
         self.result_surface.set_colorkey(COLOR_BLACK)
 
         # Start hero mode by default
@@ -998,23 +948,27 @@ class World2D:
                         self.wheel_offset = 0.1
 
     def _parse_mouse(self):
-        """Parses mouse input"""
+        """Parses mouse input."""
         if pygame.mouse.get_pressed()[0]:
             x, y = pygame.mouse.get_pos()
             self.mouse_offset[0] += (1.0 / self.wheel_offset) * (x - self.mouse_pos[0])
             self.mouse_offset[1] += (1.0 / self.wheel_offset) * (y - self.mouse_pos[1])
             self.mouse_pos = (x, y)
 
-    def parse_input(self, clock):
+    def parse_input(self):
         """Parses the input, which is classified in keyboard events and mouse"""
         self._parse_events()
         self._parse_mouse()
 
-    def tick(self, clock):
+    def tick(self, clock: pygame.time.Clock):
+        """
+        Retrieves the actors for Hero and Map modes and updates the HUD based on that.
+
+        :param clock: Pygame clock to extract time since last execution.
+        """
         # parse events
-        self.parse_input(clock)
-        
-        """Retrieves the actors for Hero and Map modes and updates de HUD based on that"""
+        self.parse_input()
+
         actors = self.world.get_actors()
 
         # We store the transforms also so that we avoid having transforms of
@@ -1026,13 +980,13 @@ class World2D:
         self.update_hud_info(clock)
         self._hud.tick(clock)
 
-    def update_hud_info(self, clock):
+    def update_hud_info(self, clock: pygame.time.Clock):
         """
         Updates the HUD info regarding simulation, hero mode and
         whether there is a traffic light affecting the hero actor
-        """
 
-        hero_mode_text = []
+        :param clock: Pygame clock to extract time since last execution.
+        """
         if self.hero_actor is not None:
             hero_speed = self.hero_actor.get_velocity()
             hero_speed_text = 3.6 * math.sqrt(hero_speed.x ** 2 + hero_speed.y ** 2 + hero_speed.z ** 2)
@@ -1085,7 +1039,7 @@ class World2D:
         self.server_fps = self.server_clock.get_fps()
         self.simulation_time = timestamp.elapsed_seconds
 
-    def _show_nearby_vehicles(self, vehicles):
+    def _show_nearby_vehicles(self, vehicles: List):
         """Shows nearby vehicles of the hero actor"""
         info_text = []
         if self.hero_actor is not None and len(vehicles) > 1:
@@ -1100,8 +1054,13 @@ class World2D:
                 info_text.append('% 5d %s' % (vehicle.id, vehicle_type))
         self._hud.add_info('NEARBY VEHICLES', info_text)
 
-    def _split_actors(self):
-        """Splits the retrieved actors by type id"""
+    def _split_actors(self) \
+            -> Tuple[List[carla.Vehicle], List[carla.TrafficLight], List[carla.TrafficSign], List[carla.Walker]]:
+        """
+        Splits the retrieved actors by type id
+
+        :return: Lists containing CARLA vehicles, traffic lights, traffic signs, and walkers
+        """
         vehicles = []
         traffic_lights = []
         speed_limits = []
@@ -1118,9 +1077,10 @@ class World2D:
             elif 'walker.pedestrian' in actor.type_id:
                 walkers.append(actor_with_transform)
 
-        return (vehicles, traffic_lights, speed_limits, walkers)
+        return vehicles, traffic_lights, speed_limits, walkers
 
-    def _render_traffic_lights(self, surface, list_tl, world_to_pixel):
+    def _render_traffic_lights(self, surface: pygame.Surface, list_tl: List[carla.TrafficLight],
+                               world_to_pixel):
         """Renders the traffic lights and shows its triggers and bounding boxes if flags are enabled"""
         self.affected_traffic_light = None
 
@@ -1128,7 +1088,7 @@ class World2D:
             world_pos = tl.get_location()
             pos = world_to_pixel(world_pos)
 
-            if self.args.show_triggers:
+            if self._config.show_triggers:
                 corners = Util.get_bounding_box(tl)
                 corners = [world_to_pixel(p) for p in corners]
                 pygame.draw.lines(surface, COLOR_BUTTER_1, True, corners, 2)
@@ -1174,7 +1134,7 @@ class World2D:
             limit = sl.type_id.split('.')[2]
             font_surface = font.render(limit, True, COLOR_ALUMINIUM_5)
 
-            if self.args.show_triggers:
+            if self._config.show_triggers:
                 corners = Util.get_bounding_box(sl)
                 corners = [world_to_pixel(p) for p in corners]
                 pygame.draw.lines(surface, COLOR_PLUM_2, True, corners, 2)
@@ -1191,7 +1151,7 @@ class World2D:
                 # In map mode, there is no need to rotate the text of the speed limit
                 surface.blit(font_surface, (x - radius / 2, y - radius / 2))
 
-    def _render_walkers(self, surface, list_w, world_to_pixel):
+    def _render_walkers(self, surface: pygame.Surface, list_w: List[carla.Walker], world_to_pixel):
         """Renders the walkers' bounding boxes"""
         for w in list_w:
             color = COLOR_PLUM_0
@@ -1208,7 +1168,7 @@ class World2D:
             corners = [world_to_pixel(p) for p in corners]
             pygame.draw.polygon(surface, color, corners)
 
-    def _render_vehicles(self, surface, list_v, world_to_pixel):
+    def _render_vehicles(self, surface: pygame.Surface, list_v: List[carla.Vehicle], world_to_pixel):
         """Renders the vehicles' bounding boxes"""
         for v in list_v:
             color = COLOR_SKY_BLUE_0
@@ -1229,8 +1189,18 @@ class World2D:
             corners = [world_to_pixel(p) for p in corners]
             pygame.draw.lines(surface, color, False, corners, int(math.ceil(4.0 * self.map_image.scale)))
 
-    def render_actors(self, surface, vehicles, traffic_lights, speed_limits, walkers):
-        """Renders all the actors"""
+    def render_actors(self, surface: pygame.Surface, vehicles: List[carla.Vehicle],
+                      traffic_lights: List[carla.TrafficLight], speed_limits: List[carla.TrafficSign],
+                      walkers: List[carla.Walker]):
+        """
+        Renders all the actors.
+
+        :param surface: Pygame surface.
+        :param vehicles: List of CARLA vehicles
+        :param traffic_lights: List of CARLA traffic lights.
+        :param speed_limits: List of CARLA speed limit traffic signs.
+        :param walkers: List of CARLA walkers.
+        """
         # Static actors
         self._render_traffic_lights(surface, [tl[0] for tl in traffic_lights], self.map_image.world_to_pixel)
         self._render_speed_limits(surface, [sl[0] for sl in speed_limits], self.map_image.world_to_pixel,
@@ -1249,27 +1219,29 @@ class World2D:
         self.vehicle_id_surface.set_clip(clipping_rect)
         self.result_surface.set_clip(clipping_rect)
 
-    def _compute_scale(self, scale_factor):
+    def _compute_scale(self, scale_factor: float):
         """
         Based on the mouse wheel and mouse position,
         it will compute the scale and move the map so that it is zoomed in or out based on mouse position
+
+        :param scale_factor: Factor how much map should be scaled.
         """
         m = self.mouse_pos
 
         # Percentage of surface where mouse position is actually
-        px = (m[0] - self.scale_offset[0]) / float(self.prev_scaled_size)
-        py = (m[1] - self.scale_offset[1]) / float(self.prev_scaled_size)
+        px = (m[0] - self._scale_offset[0]) / float(self.prev_scaled_size)
+        py = (m[1] - self._scale_offset[1]) / float(self.prev_scaled_size)
 
         # Offset will be the previously accumulated offset added with the
         # difference of mouse positions in the old and new scales
-        diff_between_scales = ((float(self.prev_scaled_size) * px) - (float(self.scaled_size) * px),
-                               (float(self.prev_scaled_size) * py) - (float(self.scaled_size) * py))
+        diff_between_scales = ((float(self.prev_scaled_size) * px) - (float(self._scaled_size) * px),
+                               (float(self.prev_scaled_size) * py) - (float(self._scaled_size) * py))
 
-        self.scale_offset = (self.scale_offset[0] + diff_between_scales[0],
-                             self.scale_offset[1] + diff_between_scales[1])
+        self._scale_offset = (self._scale_offset[0] + diff_between_scales[0],
+                             self._scale_offset[1] + diff_between_scales[1])
 
         # Update previous scale
-        self.prev_scaled_size = self.scaled_size
+        self.prev_scaled_size = self._scaled_size
 
         # Scale performed
         self.map_image.scale_map(scale_factor)
@@ -1279,7 +1251,7 @@ class World2D:
         display.fill(COLOR_ALUMINIUM_4)
 
         if self.actors_with_transforms is None:
-            if self.args.vis_hud:
+            if self._config.vis_hud:
                 self._hud.render(display)
             return
         self.result_surface.fill(COLOR_BLACK)
@@ -1289,8 +1261,8 @@ class World2D:
 
         # Zoom in and out
         scale_factor = self.wheel_offset
-        self.scaled_size = int(self.map_image.width * scale_factor)
-        if self.scaled_size != self.prev_scaled_size:
+        self._scaled_size = int(self.map_image.width * scale_factor)
+        if self._scaled_size != self.prev_scaled_size:
             self._compute_scale(scale_factor)
 
         # Render Actors
@@ -1338,8 +1310,7 @@ class World2D:
             self.border_round_surface.set_clip(clipping_rect)
 
             self.hero_surface.fill(COLOR_ALUMINIUM_4)
-            self.hero_surface.blit(self.result_surface, (-translation_offset[0],
-                                                         -translation_offset[1]))
+            self.hero_surface.blit(self.result_surface, (-translation_offset[0], -translation_offset[1]))
 
             rotated_result_surface = pygame.transform.rotozoom(self.hero_surface, angle, 0.9).convert()
 
@@ -1351,9 +1322,9 @@ class World2D:
         else:
             # Map Mode
             # Translation offset
-            translation_offset = (self.mouse_offset[0] * scale_factor + self.scale_offset[0],
-                                  self.mouse_offset[1] * scale_factor + self.scale_offset[1])
-            center_offset = (abs(display.get_width() - self.surface_size) / 2 * scale_factor, 0)
+            translation_offset = (self.mouse_offset[0] * scale_factor + self._scale_offset[0],
+                                  self.mouse_offset[1] * scale_factor + self._scale_offset[1])
+            center_offset = (abs(display.get_width() - self._surface_size) / 2 * scale_factor, 0)
 
             # Apply clipping rect
             clipping_rect = pygame.Rect(-translation_offset[0] - center_offset[0], -translation_offset[1],
@@ -1364,7 +1335,7 @@ class World2D:
             display.blit(self.result_surface, (translation_offset[0] + center_offset[0],
                                                translation_offset[1]))
 
-        if self.args.vis_hud:
+        if self._config.vis_hud:
             self._hud.render(display)
 
     def destroy(self):

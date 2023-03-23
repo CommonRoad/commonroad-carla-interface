@@ -3,7 +3,6 @@ from typing import Optional, List
 import carla
 import math
 import random
-import pygame.time
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, ObstacleRole
 from commonroad.scenario.obstacle import SignalState

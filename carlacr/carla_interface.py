@@ -468,7 +468,7 @@ class CarlaInterface:
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
-            vis_world = World2D("CARLA 2D", self._world, hud, self._config.simulation, self._ego.actor)
+            vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.simulation.birds_eye_view)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
             hud = HUD3D(self._config.simulation)

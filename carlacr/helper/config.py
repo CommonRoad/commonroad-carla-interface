@@ -222,11 +222,42 @@ class WeatherParams(BaseParam):
 
 
 @dataclass
+class ViewParams(BaseParam):
+    """General parameters of CARLA world views."""
+
+    vis_hud: bool = True
+    width: int = 1280
+    height: int = 720
+    description: str = "Keyboard Control"
+
+
+@dataclass
+class EgoViewParams(ViewParams):
+    """Parameters of CARLA 3D world view."""
+
+    gamma: float = 2.2
+    record_video: bool = False
+    video_path: str = "./"
+    video_name: str = "CommonRoad"
+
+
+@dataclass
+class BirdsEyeParams(ViewParams):
+    """Parameters of CARLA 2D world birds eye view."""
+
+    show_triggers: bool = True
+    show_connections: bool = True
+    show_spawn_points: bool = True
+
+
+@dataclass
 class SimulationParams(BaseParam):
     """Parameters related to simulation in general."""
 
     tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
     weather: WeatherParams = field(default_factory=WeatherParams)
+    ego_view: EgoViewParams = field(default_factory=EgoViewParams)
+    birds_eye_view: BirdsEyeParams = field(default_factory=BirdsEyeParams)
     time_step: float = 0.1
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10
@@ -238,19 +269,6 @@ class SimulationParams(BaseParam):
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
-    width: int = 1280
-    height: int = 720
-    rolename: str = "hero"
-    generation: str = "2"
-    gamma: float = 2.2
-    description: str = "Keyboard Control"
-    show_triggers: bool = True
-    show_connections: bool = True
-    show_spawn_points: bool = True
-    record_video: bool = False
-    video_path: str = "./"
-    video_name: str = "CommonRoad"
-    vis_hud: bool = True
 
 
 @dataclass
