@@ -117,7 +117,7 @@ def exit_game():
 
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
-    return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
+    return (name[:truncate - 1] + '\u2026') if len(name) > truncate else name
 
 
 class Util:
@@ -184,7 +184,7 @@ class FadingText:
         self.surface.set_alpha(500.0 * self.seconds_left)
 
     def render(self, display):
-        """ Renders the text in its surface and its position"""
+        """Renders the text in its surface and its position"""
         display.blit(self.surface, self.pos)
 
 
@@ -230,7 +230,7 @@ class HelpText:
 # ==============================================================================
 
 
-class HUD2D :
+class HUD2D:
     """Class encharged of rendering the HUD that displays information about the world and the hero vehicle"""
 
     def __init__(self, name: str, width: int, height: int):
@@ -279,9 +279,10 @@ class HUD2D :
         self._info_text[title] = info
 
     def render_vehicles_ids(self, vehicle_id_surface, list_actors, world_to_pixel, hero_actor, hero_transform):
-        """When flag enabled, it shows the IDs of the vehicles that are spawned in the world.
-        Depending on the vehicle type, it will render it in different colors"""
-
+        """
+        When flag enabled, it shows the IDs of the vehicles that are spawned in the world.
+        Depending on the vehicle type, it will render it in different colors
+        """
         vehicle_id_surface.fill(COLOR_BLACK)
         if self.show_actor_ids:
             vehicle_id_surface.set_alpha(150)
@@ -363,8 +364,10 @@ class TrafficLightSurfaces:
 
     def __init__(self):
         def make_surface(tl):
-            """Draws a traffic light, which is composed of a dark background surface with 3 circles
-            that indicate its color depending on the state"""
+            """
+            Draws a traffic light, which is composed of a dark background surface with 3 circles
+            that indicate its color depending on the state
+            """
             w = 40
             surface = pygame.Surface((w, 3 * w), pygame.SRCALPHA)
             surface.fill(COLOR_ALUMINIUM_5 if tl != 'h' else COLOR_ORANGE_2)
@@ -402,9 +405,11 @@ class TrafficLightSurfaces:
 
 
 class MapImage:
-    """Class encharged of rendering a 2D image from top view of a carla world. Please note that a cache system is used,
-    so if the OpenDrive content
-    of a Carla town has not changed, it will read and use the stored image if it was rendered in a previous execution"""
+    """
+    Class encharged of rendering a 2D image from top view of a carla world. Please note that a cache system is used,
+    so if the OpenDrive content of a Carla town has not changed,
+    it will read and use the stored image if it was rendered in a previous execution
+    """
 
     def __init__(self, carla_world: carla.World, carla_map: carla.Map, pixels_per_meter: int, show_triggers: bool,
                  show_connections: bool, show_spawn_points: bool):
@@ -528,8 +533,10 @@ class MapImage:
                 pygame.draw.lines(surface, color, closed, line, width)
 
         def get_lane_markings(lane_marking_type, lane_marking_color, waypoints, sign):
-            """For multiple lane marking types (SolidSolid, BrokenSolid, SolidBroken and BrokenBroken), it converts them
-             as a combination of Broken and Solid lines"""
+            """
+            For multiple lane marking types (SolidSolid, BrokenSolid, SolidBroken and BrokenBroken), it converts them
+             as a combination of Broken and Solid lines
+             """
             margin = 0.25
             marking_1 = [world_to_pixel(lateral_shift(w.transform, sign * w.lane_width * 0.5)) for w in waypoints]
             if lane_marking_type == carla.LaneMarkingType.Broken or (lane_marking_type == carla.LaneMarkingType.Solid):
@@ -574,8 +581,10 @@ class MapImage:
             draw_lane_marking_single_side(surface, waypoints[1], 1)
 
         def draw_lane_marking_single_side(surface, waypoints, sign):
-            """Draws the lane marking given a set of waypoints and decides whether drawing the right or left side of
-            the waypoint based on the sign parameter"""
+            """
+            Draws the lane marking given a set of waypoints and decides whether drawing the right or left side of
+            the waypoint based on the sign parameter
+            """
             lane_marking = None
 
             marking_type = carla.LaneMarkingType.NONE
@@ -712,8 +721,10 @@ class MapImage:
             return transform.location + shift * transform.get_forward_vector()
 
         def draw_topology(carla_topology, index):
-            """ Draws traffic signs and the roads network with sidewalks,
-            parking and shoulders by generating waypoints"""
+            """
+            Draws traffic signs and the roads network with sidewalks,
+            parking and shoulders by generating waypoints
+            """
             topology = [x[index] for x in carla_topology]
             topology = sorted(topology, key=lambda w: w.transform.location.z)
             set_waypoints = []
@@ -1016,8 +1027,10 @@ class World2D:
         self._hud.tick(clock)
 
     def update_hud_info(self, clock):
-        """Updates the HUD info regarding simulation,
-        hero mode and whether there is a traffic light affecting the hero actor"""
+        """
+        Updates the HUD info regarding simulation, hero mode and
+        whether there is a traffic light affecting the hero actor
+        """
 
         hero_mode_text = []
         if self.hero_actor is not None:
@@ -1139,8 +1152,10 @@ class World2D:
             surface.blit(srf, srf.get_rect(center=pos))
 
     def _render_speed_limits(self, surface, list_sl, world_to_pixel, world_to_pixel_width):
-        """Renders the speed limits by drawing two concentric circles
-        (outer is red and inner white) and a speed limit text"""
+        """
+        Renders the speed limits by drawing two concentric circles
+        (outer is red and inner white) and a speed limit text
+        """
 
         font_size = world_to_pixel_width(2)
         radius = world_to_pixel_width(2)
@@ -1226,15 +1241,19 @@ class World2D:
         self._render_walkers(surface, walkers, self.map_image.world_to_pixel)
 
     def clip_surfaces(self, clipping_rect):
-        """Used to improve perfomance. Clips the surfaces in order
-        to render only the part of the surfaces that are going to be visible"""
+        """
+        Used to improve perfomance. Clips the surfaces in order
+        to render only the part of the surfaces that are going to be visible
+        """
         self.actors_surface.set_clip(clipping_rect)
         self.vehicle_id_surface.set_clip(clipping_rect)
         self.result_surface.set_clip(clipping_rect)
 
     def _compute_scale(self, scale_factor):
-        """Based on the mouse wheel and mouse position,
-        it will compute the scale and move the map so that it is zoomed in or out based on mouse position"""
+        """
+        Based on the mouse wheel and mouse position,
+        it will compute the scale and move the map so that it is zoomed in or out based on mouse position
+        """
         m = self.mouse_pos
 
         # Percentage of surface where mouse position is actually

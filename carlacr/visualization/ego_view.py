@@ -36,7 +36,6 @@ Use ARROWS or WASD keys for control.
     ESC          : quit
 """
 
-from __future__ import print_function
 
 import os
 import collections
@@ -46,77 +45,12 @@ import weakref
 import numpy as np
 import pygame
 import carla
+from carlacr.helper.config import SimulationParams
 
 
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
-    return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
-
-
-class World3D:
-    def __init__(self, carla_world, hud, config, player):
-        self.world = carla_world
-        self._config = config
-        self.map = self.world.get_map()
-        self.hud = hud
-        self.player = player
-        self.collision_sensor = None
-        self.lane_invasion_sensor = None
-        self.gnss_sensor = None
-        self.imu_sensor = None
-        self.camera_manager = None
-        self.restart()
-        self.world.on_tick(hud.on_world_tick)
-        self.show_vehicle_telemetry = False
-        self.doors_are_open = False
-        self.current_map_layer = 0
-
-    def restart(self):
-        # Keep same camera config if the camera manager exists.
-        cam_index = self.camera_manager.index if self.camera_manager is not None else 0
-        cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
-
-        # Set up the sensors.
-        self.collision_sensor = CollisionSensor(self.player, self.hud)
-        self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
-        self.gnss_sensor = GnssSensor(self.player)
-        self.imu_sensor = IMUSensor(self.player)
-        self.camera_manager = CameraManager(self.player, self.hud, self._config.gamma, self._config.video_path)
-        if self._config.record_video:
-            self.camera_manager.toggle_recording()
-        self.camera_manager.transform_index = cam_pos_index
-        self.camera_manager.set_sensor(cam_index, notify=False)
-        actor_type = get_actor_display_name(self.player)
-        self.hud.notification(actor_type)
-        self.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
-
-        if self._config.sync:
-            self.world.tick()
-        else:
-            self.world.wait_for_tick()
-
-    def tick(self, clock):
-        self.hud.tick(self, clock)
-
-    def render(self, display):
-        self.camera_manager.render(display)
-        if self._config.vis_hud:
-            self.hud.render(display)
-
-    def destroy_sensors(self):
-        self.camera_manager.sensor.destroy()
-        self.camera_manager.sensor = None
-        self.camera_manager.index = None
-
-    def destroy(self):
-        sensors = [self.camera_manager.sensor, self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
-            self.gnss_sensor.sensor, self.imu_sensor.sensor]
-        for sensor in sensors:
-            if sensor is not None:
-                sensor.stop()
-                sensor.destroy()
-        if self.player is not None:
-            self.player.destroy()
+    return (name[:truncate - 1] + '\u2026') if len(name) > truncate else name
 
 
 class HUD3D:
@@ -162,23 +96,25 @@ class HUD3D:
         max_col = max(1.0, max(collision))
         collision = [x / max_col for x in collision]
         vehicles = world.world.get_actors().filter(self._config.filter_vehicle)
-        self._info_text = ['Server:  % 16.0f FPS' % self.server_fps, 'Client:  % 16.0f FPS' % clock.get_fps(), '',
+        self._info_text = ['Server:  % 16.0f FPS' % self.server_fps,
+                           'Client:  % 16.0f FPS' % clock.get_fps(),
+                           '',
                            'Vehicle: % 20s' % get_actor_display_name(world.player, truncate=20),
                            'Map:     % 20s' % world.map.name.split('/')[-1],
-                           'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)), '',
+                           'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)),
+                           '',
                            'Speed:   % 15.0f km/h' % (3.6 * math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2)),
                            u'Compass:% 17.0f\N{DEGREE SIGN} % 2s' % (compass, heading),
                            'Accelero: (%5.1f,%5.1f,%5.1f)' % (world.imu_sensor.accelerometer),
                            'Gyroscop: (%5.1f,%5.1f,%5.1f)' % (world.imu_sensor.gyroscope),
                            'Location:% 20s' % ('(% 5.1f, % 5.1f)' % (t.location.x, t.location.y)),
                            'GNSS:% 24s' % ('(% 2.6f, % 3.6f)' % (world.gnss_sensor.lat, world.gnss_sensor.lon)),
-                           'Height:  % 18.0f m' % t.location.z, '']
+                           'Height:  % 18.0f m' % t.location.z,
+                           '']
         if isinstance(c, carla.VehicleControl):
             self._info_text += [('Throttle:', c.throttle, 0.0, 1.0), ('Steer:', c.steer, -1.0, 1.0),
                 ('Brake:', c.brake, 0.0, 1.0), ('Reverse:', c.reverse), ('Hand brake:', c.hand_brake),
                 ('Manual:', c.manual_gear_shift), 'Gear:        %s' % {-1: 'R', 0: 'N'}.get(c.gear, c.gear)]
-        elif isinstance(c, carla.WalkerControl):
-            self._info_text += [('Speed:', c.speed, 0.0, 5.556), ('Jump:', c.jump)]
         self._info_text += ['', 'Collision:', collision, '', 'Number of vehicles: % 8d' % len(vehicles)]
         if len(vehicles) > 1:
             self._info_text += ['Nearby vehicles:']
@@ -198,7 +134,7 @@ class HUD3D:
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):
-        self._notifications.set_text('Error: %s' % text, (255, 0, 0))
+        self._notifications.set_text(f"Error: {text}", (255, 0, 0))
 
     def render(self, display):
         if self._show_info:
@@ -294,7 +230,7 @@ class CollisionSensor:
         self.sensor = None
         self.history = []
         self._parent = parent_actor
-        self.hud = hud
+        self._hud = hud
         world = self._parent.get_world()
         bp = world.get_blueprint_library().find('sensor.other.collision')
         self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
@@ -315,7 +251,7 @@ class CollisionSensor:
         if not self:
             return
         actor_type = get_actor_display_name(event.other_actor)
-        self.hud.notification('Collision with %r' % actor_type)
+        self._hud.notification(f"Collision with {actor_type}")
         impulse = event.normal_impulse
         intensity = math.sqrt(impulse.x ** 2 + impulse.y ** 2 + impulse.z ** 2)
         self.history.append((event.frame, intensity))
@@ -330,7 +266,7 @@ class LaneInvasionSensor:
         # If the spawn object is not a vehicle, we cannot use the Lane Invasion Sensor
         if parent_actor.type_id.startswith("vehicle."):
             self._parent = parent_actor
-            self.hud = hud
+            self._hud = hud
             world = self._parent.get_world()
             bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
             self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
@@ -346,7 +282,7 @@ class LaneInvasionSensor:
             return
         lane_types = set(x.type for x in event.crossed_lane_markings)
         text = ['%r' % str(x).split()[-1] for x in lane_types]
-        self.hud.notification('Crossed line %s' % ' and '.join(text))
+        self._hud.notification('Crossed line %s' % ' and '.join(text))
 
 
 class GnssSensor:
@@ -402,18 +338,13 @@ class IMUSensor:
         self.compass = math.degrees(sensor_data.compass)
 
 
-# ==============================================================================
-# -- CameraManager -------------------------------------------------------------
-# ==============================================================================
-
-
 class CameraManager:
     def __init__(self, parent_actor, hud, gamma_correction, path):
         self.sensor = None
         self.surface = None
         self._parent = parent_actor
-        self.hud = hud
-        self.recording = False
+        self._hud = hud
+        self._recording = False
         self.path = path
         bound_x = 0.5 + self._parent.bounding_box.extent.x
         bound_y = 0.5 + self._parent.bounding_box.extent.y
@@ -422,12 +353,13 @@ class CameraManager:
 
         if not self._parent.type_id.startswith("walker.pedestrian"):
             self._camera_transforms = [(
-            carla.Transform(carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
-                            carla.Rotation(pitch=8.0)), Attachment.SpringArm), (
-            carla.Transform(carla.Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)), Attachment.Rigid), (
-            carla.Transform(carla.Location(x=+1.9 * bound_x, y=+1.0 * bound_y, z=1.2 * bound_z)), Attachment.SpringArm),
-                (carla.Transform(carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z),
-                                 carla.Rotation(pitch=6.0)), Attachment.SpringArm),
+                carla.Transform(carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
+                                carla.Rotation(pitch=8.0)), Attachment.SpringArm), (
+                carla.Transform(carla.Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)), Attachment.Rigid),
+                (carla.Transform(carla.Location(x=+1.9 * bound_x, y=+1.0 * bound_y, z=1.2 * bound_z)),
+                 Attachment.SpringArm), (
+                carla.Transform(carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z),
+                                carla.Rotation(pitch=6.0)), Attachment.SpringArm),
                 (carla.Transform(carla.Location(x=-1.0, y=-1.0 * bound_y, z=0.4 * bound_z)), Attachment.Rigid)]
         else:
             self._camera_transforms = [
@@ -439,10 +371,10 @@ class CameraManager:
 
         self.transform_index = 1
         self.sensors = [['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB', {}],
-            ['sensor.camera.dvs', carla.ColorConverter.Raw, 'Dynamic Vision Sensor', {}],
-            ['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB Distorted',
-             {'lens_circle_multiplier': '3.0', 'lens_circle_falloff': '3.0', 'chromatic_aberration_intensity': '0.5',
-              'chromatic_aberration_offset': '0'}],]
+                        ['sensor.camera.dvs', carla.ColorConverter.Raw, 'Dynamic Vision Sensor', {}],
+                        ['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB Distorted',
+                         {'lens_circle_multiplier': '3.0', 'lens_circle_falloff': '3.0',
+                          'chromatic_aberration_intensity': '0.5', 'chromatic_aberration_offset': '0'}], ]
         world = self._parent.get_world()
         bp_library = world.get_blueprint_library()
         for item in self.sensors:
@@ -463,26 +395,26 @@ class CameraManager:
 
     def set_sensor(self, index, notify=True, force_respawn=False):
         index = index % len(self.sensors)
-        needs_respawn = True if self.index is None else (
-                    force_respawn or (self.sensors[index][2] != self.sensors[self.index][2]))
+        needs_respawn = \
+            True if self.index is None else (force_respawn or (self.sensors[index][2] != self.sensors[self.index][2]))
         if needs_respawn:
             if self.sensor is not None:
                 self.sensor.destroy()
                 self.surface = None
-            self.sensor = self._parent.get_world().spawn_actor(self.sensors[index][-1],
-                    self._camera_transforms[self.transform_index][0], attach_to=self._parent,
+            self.sensor = self._parent.get_world().spawn_actor(
+                    self.sensors[index][-1], self._camera_transforms[self.transform_index][0], attach_to=self._parent,
                     attachment_type=self._camera_transforms[self.transform_index][1])
             # We need to pass the lambda a weak reference to self to avoid
             # circular reference.
             weak_self = weakref.ref(self)
             self.sensor.listen(lambda image: CameraManager._parse_image(weak_self, image))
         if notify:
-            self.hud.notification(self.sensors[index][2])
+            self._hud.notification(self.sensors[index][2])
         self.index = index
 
     def toggle_recording(self):
-        self.recording = not self.recording
-        self.hud.notification('Recording %s' % ('On' if self.recording else 'Off'))
+        self._recording = not self._recording
+        self._hud.notification('Recording %s' % ('On' if self._recording else 'Off'))
 
     def render(self, display):
         if self.surface is not None:
@@ -493,7 +425,7 @@ class CameraManager:
         self = weak_self()
         if not self:
             return
-        elif self.sensors[self.index][0].startswith('sensor.camera.dvs'):
+        if self.sensors[self.index][0].startswith('sensor.camera.dvs'):
             # Example of converting the raw_data from a carla.DVSEventArray
             # sensor into a NumPy array and using it as an image
             dvs_events = np.frombuffer(image.raw_data, dtype=np.dtype(
@@ -509,5 +441,75 @@ class CameraManager:
             array = array[:, :, :3]
             array = array[:, :, ::-1]
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-        if self.recording:
+        if self._recording:
             image.save_to_disk(f'{self.path}/_tmp/%08d' % image.frame)
+
+
+class World3D:
+    def __init__(self, carla_world: carla.World, hud: HUD3D, config: SimulationParams, ego_vehicle: carla.Vehicle):
+        """
+        Initialization of 3D world visualization.
+
+        :param carla_world: CARLA world.
+        :param hud: 3D Head-up display.
+        :param config: Simulation parameters.
+        :param ego_vehicle: Ego vehicle actor.
+        """
+        self._world = carla_world
+        self._config = config
+        self._hud = hud
+        self._ego_vehicle = ego_vehicle
+        self._collision_sensor = None
+        self._lane_invasion_sensor = None
+        self._gnss_sensor = None
+        self._imu_sensor = None
+        self._camera_manager = None
+        self._restart()
+        self._world.on_tick(hud.on_world_tick)
+        # self.doors_are_open = False
+
+    def _restart(self):
+        # Keep same camera config if the camera manager exists.
+        cam_index = self._camera_manager.index if self._camera_manager is not None else 0
+        cam_pos_index = self._camera_manager.transform_index if self._camera_manager is not None else 0
+
+        # Set up the sensors.
+        self._collision_sensor = CollisionSensor(self._ego_vehicle, self._hud)
+        self._lane_invasion_sensor = LaneInvasionSensor(self._ego_vehicle, self._hud)
+        self._gnss_sensor = GnssSensor(self._ego_vehicle)
+        self._imu_sensor = IMUSensor(self._ego_vehicle)
+        self._camera_manager = CameraManager(self._ego_vehicle, self._hud, self._config.gamma, self._config.video_path)
+        if self._config.record_video:
+            self._camera_manager.toggle_recording()
+        self._camera_manager.transform_index = cam_pos_index
+        self._camera_manager.set_sensor(cam_index, notify=False)
+        self._hud.notification(get_actor_display_name(self._ego_vehicle))
+        self._hud.notification("Press 'H' or '?' for help.", seconds=4.0)
+
+        if self._config.sync:
+            self._world.tick()
+        else:
+            self._world.wait_for_tick()
+
+    def tick(self, clock):
+        self._hud.tick(self, clock)
+
+    def render(self, display):
+        self._camera_manager.render(display)
+        if self._config.vis_hud:
+            self._hud.render(display)
+
+    def destroy_sensors(self):
+        self._camera_manager.sensor.destroy()
+        self._camera_manager.sensor = None
+        self._camera_manager.index = None
+
+    def destroy(self):
+        sensors = [self._camera_manager.sensor, self._collision_sensor.sensor, self._lane_invasion_sensor.sensor, 
+                   self._gnss_sensor.sensor, self._imu_sensor.sensor]
+        for sensor in sensors:
+            if sensor is not None:
+                sensor.stop()
+                sensor.destroy()
+        if self._ego_vehicle is not None:
+            self._ego_vehicle.destroy()
