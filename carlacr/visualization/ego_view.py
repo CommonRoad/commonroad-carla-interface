@@ -230,7 +230,7 @@ class CollisionSensor:
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda event: CollisionSensor._on_collision(weak_self, event))
 
-    def get_collision_history(self) -> Dict[int]:
+    def get_collision_history(self) -> Dict[int, float]:
         """
         Extracts collision intensity for each frame.
 

@@ -70,7 +70,7 @@ class KeyboardVehicleController(CarlaController):
         self._control.throttle = min(self._control.throttle + 0.01, 1.00) \
             if pressed_keys[keys.K_UP] or pressed_keys[keys.K_w] else 0.0
         #  self._control.throttle = 1.0 if keys[K_UP] or keys[K_w] else 0.0
-        steer_increment = 5e-4 * self._dt
+        steer_increment = 5e-4 * self._dt * 1000
         if pressed_keys[keys.K_LEFT] or pressed_keys[keys.K_a]:
             if self._steer_cache > 0:
                 self._steer_cache = 0

@@ -37,7 +37,7 @@ import datetime
 import weakref
 import math
 import hashlib
-from typing import Tuple, List, Callable
+from typing import Tuple, List, Callable, Union, Dict
 import pygame
 import pygame.locals as keys
 from carlacr.helper.config import BirdsEyeParams
@@ -331,13 +331,18 @@ class TrafficLightSurfaces:
         }
         self._surfaces = dict(self._original_surfaces)
 
-    def rotozoom(self, angle, scale):
-        """Rotates and scales the traffic light surface"""
+    def rotozoom(self, angle: float, scale: float):
+        """
+        Rotates and scales the traffic light surface
+
+        :param angle: Angle at which traffic light is rotated.
+        :param scale: Scale at which traffic light is scaled.
+        """
         for key, surface in self._original_surfaces.items():
             self._surfaces[key] = pygame.transform.rotozoom(surface, angle, scale)
 
     @property
-    def surfaces(self) -> pygame.Surface:
+    def surfaces(self) -> Dict[str, Union[pygame.Surface, pygame.SurfaceType]]:
         """
         Getter for surfaces property.
 
@@ -845,8 +850,12 @@ class MapImage:
         y = self._scale * self._pixels_per_meter * (location.y - self._world_offset[1])
         return [int(x - offset[0]), int(y - offset[1])]
 
-    def world_to_pixel_width(self, width):
-        """Converts the world units to pixel units"""
+    def world_to_pixel_width(self, width: float):
+        """
+        Converts the world units to pixel units
+
+        :param width: Width in world.
+        """
         return int(self._scale * self._pixels_per_meter * width)
 
     def scale_map(self, scale: float):
