@@ -29,7 +29,7 @@ def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficMan
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, client, world, tm, cr_id)
+    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, world, tm, cr_id)
     cr_id += len(all_vehicle_actors)
 
     # Spawn Walkers
@@ -218,14 +218,13 @@ def spawn_walkers(blueprints_walkers: List[carla.ActorBlueprint], config: Simula
     return walker_speed, walkers_list
 
 
-def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint], client: carla.Client,
+def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint],
                   world: carla.World, traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
     """
     Spawns vehicles as defined in provided config.
 
     :param config: Simulation configuration.
     :param blueprints: Available CARLA blueprints for vehicles.
-    :param client: CARLA client.
     :param world: CARLA world.
     :param traffic_manager: CARLA traffic manager.
     :param cr_id: Initial ID for CommonRoad obstacles.

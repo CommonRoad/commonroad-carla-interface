@@ -96,7 +96,7 @@ class HelpText:
         :param width: Width of pygame window [px] (used to position text)
         :param height: Height of pygame window [px] (used to position text)
         """
-        lines = __doc__.split('\n')
+        lines = self.__doc__.split('\n')
         self.font = font
         self.dim = (680, len(lines) * 22 + 12)
         self.pos = (0.5 * width - 0.5 * self.dim[0], 0.5 * height - 0.5 * self.dim[1])

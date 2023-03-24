@@ -256,8 +256,6 @@ class SimulationParams(BaseParam):
 
     tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
     weather: WeatherParams = field(default_factory=WeatherParams)
-    ego_view: EgoViewParams = field(default_factory=EgoViewParams)
-    birds_eye_view: BirdsEyeParams = field(default_factory=BirdsEyeParams)
     time_step: float = 0.1
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10
@@ -353,6 +351,9 @@ class CarlaParams(BaseParam):
     """All CARLA-Interface parameters"""
 
     simulation: SimulationParams = field(default_factory=SimulationParams)
+    visualization: ViewParams = field(default_factory=ViewParams)
+    ego_view: EgoViewParams = field(default_factory=EgoViewParams)
+    birds_eye_view: BirdsEyeParams = field(default_factory=BirdsEyeParams)
     pedestrian: PedestrianParams = field(default_factory=PedestrianParams)
     vehicle: VehicleParams = field(default_factory=VehicleParams)
     ego: VehicleParams = field(default_factory=VehicleParams)

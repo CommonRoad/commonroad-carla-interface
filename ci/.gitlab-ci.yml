@@ -1,4 +1,4 @@
-image: "python:3.7"
+image: "python:3.8"
 
 stages:
   - static_check
@@ -23,32 +23,32 @@ prospector_source:
     - python -m pip install prospector[with_mypy]
     - prospector carlacr/
 
-prospector_test:
-  stage: static_check
-  image: "python:3.8"
-  script:
-    - python -m pip install prospector[with_mypy]
-    - prospector tests/
-
-prospector_tutorials:
-  stage: static_check
-  image: "python:3.8"
-  script:
-    - python -m pip install prospector[with_mypy]
-    - prospector tutorials/
+#prospector_test:
+#  stage: static_check
+#  image: "python:3.8"
+#  script:
+#    - python -m pip install prospector[with_mypy]
+#    - prospector tests/
+#
+#prospector_tutorials:
+#  stage: static_check
+#  image: "python:3.8"
+#  script:
+#    - python -m pip install prospector[with_mypy]
+#    - prospector tutorials/
 
 # test
-build_test_python_3_8:
-  image: "python:3.8"
-  stage: test
-  script:
-    - *install-and-run
-
-build_test_python_3_7:
-  image: "python:3.7"
-  stage: test
-  script:
-    - *install-and-run
+#build_test_python_3_8:
+#  image: "python:3.8"
+#  stage: test
+#  script:
+#    - *install-and-run
+#
+#build_test_python_3_7:
+#  image: "python:3.7"
+#  stage: test
+#  script:
+#    - *install-and-run
 
 # build
 

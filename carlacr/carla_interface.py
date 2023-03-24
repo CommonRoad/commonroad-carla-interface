@@ -467,12 +467,13 @@ class CarlaInterface:
 
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
-            hud = HUD2D("CARLA 2D", self._config.simulation.width, self._config.simulation.height)
-            vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.simulation.birds_eye_view)
+            hud = HUD2D("CARLA 2D", self._config.visualization.width, self._config.visualization.height)
+            vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor,
+                                self._config.birds_eye_view)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
-            hud = HUD3D(self._config.simulation)
-            vis_world = World3D(self._world, hud, self._config.simulation, self._ego.actor)
+            hud = HUD3D(self._config.ego_view)
+            vis_world = World3D(self._world, hud, self._config.ego_view, self._ego.actor)
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
@@ -501,8 +502,8 @@ class CarlaInterface:
         if self._config.vis_type is CustomVis.EGO:
             vis_world.destroy_sensors()
 
-        if self._config.simulation.record_video:
-            make_video(self._config.simulation.video_path, self._config.simulation.video_name)
+        if self._config.ego_view.record_video:
+            make_video(self._config.ego_view.video_path, self._config.ego_view.video_name)
 
     def _init_display(self) -> pygame.display:
         """
@@ -512,14 +513,14 @@ class CarlaInterface:
         """
         pygame.init()
         pygame.font.init()
-        display = pygame.display.set_mode((self._config.simulation.width, self._config.simulation.height),
+        display = pygame.display.set_mode((self._config.visualization.width, self._config.visualization.height),
                                           pygame.HWSURFACE | pygame.DOUBLEBUF)
-        pygame.display.set_caption(self._config.simulation.description)  # Place a title to game window
+        pygame.display.set_caption(self._config.visualization.description)  # Place a title to game window
         # Show loading screen
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
         text_surface = font.render('Rendering map...', True, pygame.Color(255, 255, 255))
-        display.blit(text_surface, text_surface.get_rect(center=(self._config.simulation.width / 2,
-                                                                 self._config.simulation.height / 2)))
+        display.blit(text_surface, text_surface.get_rect(center=(self._config.visualization.width / 2,
+                                                                 self._config.visualization.height / 2)))
         display.fill((0, 0, 0))
         pygame.display.flip()
         return display
