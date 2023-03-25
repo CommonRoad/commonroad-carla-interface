@@ -12,9 +12,10 @@ from carlacr.helper.config import VehicleParams, ApproximationType, VehicleContr
 from carlacr.objects.actor import ActorInterface
 from carlacr.controller.controller import create_carla_transform, TransformControl
 from carlacr.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
-    VehicleTMPathFollowingControl
+    VehicleTMPathFollowingControl, VehicleBehaviorAgentPathFollowingControl
 from carlacr.controller.keyboard_controller import KeyboardVehicleController
 from carlacr.helper.utils import create_cr_vehicle_from_actor
+from carlacr.helper.planner import TrajectoryPlannerInterface
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -24,17 +25,20 @@ class VehicleInterface(ActorInterface):
     """Interface between CARLA vehicle and CommonRoad pedestrian."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
-                 actor: Optional[carla.Vehicle] = None, config: VehicleParams = VehicleParams()):
+                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None,
+                 config: VehicleParams = VehicleParams()):
         """
         Initializer of vehicle interface.
 
         :param cr_obstacle: CommonRoad obstacle corresponding to the actor.
         :param world: CARLA world
         :param tm: CARLA traffic manager.
-        :param config: Vehicle or pedestrian config parameters.
         :param actor: New CARLA actor. None if actor is not spawned yet.
+        :param planner: CommonRoad trajectory planner.
+        :param config: Vehicle or pedestrian config parameters.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
+        self._planner = planner
 
     def _init_controller(self):
         """Initializes CARLA vehicle controller."""
@@ -54,7 +58,7 @@ class VehicleInterface(ActorInterface):
         elif self._config.controller_type is VehicleControlType.PATH_TM:
             self._controller = VehicleTMPathFollowingControl(self._actor)
         elif self._config.controller_type is VehicleControlType.PATH_AGENT:
-            self._controller = None
+            self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
 
     def _spawn(self, time_step: int):
         """

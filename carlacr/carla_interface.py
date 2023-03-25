@@ -29,6 +29,7 @@ from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_sta
 from carlacr.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
 from carlacr.objects.vehicle import VehicleInterface
 from carlacr.objects.pedestrian import PedestrianInterface
+from carlacr.helper.planner import TrajectoryPlannerInterface
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -62,6 +63,7 @@ class CarlaInterface:
         self._tm = self._client.get_trafficmanager()
         self._init_carla_world()
         self._init_carla_traffic_manager()
+        self._ego_planner = None
 
         # Initialize the Lists to save the states of the traffic lights
         for actor in self._world.get_actors():
@@ -125,7 +127,7 @@ class CarlaInterface:
         """
         Loads OpenDRIVE map into CARLA.
 
-        @param map_name: Name of map (for CARLA default maps) or path to OpenDRIVE map.
+        :param map_name: Name of map (for CARLA default maps) or path to OpenDRIVE map.
         """
         if map_name[0:4] == "Town":
             logger.info("Load CARLA default map: %s", map_name)
@@ -155,7 +157,7 @@ class CarlaInterface:
         """
         Initializes obstacles and traffic lights from CommonRoad scenario.
 
-        @param sc: CommonRoad scenario.
+        :param sc: CommonRoad scenario.
         """
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
@@ -178,10 +180,10 @@ class CarlaInterface:
         """
         Creates CommonRoad planning problem solution from driven ego vehicle trajectory.
 
-        @param planning_problem_id: ID of new planning problem.
-        @param vehicle_model: Vehicle model which should be used for planning problem.
-        @param vehicle_type: Type of vehicle used for planning problem.
-        @param cost_function: Cost function used for planning problem.
+        :param planning_problem_id: ID of new planning problem.
+        :param vehicle_model: Vehicle model which should be used for planning problem.
+        :param vehicle_type: Type of vehicle used for planning problem.
+        :param cost_function: Cost function used for planning problem.
         :return: CommonRoad planning problem solution.
         """
         return PlanningProblemSolution(planning_problem_id=planning_problem_id, vehicle_model=vehicle_model,
@@ -235,10 +237,10 @@ class CarlaInterface:
         """
         Runs/Replays CommonRoad scenario in CARLA.
 
-        @param sc: CommonRoad scenario.
-        @param solution: CommonRoad solution which should be driven by ego vehicle.
-        @param pps: Planning problem set corresponding to solution.
-        @param ego_id: ID of ego vehicle in case an obstacle from the scenario should be used as ego vehicle.
+        :param sc: CommonRoad scenario.
+        :param solution: CommonRoad solution which should be driven by ego vehicle.
+        :param pps: Planning problem set corresponding to solution.
+        :param ego_id: ID of ego vehicle in case an obstacle from the scenario should be used as ego vehicle.
         """
         assert solution is None or ego_id is None
         assert solution is None and pps is None or solution is not None and pps is not None
@@ -268,9 +270,9 @@ class CarlaInterface:
         """
         Creates CommonRoad dynamic obstacle given planning problem solution.
 
-        @param ego_id: ID of new obstacle.
-        @param pps: Planning problem required to extract trajectory.
-        @param solution: Solution used to extract trajectory of new obstacle.
+        :param ego_id: ID of new obstacle.
+        :param pps: Planning problem required to extract trajectory.
+        :param solution: Solution used to extract trajectory of new obstacle.
         """
         trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[ego_id][2]
         vehicle_params = VehicleParameterMapping.from_vehicle_type(solution.planning_problem_solutions[0].vehicle_type)
@@ -283,7 +285,7 @@ class CarlaInterface:
         """
         Generates CommonRoad scenario given a map and the simulation config stored in the CARLA interface object.
 
-        @param sc: Scenario containing map.
+        :param sc: Scenario containing map.
         :return: Generated CommonRoad scenario and planning problem set.
         """
         assert self._config.sync is True
@@ -316,32 +318,42 @@ class CarlaInterface:
                                                        self._cr_obstacles[0].cr_obstacle.initial_state,
                                                        goal_region)])
 
-    def keyboard_control(self, sc: Scenario = None, pp: PlanningProblem = None,
+    def keyboard_control(self, sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None,
                          vehicle_type: VehicleType = VehicleType.BMW_320i):
         """
         Executes keyboard control. Either a provided CommonRoad scenario with planning problem is used or
         a random vehicle from CARLA is used.
 
-        @param sc: CommonRoad scenario.
-        @param pp: CommonRoad planning problem.
-        @param vehicle_type: CommonRoad vehicle type used for simulation.
+        :param sc: CommonRoad scenario.
+        :param pp: CommonRoad planning problem.
+        :param vehicle_type: CommonRoad vehicle type used for simulation.
         """
         logger.info("Start keyboard manual control.")
 
         if self._config.ego.controller_type is not VehicleControlType.KEYBOARD:
             self._config.ego.controller_type = VehicleControlType.KEYBOARD
             logger.info("Keyboard control type not set for ego! Will be set.")
+        self._init_external_control_mode(None, pp, sc, vehicle_type)
 
+    def _init_external_control_mode(self, planner: Optional[TrajectoryPlannerInterface], pp: Optional[PlanningProblem],
+                                    sc: Optional[Scenario], vehicle_type: Optional[VehicleType]):
+        """
+        Initializes and start simulation.
+        Ego vehicle is controlled by external input, e.g., steering wheel, keyboard, CommonRoad planner.
+
+        :param planner: CommonRoad planner.
+        :param pp: CommonRoad planning problem.
+        :param sc: CommonRoad scenario.
+        :param vehicle_type: CommonRoad vehicle type.
+        """
         if pp is not None:
             vehicle_params = VehicleParameterMapping.from_vehicle_type(vehicle_type)
             ego_obs = DynamicObstacle(0, ObstacleType.CAR, Rectangle(vehicle_params.l, vehicle_params.w),
                                       pp.initial_state)
         else:
             ego_obs = None
-
-        logger.info("Init Manual Control.")
-        self._ego = VehicleInterface(ego_obs, self._world, self._tm, config=self._config.ego)
-
+        logger.info("Init ego vehicle.")
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, config=self._config.ego)
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
@@ -349,17 +361,33 @@ class CarlaInterface:
         else:
             self._cr_obstacles = create_actors(self._client, self._world, self._tm, self._config.simulation, 1)
             obstacle_control = False
-
         logger.info("Spawn ego.")
         self._ego.tick(0)
-
         self._run_simulation(obstacle_control=obstacle_control)
+
+    def plan(self, planner: TrajectoryPlannerInterface, sc: Optional[Scenario] = None,
+             pp: Optional[PlanningProblem] = None, vehicle_type: VehicleType = VehicleType.BMW_320i):
+        """
+        Initializes and start simulation using CommonRoad-compatible planner.
+        If no scenario or solution is provided, a CARLA map with randomly-generated traffic is used.
+        If not planning problem set is provided, APIs from the CARLA agent library are used to navigate.
+
+        :param planner: Trajectory planner which should be used.
+        :param sc: CommonRoad scenario.
+        :param pp: CommonRoad Planning problem.
+        :param vehicle_type: CommonRoad vehicle type used for simulation.
+        """
+        logger.info("Start CommonRoad Planning.")
+        if self._config.ego.controller_type is not VehicleControlType.PLANNER:
+            self._config.ego.controller_type = VehicleControlType.PLANNER
+            logger.info("CommonRoad Planner control type not set for ego! Will be set.")
+        self._init_external_control_mode(planner, pp, sc, vehicle_type)
 
     def _update_cr_state(self):
         """
         Stores CommonRoad obstacles and traffic lights states based on current world status.
 
-        @param world: CARLA world object.
+        :param world: CARLA world object.
         """
         # add current state to history
         # self._ego.trajectory.append(self._ego.cr_obstacle.initial_state)  # TODO replace with cr-io history
@@ -403,7 +431,7 @@ class CarlaInterface:
         """
         Sets weather conditions specified in CommonRoad scenario.
 
-        @param env: CommonRoad environment storing time of day, underground and weather.
+        :param env: CommonRoad environment storing time of day, underground and weather.
         """
         # TODO consider underground conditions
         if env.time_of_day is not TimeOfDay.NIGHT:
@@ -439,7 +467,7 @@ class CarlaInterface:
         """
         Sets weather based on given config.
 
-        @param config: Weather config parameters.
+        :param config: Weather config parameters.
         """
         self._world.\
             set_weather(carla.WeatherParameters(config.cloudiness, config.precipitation, config.precipitation_deposits,
@@ -453,8 +481,8 @@ class CarlaInterface:
         Performs simulation by iteratively calling tick and render functions.
         Initializes visualization worlds and head-up display.
 
-        @param obstacle_control: Boolean indicating whether obstacles are controlled based on CommonRoad scenario.
-        @param obstacle_only: Boolean indicating whether only obstacles should be simulated, i.e. no ego vehicle.
+        :param obstacle_control: Boolean indicating whether obstacles are controlled based on CommonRoad scenario.
+        :param obstacle_only: Boolean indicating whether only obstacles should be simulated, i.e. no ego vehicle.
         """
         vis_world = None
         time_step = 0

@@ -2,7 +2,7 @@
 name = "CommonRoad-Carla-Interface"
 version = "0.0.1"
 description = "Interface between CommonRoad and the traffic simulator CARLA."
-authors = ["Cyber-Physical Systems Group, Technical University of Munich"]
+authors = ["Cyber-Physical Systems Group, Technical University of Munich <commonroad@lists.lrz.de>"]
 license = "TODO"
 readme = "README.md"
 homepage = "https://commonroad.in.tum.de"
