@@ -53,7 +53,7 @@ from carlacr.visualization.common import FadingText, HelpText, get_actor_display
 class HUD3D:
     """Head-up display for 3D visualization."""
 
-    def __init__(self, config: EgoViewParams = EgoViewParams):
+    def __init__(self, world: carla.World, config: EgoViewParams = EgoViewParams()):
         """
         Initialization of 3D Head-up display.
 
@@ -76,6 +76,8 @@ class HUD3D:
         self._info_text = []
         self._server_clock = pygame.time.Clock()
         self._config = config
+        self._world = world
+        self._map = world.get_map()
 
     def on_world_tick(self, timestamp: carla.WorldSnapshot.timestamp):
         """
@@ -111,8 +113,8 @@ class HUD3D:
         max_col = max(collision)
         max_col = max(1.0, max_col)
         collision = [x / max_col for x in collision]
-        vehicles = world.world.get_actors().filter(self._config.filter_vehicle)
-        map_name = world.map.name.split('/')[-1]
+        vehicles = self._world.get_actors().filter(self._config.object_filter)
+        map_name = self._map.name.split('/')[-1]
         self._info_text = [f'Server:  {self.server_fps} FPS',
                            f'Client:  {clock.get_fps()} FPS',
                            '',
@@ -140,7 +142,7 @@ class HUD3D:
             def distance(location: carla.Location):
                 return math.sqrt((location.x - t.location.x) ** 2 +
                                  (location.y - t.location.y) ** 2 + (location.z - t.location.z) ** 2)
-            vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.player.id]
+            vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.ego_vehicle.id]
             for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
                 if d > 200.0:
                     break
@@ -555,6 +557,42 @@ class World3D:
         :return: CARLA ego vehicle.
         """
         return self._ego_vehicle
+
+    @property
+    def imu_sensor(self) -> IMUSensor:
+        """
+        Getter for ego vehicle IMU sensor.
+
+        :return: IMUSensor object.
+        """
+        return self._imu_sensor
+
+    @property
+    def lane_invasion_sensor(self) -> LaneInvasionSensor:
+        """
+        Getter for ego vehicle's lane invasion sensor.
+
+        :return: Lane invasion sensor object.
+        """
+        return self._lane_invasion_sensor
+
+    @property
+    def gnss_sensor(self) -> GnssSensor:
+        """
+        Getter for ego vehicle's GNSS sensor
+
+        :return: GNSS sensor object.
+        """
+        return self._gnss_sensor
+
+    @property
+    def collision_sensor(self) -> CollisionSensor:
+        """
+        Getter for ego vehicle's collision sensor.
+
+        :return: Collision sensor object.
+        """
+        return self._collision_sensor
 
     def _restart(self):
         """Starts world objects."""

@@ -239,6 +239,7 @@ class EgoViewParams(ViewParams):
     record_video: bool = False
     video_path: str = "./"
     video_name: str = "CommonRoad"
+    object_filter: str = "vehicle.*"
 
 
 @dataclass

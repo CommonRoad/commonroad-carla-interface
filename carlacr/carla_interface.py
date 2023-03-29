@@ -500,7 +500,7 @@ class CarlaInterface:
                                 self._config.birds_eye_view)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
-            hud = HUD3D(self._config.ego_view)
+            hud = HUD3D(self._world, self._config.ego_view)
             vis_world = World3D(self._world, hud, self._config.ego_view, self._ego.actor)
 
         logger.info("Loop.")
