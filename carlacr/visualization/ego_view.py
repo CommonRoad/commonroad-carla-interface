@@ -115,20 +115,22 @@ class HUD3D:
         collision = [x / max_col for x in collision]
         vehicles = self._world.get_actors().filter(self._config.object_filter)
         map_name = self._map.name.split('/')[-1]
-        self._info_text = [f'Server:  {self.server_fps} FPS',
-                           f'Client:  {clock.get_fps()} FPS',
+        self._info_text = [f'Server:  {self.server_fps:.2f} FPS',
+                           f'Client:  {clock.get_fps():.2f} FPS',
                            '',
                            f'Vehicle: {get_actor_display_name(world.ego_vehicle, truncate=20)}',
                            f'Map:     {map_name}',
                            f'Simulation time: {datetime.timedelta(seconds=int(self.simulation_time))}',
                            '',
-                           f'Speed:   {(3.6 * math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2))} km/h',
-                           f'Compass: {compass}\N{DEGREE SIGN} {heading}',
-                           f'Accelero: ({world.imu_sensor.accelerometer})',
-                           f'Gyroscop: ({world.imu_sensor.gyroscope})',
-                           f'Location: {t.location.x} {t.location.y}',
-                           f'GNSS: {world.gnss_sensor.lat} {world.gnss_sensor.lon}',
-                           f'Height:  {t.location.z} m',
+                           f'Speed:   {(3.6 * math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2)):.2f} km/h',
+                           f'Compass: {compass:.2f}\N{DEGREE SIGN} {heading}',
+                           f'Accelero: ({world.imu_sensor.accelerometer[0]:.2f}, '
+                           f'{world.imu_sensor.accelerometer[1]:.2f}, {world.imu_sensor.accelerometer[2]:.2f})',
+                           f'Gyroscop: ({world.imu_sensor.gyroscope[0]:.2f}, {world.imu_sensor.gyroscope[1]:.2f}, '
+                           f'{world.imu_sensor.gyroscope[2]:.2f})',
+                           f'Location: {t.location.x:.2f} {t.location.y:.2f}',
+                           f'GNSS: {world.gnss_sensor.lat:.2f} {world.gnss_sensor.lon:.2f}',
+                           f'Height:  {t.location.z:.2f} m',
                            '']
         if isinstance(c, carla.VehicleControl):
             gear = {-1: 'R', 0: 'N'}.get(c.gear, c.gear)
@@ -147,7 +149,7 @@ class HUD3D:
                 if d > 200.0:
                     break
                 vehicle_type = get_actor_display_name(vehicle, truncate=22)
-                self._info_text.append(f"{d} {vehicle_type}")
+                self._info_text.append(f"{d:.2f} {vehicle_type}")
 
     def notification(self, text: str, seconds: float = 2.0):
         """
