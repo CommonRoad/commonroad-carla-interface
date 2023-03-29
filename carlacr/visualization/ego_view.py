@@ -98,9 +98,9 @@ class HUD3D:
         self._notifications.tick(clock)
         if not self._show_info:
             return
-        t = world.player.get_transform()
-        v = world.player.get_velocity()
-        c = world.player.get_control()
+        t = world.ego_vehicle.get_transform()
+        v = world.ego_vehicle.get_velocity()
+        c = world.ego_vehicle.get_control()
         compass = world.imu_sensor.compass
         heading = 'N' if compass > 270.5 or compass < 89.5 else ''
         heading += 'S' if 90.5 < compass < 269.5 else ''
@@ -116,7 +116,7 @@ class HUD3D:
         self._info_text = [f'Server:  {self.server_fps} FPS',
                            f'Client:  {clock.get_fps()} FPS',
                            '',
-                           f'Vehicle: {get_actor_display_name(world.player, truncate=20)}',
+                           f'Vehicle: {get_actor_display_name(world.ego_vehicle, truncate=20)}',
                            f'Map:     {map_name}',
                            f'Simulation time: {datetime.timedelta(seconds=int(self.simulation_time))}',
                            '',
@@ -546,6 +546,15 @@ class World3D:
         self._restart()
         self._world.on_tick(hud.on_world_tick)
         # self.doors_are_open = False
+
+    @property
+    def ego_vehicle(self) -> carla.Vehicle:
+        """
+        Getter for ego vehicle
+
+        :return: CARLA ego vehicle.
+        """
+        return self._ego_vehicle
 
     def _restart(self):
         """Starts world objects."""
