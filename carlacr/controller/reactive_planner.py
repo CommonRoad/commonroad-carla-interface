@@ -59,7 +59,7 @@ class ReactiveParams:
 class ReactivePlannerInterface(TrajectoryPlannerInterface):
     """CARLA-Interface for reactive planner."""
 
-    def __init__(self, config: ReactiveParams):
+    def __init__(self, config: ReactiveParams = ReactiveParams()):
         """
         Initialization for reactive planner interface.
 
