@@ -90,7 +90,7 @@ class ActorInterface(ABC):
 
         :return: CARLA control type.
         """
-        return self._config.controller_type
+        return self._config.carla_controller_type
 
     def tick(self, time_step: int):
         """

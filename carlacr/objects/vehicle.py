@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List
+from typing import Optional, List, Union
 import carla
 import math
 import random
@@ -8,11 +8,12 @@ from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, Obstacle
 from commonroad.scenario.obstacle import SignalState
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
-from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType
+from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType, EgoVehicleParams, EgoPlanner
 from carlacr.objects.actor import ActorInterface
 from carlacr.controller.controller import create_carla_transform, TransformControl
 from carlacr.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
     VehicleTMPathFollowingControl, VehicleBehaviorAgentPathFollowingControl
+from carlacr.controller.commonroad_planner import CommonRoadPlannerController
 from carlacr.controller.keyboard_controller import KeyboardVehicleController
 from carlacr.helper.utils import create_cr_vehicle_from_actor
 from carlacr.helper.planner import TrajectoryPlannerInterface
@@ -25,39 +26,44 @@ class VehicleInterface(ActorInterface):
     """Interface between CARLA vehicle and CommonRoad pedestrian."""
 
     def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
-                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None,
-                 config: VehicleParams = VehicleParams()):
+                 config: Union[VehicleParams, EgoVehicleParams] = VehicleParams(),
+                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None):
         """
         Initializer of vehicle interface.
 
         :param cr_obstacle: CommonRoad obstacle corresponding to the actor.
         :param world: CARLA world
         :param tm: CARLA traffic manager.
+        :param config: Vehicle or pedestrian config parameters.
         :param actor: New CARLA actor. None if actor is not spawned yet.
         :param planner: CommonRoad trajectory planner.
-        :param config: Vehicle or pedestrian config parameters.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
         self._planner = planner
 
     def _init_controller(self):
         """Initializes CARLA vehicle controller."""
-        if self._config.controller_type is VehicleControlType.TRANSFORM:
+        if hasattr(self._config, "ego_planner"):
+            if self._config.ego_planner is EgoPlanner.STEERING_WHEEL:
+                self._controller = WheelController(self._actor)
+            elif self._config.ego_planner is EgoPlanner.KEYBOARD:
+                self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
+            elif self._config.ego_planner is EgoPlanner.PLANNER:
+                self._controller = CommonRoadPlannerController(self._actor, self._planner,
+                                                               self._config.carla_controller_type,
+                                                               self._config.simulation.time_step,
+                                                               self._config.control)
+
+        if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
             self._controller = TransformControl(self._actor)
-        elif self._config.controller_type is VehicleControlType.PID:
+        elif self._config.carla_controller_type is VehicleControlType.PID:
             self._controller = PIDController(actor=self._actor, config=self._config.control,
                                              dt=self._config.simulation.time_step)
-        elif self._config.controller_type is VehicleControlType.ACKERMANN:
+        elif self._config.carla_controller_type is VehicleControlType.ACKERMANN:
             self._controller = AckermannController(self._actor, config=self._config.control)
-        elif self._config.controller_type is VehicleControlType.STEERING_WHEEL:
-            self._controller = WheelController(self._actor)
-        elif self._config.controller_type is VehicleControlType.KEYBOARD:
-            self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
-        elif self._config.controller_type is VehicleControlType.PLANNER:
-            self._controller = None
-        elif self._config.controller_type is VehicleControlType.PATH_TM:
+        elif self._config.carla_controller_type is VehicleControlType.PATH_TM:
             self._controller = VehicleTMPathFollowingControl(self._actor)
-        elif self._config.controller_type is VehicleControlType.PATH_AGENT:
+        elif self._config.carla_controller_type is VehicleControlType.PATH_AGENT:
             self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
 
     def _spawn(self, time_step: int):
@@ -84,9 +90,9 @@ class VehicleInterface(ActorInterface):
     def _init_tm_actor_path(self):
         """Initializes traffic manager for path if corresponding control type is used"""
         if self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC:
-            if self._config.controller_type == VehicleControlType.PATH_TM:
+            if self._config.carla_controller_type == VehicleControlType.PATH_TM:
                 self._tm.set_path(self._actor, self._get_path())
-            elif self._config.controller_type == VehicleControlType.PATH_AGENT:
+            elif self._config.carla_controller_type == VehicleControlType.PATH_AGENT:
                 self._controller.set_path(self._get_path())
 
     def _create_cr_actor(self):

@@ -31,13 +31,13 @@ class PedestrianInterface(ActorInterface):
 
     def _init_controller(self):
         """Initializes CARLA pedestrian controller used for walker."""
-        if self._config.controller_type is PedestrianControlType.TRANSFORM:
+        if self._config.carla_controller_type is PedestrianControlType.TRANSFORM:
             self._controller = TransformControl(self._actor)
-        elif self._config.controller_type is PedestrianControlType.AI:
+        elif self._config.carla_controller_type is PedestrianControlType.AI:
             self._controller = \
                 AIWalkerControl(self._actor, self._cr_obstacle.prediction.trajectory.final_state.position,
                                 max(state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list))
-        elif self._config.controller_type is PedestrianControlType.WALKER:
+        elif self._config.carla_controller_type is PedestrianControlType.WALKER:
             self._controller = ManualWalkerControl(self._actor)
 
     def _spawn(self, time_step: int):

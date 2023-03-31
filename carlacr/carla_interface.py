@@ -22,7 +22,7 @@ from crdesigner.map_conversion.map_conversion_interface import opendrive_to_comm
 
 from carlacr.visualization.birds_eye_view import HUD2D, World2D
 from carlacr.visualization.ego_view import HUD3D, World3D
-from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType, WeatherParams
+from carlacr.helper.config import CarlaParams, CustomVis, WeatherParams, EgoPlanner
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
     create_goal_region_from_state, find_pid_by_name, calc_max_timestep, make_video, find_carla_distribution
@@ -330,8 +330,8 @@ class CarlaInterface:
         """
         logger.info("Start keyboard manual control.")
 
-        if self._config.ego.controller_type is not VehicleControlType.KEYBOARD:
-            self._config.ego.controller_type = VehicleControlType.KEYBOARD
+        if self._config.ego.ego_planner is not EgoPlanner.KEYBOARD:
+            self._config.ego.ego_planner = EgoPlanner.KEYBOARD
             logger.info("Keyboard control type not set for ego! Will be set.")
         self._init_external_control_mode(None, pp, sc, vehicle_type)
 
@@ -378,8 +378,8 @@ class CarlaInterface:
         :param vehicle_type: CommonRoad vehicle type used for simulation.
         """
         logger.info("Start CommonRoad Planning.")
-        if self._config.ego.controller_type is not VehicleControlType.PLANNER:
-            self._config.ego.controller_type = VehicleControlType.PLANNER
+        if self._config.ego.ego_planner is not EgoPlanner.PLANNER:
+            self._config.ego.ego_planner = EgoPlanner.PLANNER
             logger.info("CommonRoad Planner control type not set for ego! Will be set.")
         self._init_external_control_mode(planner, pp, sc, vehicle_type)
 

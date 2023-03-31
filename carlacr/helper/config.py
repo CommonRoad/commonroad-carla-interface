@@ -15,17 +15,22 @@ class PedestrianControlType(Enum):
     TRANSFORM = 3
 
 
-class VehicleControlType(Enum):
-    """Available controller types for vehicles."""
+class EgoPlanner(Enum):
+    """Available options to plan ego movements."""
 
     KEYBOARD = 1
     STEERING_WHEEL = 2
-    TRANSFORM = 3
-    PID = 4
-    ACKERMANN = 5
-    PATH_TM = 6
-    PATH_AGENT = 7
-    PLANNER = 8
+    PLANNER = 3
+
+
+class VehicleControlType(Enum):
+    """Available controller types for vehicles."""
+
+    TRANSFORM = 1
+    PID = 2
+    ACKERMANN = 3
+    PATH_TM = 4
+    PATH_AGENT = 5
 
 
 class CustomVis(Enum):
@@ -325,7 +330,14 @@ class VehicleParams(BaseParam):
     simulation: SimulationParams = field(default_factory=SimulationParams)
     vehicle_ks_state: bool = True
     path_sampling: int = 10  # use every path_sampling time step for path to follow CR trajectory
-    controller_type: VehicleControlType = VehicleControlType.TRANSFORM
+    carla_controller_type: VehicleControlType = VehicleControlType.TRANSFORM
+
+
+@dataclass
+class EgoVehicleParams(VehicleParams):
+    """Parameters related ot ego vehicle."""
+
+    ego_planner: EgoPlanner = EgoPlanner.KEYBOARD
 
 
 class PedestrianParams(BaseParam):
@@ -357,5 +369,5 @@ class CarlaParams(BaseParam):
     birds_eye_view: BirdsEyeParams = field(default_factory=BirdsEyeParams)
     pedestrian: PedestrianParams = field(default_factory=PedestrianParams)
     vehicle: VehicleParams = field(default_factory=VehicleParams)
-    ego: VehicleParams = field(default_factory=VehicleParams)
+    ego: EgoVehicleParams = field(default_factory=EgoVehicleParams)
     map_params: MapParams = field(default_factory=MapParams)
