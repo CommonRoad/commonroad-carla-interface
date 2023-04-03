@@ -53,18 +53,18 @@ class VehicleInterface(ActorInterface):
                                                                self._config.carla_controller_type,
                                                                self._config.simulation.time_step,
                                                                self._config.control)
-
-        if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
-            self._controller = TransformControl(self._actor)
-        elif self._config.carla_controller_type is VehicleControlType.PID:
-            self._controller = PIDController(actor=self._actor, config=self._config.control,
-                                             dt=self._config.simulation.time_step)
-        elif self._config.carla_controller_type is VehicleControlType.ACKERMANN:
-            self._controller = AckermannController(self._actor, config=self._config.control)
-        elif self._config.carla_controller_type is VehicleControlType.PATH_TM:
-            self._controller = VehicleTMPathFollowingControl(self._actor)
-        elif self._config.carla_controller_type is VehicleControlType.PATH_AGENT:
-            self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
+        else:
+            if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
+                self._controller = TransformControl(self._actor)
+            elif self._config.carla_controller_type is VehicleControlType.PID:
+                self._controller = PIDController(actor=self._actor, config=self._config.control,
+                                                 dt=self._config.simulation.time_step)
+            elif self._config.carla_controller_type is VehicleControlType.ACKERMANN:
+                self._controller = AckermannController(self._actor, config=self._config.control)
+            elif self._config.carla_controller_type is VehicleControlType.PATH_TM:
+                self._controller = VehicleTMPathFollowingControl(self._actor)
+            elif self._config.carla_controller_type is VehicleControlType.PATH_AGENT:
+                self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
 
     def _spawn(self, time_step: int):
         """

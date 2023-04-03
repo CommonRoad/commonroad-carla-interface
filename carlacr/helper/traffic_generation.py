@@ -140,7 +140,7 @@ def init_walker_controller_traffic_generation(all_actors: List[carla.Actor], all
     for idx in range(1, len(all_id), 2):
         cr_walkers_list.append(PedestrianInterface(
             create_cr_pedestrian_from_walker(all_actors[idx], cr_id, config.pedestrian_default_shape), world,
-            client.get_trafficmanager(), all_actors[idx]))
+            client.get_trafficmanager(), actor=all_actors[idx]))
         cr_id += 1
     return cr_walkers_list
 
@@ -249,7 +249,7 @@ def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprin
 
         if spawned_actor is not None:
             cr_obstacle = create_cr_vehicle_from_actor(spawned_actor, cr_id)
-            vehicles_list.append(VehicleInterface(cr_obstacle, world, traffic_manager, spawned_actor))
+            vehicles_list.append(VehicleInterface(cr_obstacle, world, traffic_manager, actor=spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
             traffic_manager.ignore_walkers_percentage(spawned_actor, config.tm.ignore_walkers_percentage)
