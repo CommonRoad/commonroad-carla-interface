@@ -1,8 +1,12 @@
 from typing import Optional, Union
+import logging
+import numpy as np
 import carla
 from commonroad.scenario.state import TraceState
 from commonroad.scenario.scenario import Scenario, ScenarioID
-import logging
+from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.scenario.state import InitialState, State
+from commonroad.planning.goal import GoalRegion
 
 from carlacr.controller.controller import CarlaController
 from carlacr.helper.config import VehicleControlType, ControlParams
@@ -24,6 +28,17 @@ def create_scenario_from_world(world: carla.World) -> Scenario:
     """
     print(world.id)
     return Scenario(0.1, ScenarioID(), "")
+
+
+def get_planning_problem_from_world(world: carla.World) -> PlanningProblem:
+    """
+    Creates planning problem from CARLA world.
+
+    :param world: CARLA world.
+    :return: CommonRoad planning problem.
+    """
+    print(world.id)
+    return PlanningProblem(0, InitialState(0, np.array([0, 0]), 0, 0, 0), GoalRegion([State(60)]))
 
 
 class CommonRoadPlannerController(CarlaController):
@@ -77,6 +92,6 @@ class CommonRoadPlannerController(CarlaController):
         """
         world = self._actor.get_world()
         sc = create_scenario_from_world(world)
-        print(sc.author)
-        # pp = get_planning_problem_from_world()
-        # self._current_trajectory = self._planner.plan(sc)
+        pp = get_planning_problem_from_world(world)
+        self._current_trajectory = self._planner.plan(sc, pp)
+        self._controller.control(self._current_trajectory.state_list[0])

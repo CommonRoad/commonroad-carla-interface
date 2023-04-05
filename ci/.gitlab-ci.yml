@@ -1,4 +1,4 @@
-image: "python:3.8"
+image: python:3.8
 
 stages:
   - static_check
@@ -6,9 +6,11 @@ stages:
   - build
 
 before_script:
-  - python -m pip install --upgrade pip
-  - pip install -r requirements.txt
-  - pip install -e .
+  - pip install poetry
+  - poetry config installer.modern-installation false # this should be removed in the future, required because of invalid third-party wheels (https://github.com/python-poetry/poetry/issues/7686)
+  - poetry config virtualenvs.in-project true
+  - poetry install --with tests,docs
+  - source .venv/bin/activate
 
 .install-and-run: &install-and-run
   - pip install tox coverage
@@ -18,7 +20,7 @@ before_script:
 # static_check
 prospector_source:
   stage: static_check
-  image: "python:3.8"
+  image: python:3.8
   script:
     - python -m pip install prospector[with_mypy]
     - prospector carlacr/
@@ -54,12 +56,12 @@ prospector_source:
 #        - poetry build
 
 
-docs_py_38:
-  image: "python:3.8"
+build_doc:
   stage: build
+  image: python3.8
   script:
-    - pip install -r ./docs/doc_requirements.txt
-    - cd docs && bash ./setup.sh
+    - cd doc && make html SPHINXOPTS="-W"
   artifacts:
     paths:
-      - ./docs/build/
+      - ./doc/build/
+    expose_as: 'Documentation'

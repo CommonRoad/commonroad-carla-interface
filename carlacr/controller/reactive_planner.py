@@ -6,7 +6,7 @@ from typing import Optional
 
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import Trajectory
-from commonroad.planning.planning_problem import PlanningProblemSet
+from commonroad.planning.planning_problem import PlanningProblem
 from commonroad_route_planner.route_planner import RoutePlanner
 from commonroad_rp.reactive_planner import ReactivePlanner
 
@@ -71,31 +71,29 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._planner.set_t_sampling_parameters(config.sampling.t_min, config.planning.dt,
                                                 config.planning.planning_horizon)
 
-    def plan(self, sc: Scenario, pps: PlanningProblemSet, ref_path: Optional[np.ndarray] = None) -> Trajectory:
+    def plan(self, sc: Scenario, pp: PlanningProblem, ref_path: Optional[np.ndarray] = None) -> Trajectory:
         """
         Performs trajectory planning of reactive planner.
 
         :param sc: CommonRoad scenario.
-        :param pps: CommonRoad planning problem set.
+        :param pp: CommonRoad planning problem.
         :param ref_path: Reference path which the trajectory planner should follow.
         :return: CommonRoad trajectory.
         """
-        planning_problem = list(pps.planning_problem_dict.values())[0]
-
         # initial state configuration
-        problem_init_state = planning_problem.initial_state
+        problem_init_state = pp.initial_state
         current_velocity = problem_init_state.velocity
         if not hasattr(problem_init_state, 'acceleration'):
             problem_init_state.acceleration = 0.
         x_0 = deepcopy(problem_init_state)
         delattr(x_0, "slip_angle")
 
-        if hasattr(planning_problem.goal.state_list[0], 'velocity'):
-            if planning_problem.goal.state_list[0].velocity.start > 0:
-                desired_velocity = (planning_problem.goal.state_list[0].velocity.start +
-                                    planning_problem.goal.state_list[0].velocity.end) / 2
+        if hasattr(pp.goal.state_list[0], 'velocity'):
+            if pp.goal.state_list[0].velocity.start > 0:
+                desired_velocity = (pp.goal.state_list[0].velocity.start +
+                                    pp.goal.state_list[0].velocity.end) / 2
             else:
-                desired_velocity = planning_problem.goal.state_list[0].velocity.end / 2
+                desired_velocity = pp.goal.state_list[0].velocity.end / 2
         else:
             desired_velocity = x_0.velocity
 
@@ -103,7 +101,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._planner.set_collision_checker(sc)
         # initialize route planner and set reference path
         if ref_path is None:
-            route_planner = RoutePlanner(sc, planning_problem)
+            route_planner = RoutePlanner(sc, pp)
             route = route_planner.plan_routes().retrieve_first_route()
             ref_path = route.reference_path
 
