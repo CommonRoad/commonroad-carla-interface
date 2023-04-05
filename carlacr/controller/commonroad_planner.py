@@ -37,6 +37,7 @@ def get_planning_problem_from_world(world: carla.World) -> PlanningProblem:
     :param world: CARLA world.
     :return: CommonRoad planning problem.
     """
+    print(world.id)
     return PlanningProblem(0, InitialState(0, np.array([0, 0]), 0, 0, 0), GoalRegion([State(60)]))
 
 

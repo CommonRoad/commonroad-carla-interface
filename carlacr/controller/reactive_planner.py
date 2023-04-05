@@ -96,7 +96,7 @@ class VehicleParams:
 class ReactiveParams:
     """Configuration parameters for reactive planner."""
 
-    vehicle: VehicleParams  = field(default_factory=VehicleParams)
+    vehicle: VehicleParams = field(default_factory=VehicleParams)
     planning: PlanningParams = field(default_factory=PlanningParams)
     sampling: SamplingParams = field(default_factory=SamplingParams)
     debug: DebugParams = field(default_factory=DebugParams)
