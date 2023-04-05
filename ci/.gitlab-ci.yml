@@ -56,12 +56,12 @@ prospector_source:
 #        - poetry build
 
 
-build_doc:
-  stage: build
-  image: python:3.8
-  script:
-    - cd docs && make html SPHINXOPTS="-W"
-  artifacts:
-    paths:
-      - ./docs/build/
-    expose_as: 'Documentation'
+#build_doc:
+#  stage: build
+#  image: python:3.8
+#  script:
+#    - cd docs && make html SPHINXOPTS="-W"
+#  artifacts:
+#    paths:
+#      - ./docs/build/
+#    expose_as: 'Documentation'
