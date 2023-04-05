@@ -58,10 +58,10 @@ prospector_source:
 
 build_doc:
   stage: build
-  image: python3.8
+  image: python:3.8
   script:
-    - cd doc && make html SPHINXOPTS="-W"
+    - cd docs && make html SPHINXOPTS="-W"
   artifacts:
     paths:
-      - ./doc/build/
+      - ./docs/build/
     expose_as: 'Documentation'
