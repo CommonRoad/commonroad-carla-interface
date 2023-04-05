@@ -6,6 +6,7 @@ import random
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, ObstacleRole
 from commonroad.scenario.obstacle import SignalState
+from commonroad.planning.planning_problem import PlanningProblem
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
 from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType, EgoVehicleParams, EgoPlanner
@@ -27,7 +28,8 @@ class VehicleInterface(ActorInterface):
 
     def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
                  config: Union[VehicleParams, EgoVehicleParams] = VehicleParams(),
-                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None):
+                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None,
+                 pp: Optional[PlanningProblem] = None):
         """
         Initializer of vehicle interface.
 
@@ -37,9 +39,11 @@ class VehicleInterface(ActorInterface):
         :param config: Vehicle or pedestrian config parameters.
         :param actor: New CARLA actor. None if actor is not spawned yet.
         :param planner: CommonRoad trajectory planner.
+        :param pp: CommonRoad planning problem.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
         self._planner = planner
+        self._pp = pp
 
     def _init_controller(self):
         """Initializes CARLA vehicle controller."""
@@ -49,7 +53,7 @@ class VehicleInterface(ActorInterface):
             elif self._config.ego_planner is EgoPlanner.KEYBOARD:
                 self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
             elif self._config.ego_planner is EgoPlanner.PLANNER:
-                self._controller = CommonRoadPlannerController(self._actor, self._planner,
+                self._controller = CommonRoadPlannerController(self._actor, self._planner, self._pp,
                                                                self._config.carla_controller_type,
                                                                self._config.simulation.time_step,
                                                                self._config.control)

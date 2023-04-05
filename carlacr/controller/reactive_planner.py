@@ -9,6 +9,8 @@ from commonroad.scenario.trajectory import Trajectory
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad_route_planner.route_planner import RoutePlanner
 from commonroad_rp.reactive_planner import ReactivePlanner
+from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
+from commonroad.common.solution import VehicleType
 
 from carlacr.helper.planner import TrajectoryPlannerInterface
 
@@ -49,11 +51,55 @@ class SamplingParams:
 
 
 @dataclass
+class DebugParams:
+    """Parameters specifying debug-related information."""
+
+    # show/save plots
+    show_plots: bool = False
+    save_plots: bool = False
+    # draw obstacles with vehicle icons
+    draw_icons: bool = False
+    # draw sampled trajectory set
+    draw_traj_set: bool = False
+    # set debug level: #0: print no debug info,  #1: print basic debug info,   #2: print all debug info
+    debug_mode: int = 1
+    # use multiprocessing True/False
+    multiproc: bool = True
+    # number of workers for multiprocessing
+    num_workers: int = 6
+
+
+class VehicleParams:
+    """Class to store vehicle configurations"""
+
+    cr_vehicle_id: int = 2
+    # get vehicle parameters from CommonRoad vehicle models given cr_vehicle_id
+    vehicle_parameters: VehicleParameterMapping = VehicleParameterMapping.from_vehicle_type(VehicleType(cr_vehicle_id))
+
+    # get dimensions from given vehicle ID
+    length: float = vehicle_parameters.l
+    width: float = vehicle_parameters.w
+    front_ax_distance: float = vehicle_parameters.a
+    rear_ax_distance: float = vehicle_parameters.b
+    wheelbase: float = vehicle_parameters.a + vehicle_parameters.b
+
+    # get constraints from given vehicle ID
+    a_max: float = vehicle_parameters.longitudinal.a_max
+    v_switch: float = vehicle_parameters.longitudinal.v_switch
+    delta_min: float = vehicle_parameters.steering.min
+    delta_max: float = vehicle_parameters.steering.max
+    v_delta_min: float = vehicle_parameters.steering.v_min
+    v_delta_max: float = vehicle_parameters.steering.v_max
+
+
+@dataclass
 class ReactiveParams:
     """Configuration parameters for reactive planner."""
 
+    vehicle: VehicleParams  = field(default_factory=VehicleParams)
     planning: PlanningParams = field(default_factory=PlanningParams)
     sampling: SamplingParams = field(default_factory=SamplingParams)
+    debug: DebugParams = field(default_factory=DebugParams)
 
 
 class ReactivePlannerInterface(TrajectoryPlannerInterface):

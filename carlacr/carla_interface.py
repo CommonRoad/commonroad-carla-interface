@@ -353,7 +353,7 @@ class CarlaInterface:
         else:
             ego_obs = None
         logger.info("Init ego vehicle.")
-        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, config=self._config.ego)
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, pp=pp, config=self._config.ego)
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
@@ -434,6 +434,8 @@ class CarlaInterface:
         :param env: CommonRoad environment storing time of day, underground and weather.
         """
         # TODO consider underground conditions
+        if env is None:
+            return
         if env.time_of_day is not TimeOfDay.NIGHT:
             if env.weather is Weather.HEAVY_RAIN:
                 self._world.set_weather(carla.WeatherParameters.HardRainNoon)
