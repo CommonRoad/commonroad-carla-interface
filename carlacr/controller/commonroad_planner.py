@@ -2,12 +2,15 @@ import copy
 from typing import Optional, Union
 import logging
 import carla
+import numpy as np
+
 from commonroad.scenario.state import TraceState
 from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.state import State
 from commonroad.planning.goal import GoalRegion
 from crpred.predictor_interface import PredictorInterface
+from commonroad_route_planner.route_planner import RoutePlanner
 
 from carlacr.controller.controller import CarlaController
 from carlacr.helper.config import VehicleControlType, ControlParams
@@ -34,14 +37,28 @@ def create_scenario_from_world(world: carla.World, sc: Scenario) -> Scenario:
     return sc
 
 
-def get_planning_problem_from_world(world: carla.World) -> PlanningProblem:
+def get_planning_problem_from_world(world: carla.World, gpp: PlanningProblem) -> PlanningProblem:
     """
     Creates planning problem from CARLA world.
 
     :param world: CARLA world.
+    :param gpp: Global planning problem.
     :return: CommonRoad planning problem.
     """
-    return PlanningProblem(0, create_cr_initial_state_from_actor(world.get_actor(0), 0), GoalRegion([State(60)]))
+    return PlanningProblem(gpp.planning_problem_id, create_cr_initial_state_from_actor(world.get_actor(0), 0),
+                           GoalRegion([State(60)]))
+
+
+def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
+    """
+    Computes global route from a given initial state to goal region.
+    This route should not be used for planning. It is mainly used for extracting the sub-planning problems.
+
+    :param sc: CommonRoad scenario.
+    :param pp: Planning problem.
+    :return: Route.
+    """
+    return RoutePlanner(sc, pp).plan_routes().retrieve_first_route().reference_path
 
 
 class CommonRoadPlannerController(CarlaController):
@@ -65,8 +82,9 @@ class CommonRoadPlannerController(CarlaController):
         super().__init__(actor)
         self._planner = planner
         self._predictor = predictor
-        self._pp = pp
         self._base_sc = copy.deepcopy(sc)
+        self._global_pp = pp
+        self._global_route = compute_global_route(self._base_sc, self._global_pp)
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
 
@@ -110,9 +128,6 @@ class CommonRoadPlannerController(CarlaController):
         sc = create_scenario_from_world(world, self._base_sc)
         if self._predictor is not None:
             sc = self._predictor.predict(sc, 0)
-        if self._pp is None:
-            pp = get_planning_problem_from_world(world)
-        else:
-            pp = self._pp
+        pp = get_planning_problem_from_world(world, self._global_pp)
         self._current_trajectory = self._planner.plan(sc, pp)
         self._controller.control(self._current_trajectory.state_list[0])
