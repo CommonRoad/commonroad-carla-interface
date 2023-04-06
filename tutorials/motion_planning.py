@@ -28,5 +28,5 @@ param.vis_type = CustomVis.BIRD
 
 
 ci = CarlaInterface(param)
-ci.plan(ReactivePlannerInterface(), scenario,
+ci.plan(ReactivePlannerInterface(), None, scenario,
         list(planning_problem_set.planning_problem_dict.values())[0], VehicleType.BMW_320i)

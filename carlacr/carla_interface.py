@@ -19,6 +19,7 @@ from commonroad.common.solution import Solution, PlanningProblemSolution, Vehicl
 from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
 from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
+from crpred.predictor_interface import PredictorInterface
 
 from carlacr.visualization.birds_eye_view import HUD2D, World2D
 from carlacr.visualization.ego_view import HUD3D, World3D
@@ -141,7 +142,7 @@ class CarlaInterface:
                 except OSError:
                     logger.error("Failed load OpenDRIVE map: %s", os.path.basename(map_name))
                     sys.exit()
-            logger.info(f"Loaded OpenDRIVE map: {os.path.basename(map_name)} successfully.")
+            logger.info("Loaded OpenDRIVE map: %s successfully.", os.path.basename(map_name))
 
             self._client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
                                                   vertex_distance=self._config.map_params.vertex_distance,
@@ -333,15 +334,17 @@ class CarlaInterface:
         if self._config.ego.ego_planner is not EgoPlanner.KEYBOARD:
             self._config.ego.ego_planner = EgoPlanner.KEYBOARD
             logger.info("Keyboard control type not set for ego! Will be set.")
-        self._init_external_control_mode(None, pp, sc, vehicle_type)
+        self._init_external_control_mode(None, None, pp, sc, vehicle_type)
 
-    def _init_external_control_mode(self, planner: Optional[TrajectoryPlannerInterface], pp: Optional[PlanningProblem],
+    def _init_external_control_mode(self, planner: Optional[TrajectoryPlannerInterface],
+                                    predictor: Optional[PredictorInterface], pp: Optional[PlanningProblem],
                                     sc: Optional[Scenario], vehicle_type: Optional[VehicleType]):
         """
         Initializes and start simulation.
         Ego vehicle is controlled by external input, e.g., steering wheel, keyboard, CommonRoad planner.
 
         :param planner: CommonRoad planner.
+        :param predictor: CommonRoad predictor.
         :param pp: CommonRoad planning problem.
         :param sc: CommonRoad scenario.
         :param vehicle_type: CommonRoad vehicle type.
@@ -353,7 +356,7 @@ class CarlaInterface:
         else:
             ego_obs = None
         logger.info("Init ego vehicle.")
-        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, sc=sc, pp=pp,
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, predictor=predictor, sc=sc, pp=pp,
                                      config=self._config.ego)
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
@@ -366,7 +369,8 @@ class CarlaInterface:
         self._ego.tick(0)
         self._run_simulation(obstacle_control=obstacle_control)
 
-    def plan(self, planner: TrajectoryPlannerInterface, sc: Optional[Scenario] = None,
+    def plan(self, planner: TrajectoryPlannerInterface, predictor: Optional[PredictorInterface] = None,
+             sc: Optional[Scenario] = None,
              pp: Optional[PlanningProblem] = None, vehicle_type: VehicleType = VehicleType.BMW_320i):
         """
         Initializes and start simulation using CommonRoad-compatible planner.
@@ -374,6 +378,7 @@ class CarlaInterface:
         If not planning problem set is provided, APIs from the CARLA agent library are used to navigate.
 
         :param planner: Trajectory planner which should be used.
+        :param predictor: CommonRoad predictor.
         :param sc: CommonRoad scenario.
         :param pp: CommonRoad Planning problem.
         :param vehicle_type: CommonRoad vehicle type used for simulation.
@@ -382,7 +387,7 @@ class CarlaInterface:
         if self._config.ego.ego_planner is not EgoPlanner.PLANNER:
             self._config.ego.ego_planner = EgoPlanner.PLANNER
             logger.info("CommonRoad Planner control type not set for ego! Will be set.")
-        self._init_external_control_mode(planner, pp, sc, vehicle_type)
+        self._init_external_control_mode(planner, predictor, pp, sc, vehicle_type)
 
     def _update_cr_state(self):
         """

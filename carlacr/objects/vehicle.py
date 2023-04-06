@@ -8,6 +8,7 @@ from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, Obstacle
 from commonroad.scenario.obstacle import SignalState
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.scenario import Scenario
+from crpred.predictor_interface import PredictorInterface
 
 from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
 from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType, EgoVehicleParams, EgoPlanner
@@ -20,6 +21,7 @@ from carlacr.controller.keyboard_controller import KeyboardVehicleController
 from carlacr.helper.utils import create_cr_vehicle_from_actor
 from carlacr.helper.planner import TrajectoryPlannerInterface
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -30,6 +32,7 @@ class VehicleInterface(ActorInterface):
     def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
                  config: Union[VehicleParams, EgoVehicleParams] = VehicleParams(),
                  actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None,
+                 predictor: Optional[PredictorInterface] = None,
                  sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
         """
         Initializer of vehicle interface.
@@ -40,11 +43,13 @@ class VehicleInterface(ActorInterface):
         :param config: Vehicle or pedestrian config parameters.
         :param actor: New CARLA actor. None if actor is not spawned yet.
         :param planner: CommonRoad trajectory planner.
+        :param predictor: CommonRoad predictor.
         :param sc: CommonRoad scenario.
         :param pp: CommonRoad planning problem.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
         self._planner = planner
+        self._predictor = predictor
         self._pp = pp
         self._sc = sc
 
@@ -56,7 +61,8 @@ class VehicleInterface(ActorInterface):
             elif self._config.ego_planner is EgoPlanner.KEYBOARD:
                 self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
             elif self._config.ego_planner is EgoPlanner.PLANNER:
-                self._controller = CommonRoadPlannerController(self._actor, self._planner, self._pp, self._sc,
+                self._controller = CommonRoadPlannerController(self._actor, self._planner, self._predictor,
+                                                               self._pp, self._sc,
                                                                self._config.carla_controller_type,
                                                                self._config.simulation.time_step,
                                                                self._config.control)
