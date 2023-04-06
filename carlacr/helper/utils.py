@@ -120,6 +120,26 @@ def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSSta
     return KSState(time_step, np.array([location.x, -location.y]), steering_angle, vel, orientation)
 
 
+def create_cr_initial_state_from_actor(actor: carla.Vehicle, time_step: int) -> InitialState:
+    """
+    Creates kinematic single-track model state of a CARLA vehicle actor at a time step.
+
+    :param actor: CARLA vehicle actor.
+    :param time_step: Time step of interest.
+    :return: CommonRoad initial state.
+    """
+    vel_vec = actor.get_velocity()
+    acc_vec = actor.get_acceleration()
+    vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
+    acc = math.sqrt(acc_vec.x ** 2 + acc_vec.y ** 2)
+    transform = actor.get_transform()
+    location = transform.location
+    rotation = transform.rotation
+    orientation = make_valid_orientation(-((rotation.yaw * math.pi) / 180))
+
+    return InitialState(time_step, np.array([location.x, -location.y]), orientation, vel, acc, 0, 0)
+
+
 #   slow_vehicles: {'vehicle.seat.leon', 'vehicle.dodge.charger_2020', 'vehicle.audi.tt', 'vehicle.chevrolet.impala',
 #   'vehicle.mercedes.coupe', 'vehicle.lincoln.mkz_2017', 'vehicle.volkswagen.t2_2021', 'vehicle.citroen.c3',
 #   'vehicle.bmw.grandtourer', 'vehicle.mini.cooper_s_2021', 'vehicle.nissan.micra',

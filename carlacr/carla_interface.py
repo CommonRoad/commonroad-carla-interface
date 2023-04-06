@@ -141,7 +141,7 @@ class CarlaInterface:
                 except OSError:
                     logger.error("Failed load OpenDRIVE map: %s", os.path.basename(map_name))
                     sys.exit()
-            logger.info("Loaded OpenDRIVE map: {os.path.basename(map_name)} successfully.")
+            logger.info(f"Loaded OpenDRIVE map: {os.path.basename(map_name)} successfully.")
 
             self._client.generate_opendrive_world(data, carla.OpendriveGenerationParameters(
                                                   vertex_distance=self._config.map_params.vertex_distance,
@@ -353,7 +353,8 @@ class CarlaInterface:
         else:
             ego_obs = None
         logger.info("Init ego vehicle.")
-        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, pp=pp, config=self._config.ego)
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, sc=sc, pp=pp,
+                                     config=self._config.ego)
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
