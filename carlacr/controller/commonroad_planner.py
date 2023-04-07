@@ -70,7 +70,7 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleP
     :return: CommonRoad planning problem.
     """
     initial_state = create_cr_initial_state_from_actor(actor, 0)
-    min_dist = max(0, initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2)
+    min_dist = max(0, initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
     max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
 
     init_idx = max(0, (np.abs(global_route.route - initial_state.position)).argmin() - 1)
@@ -85,8 +85,8 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleP
     time = int(initial_state.time_step + t_h/dt)
 
     return PlanningProblem(0, initial_state,
-                           GoalRegion([CustomState(time_step=Interval(time, time),
-                                                   position=Rectangle(length, 5, position, orientation))]))
+                           GoalRegion([CustomState(time_step=Interval(time-1, time),
+                                                   position=Rectangle(length, 10, position, orientation))]))
 
 
 def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
@@ -171,5 +171,11 @@ class CommonRoadPlannerController(CarlaController):
         if self._predictor is not None:
             sc = self._predictor.predict(sc, 0)
         pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route)
+
+        # from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
+        # from commonroad.planning.planning_problem import PlanningProblemSet
+        #
+        # CommonRoadFileWriter(sc, PlanningProblemSet([pp])).write_to_file("test.xml", OverwriteExistingFile.ALWAYS)
+
         self._current_trajectory = self._planner.plan(sc, pp)
         self._controller.control(self._current_trajectory.state_list[0])
