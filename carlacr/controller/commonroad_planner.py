@@ -44,15 +44,18 @@ class RouteData:
             self.orientation = compute_orientation_from_polyline(self.route)
 
 
-def create_scenario_from_world(world: carla.World, sc: Scenario) -> Scenario:
+def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int) -> Scenario:
     """
     Creates scenario without prediction from CARLA world.
 
     :param world: CARLA world.
     :param sc: Base scenario containing road network and static obstacles.
+    :param ego_id: ID of ego vehicle.
     :return: CommonRoad scenario.
     """
     for actor in world.get_actors():
+        if actor.id == ego_id:
+            continue
         sc.add_objects(create_cr_vehicle_from_actor(actor, sc.generate_object_id()))
     return sc
 
@@ -167,7 +170,7 @@ class CommonRoadPlannerController(CarlaController):
         """
         self._reset_base_scenario()
         world = self._actor.get_world()
-        sc = create_scenario_from_world(world, self._base_sc)
+        sc = create_scenario_from_world(world, self._base_sc, self._actor.id)
         if self._predictor is not None:
             sc = self._predictor.predict(sc, 0)
         pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route)
