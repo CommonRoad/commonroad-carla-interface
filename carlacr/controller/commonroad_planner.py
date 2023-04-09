@@ -61,7 +61,8 @@ def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int) ->
 
 
 def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleParams,
-                                    t_h: float, dt: float, global_route: RouteData) -> PlanningProblem:
+                                    t_h: float, dt: float, global_route: RouteData, current_time_step: int) \
+        -> PlanningProblem:
     """
     Creates planning problem from global route.
 
@@ -70,11 +71,12 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleP
     :param t_h: Trajectory time horizon [s].
     :param dt: Time step size [s].
     :param global_route: Global route.
+    :param current_time_step: Current time step.
     :return: CommonRoad planning problem.
     """
-    initial_state = create_cr_initial_state_from_actor(actor, 0)
-    min_dist = max(0, initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
-    max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
+    initial_state = create_cr_initial_state_from_actor(actor, current_time_step)
+    min_dist = max(0, initial_state.velocity+ initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
+    max_dist = initial_state.velocity + initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
 
     init_idx = max(0, (np.abs(global_route.route - initial_state.position)).argmin() - 1)
     distance_min = global_route.path_length[init_idx] + min_dist
@@ -132,6 +134,7 @@ class CommonRoadPlannerController(CarlaController):
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
         self._vehicle_params = vehicle_params
+        self._current_time_step = 0
 
     def _create_controller(self, control_type: VehicleControlType, dt: float, control_config: ControlParams) \
             -> Union[TransformControl, PIDController, AckermannController, VehicleBehaviorAgentPathFollowingControl,
@@ -172,13 +175,16 @@ class CommonRoadPlannerController(CarlaController):
         world = self._actor.get_world()
         sc = create_scenario_from_world(world, self._base_sc, self._actor.id)
         if self._predictor is not None:
-            sc = self._predictor.predict(sc, 0)
-        pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route)
+            sc = self._predictor.predict(sc, self._current_time_step)
+        pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route,
+                                             self._current_time_step)
 
         # from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
         # from commonroad.planning.planning_problem import PlanningProblemSet
         #
-        # CommonRoadFileWriter(sc, PlanningProblemSet([pp])).write_to_file("test.xml", OverwriteExistingFile.ALWAYS)
+        # CommonRoadFileWriter(sc, PlanningProblemSet([pp])).write_to_file(f"test{self._current_time_step}.xml",
+        #                                                                  OverwriteExistingFile.ALWAYS)
 
         self._current_trajectory = self._planner.plan(sc, pp)
         self._controller.control(self._current_trajectory.state_list[0])
+        self._current_time_step += 1
