@@ -1,6 +1,6 @@
 # CommonRoad-CARLA Interface
 ## Introduction
-The CommonRoad-CARLA Interface provides APIs to use CommonRoad-based tools together with the 3D simulator CARLA. 
+The CommonRoad-CARLA Interface provides APIs to use CommonRoad-based tools together with the 3D simulator CARLA (version 0.0.14).   
 The code for converting a map from CommonRoad to OpenDRIVE is located in the CommonRoad Scenario Designer.
 
 ## Installation
@@ -28,18 +28,18 @@ The documentation will be located under docs/public.
 
 ## Getting started
 We support five ways of interacting with CARLA:
-- CommonRoad scenario replay: 2D/3D visualization of CommonRoad scenarios together with solutions.
+- CommonRoad scenario replay: 2D/3D visualization of CommonRoad scenarios together with solutions.  
 - Keyboard control: Controlling an ego vehicle via keyboard in a 2D/3D visualization.
 - Wheel control (not yet implemented): Controlling an ego vehicle via steering wheel and pedals in a 2D/3D visualization.
 - Scenario Generation: Generation of CommonRoad scenarios with different configurations.
 - Motion planning: Driving in a CARLA simulation with a CommonRoad-based motion planner.
 
-We support CARLA's synchronous and asynchronous mode as well as its offscreen mode.
-For the offscreen mode, we support a 2D birds-eye visualization.
-The default configuration can be found under carlacr/helper/config.py.
+We support CARLA's synchronous and asynchronous mode as well as its offscreen mode.  
+For the offscreen mode, we support a 2D birds-eye visualization.  
+The default configuration can be found under carlacr/helper/config.py.  
 The CARLA interface can take care about starting the CARLA server.
 
-You can find example scripts showing how to use the CommonRoad-CARLA Interface within the folder tutorials.
+You can find example scripts showing how to use the CommonRoad-CARLA Interface within the folder tutorials/.
 
 
 
