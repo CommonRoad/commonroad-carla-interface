@@ -1,0 +1,67 @@
+image: python:3.8
+
+stages:
+  - static_check
+  - test
+  - build
+
+before_script:
+  - pip install poetry
+  - poetry config installer.modern-installation false # this should be removed in the future, required because of invalid third-party wheels (https://github.com/python-poetry/poetry/issues/7686)
+  - poetry config virtualenvs.in-project true
+  - poetry install --with tests,docs
+  - source .venv/bin/activate
+
+.install-and-run: &install-and-run
+  - pip install tox coverage
+  - coverage run --source ./ -m unittest tests/run_tests.py
+  - coverage report -m --omit="*/src/*,*/tests/*" || true
+
+# static_check
+prospector_source:
+  stage: static_check
+  image: python:3.8
+  script:
+    - python -m pip install prospector[with_mypy]
+    - prospector carlacr/
+
+#prospector_test:
+#  stage: static_check
+#  image: "python:3.8"
+#  script:
+#    - python -m pip install prospector[with_mypy]
+#    - prospector tests/
+#
+#prospector_tutorials:
+#  stage: static_check
+#  image: "python:3.8"
+#  script:
+#    - python -m pip install prospector[with_mypy]
+#    - prospector tutorials/
+
+# test
+#build_test_python_3_8:
+#  image: "python:3.8"
+#  stage: test
+#  script:
+#    - *install-and-run
+
+# build
+
+
+#build_package_py_38:
+#    stage: build
+#    image: "python:3.8"
+#    script:
+#        - poetry build
+
+
+#build_doc:
+#  stage: build
+#  image: python:3.8
+#  script:
+#    - cd docs && make html SPHINXOPTS="-W"
+#  artifacts:
+#    paths:
+#      - ./docs/build/
+#    expose_as: 'Documentation'

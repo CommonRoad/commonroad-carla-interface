@@ -22,6 +22,7 @@
 
 import os
 import sys
+import typing
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../carlacr'))
@@ -60,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Commonroad Carla Interface'
-copyright = '2021, TUM'
+Copyright = '2021, TUM'
 author = 'TUM'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -77,12 +78,12 @@ release = '1.0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns: typing.List[str] = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -96,8 +97,8 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'classic'
-html_theme = "sphinx_rtd_theme" #pip install sphinx_rtd_theme
+# html_theme = 'classic'
+html_theme = "sphinx_rtd_theme"  # pip install sphinx_rtd_theme
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -144,7 +145,8 @@ htmlhelp_basename = 'commonroad_carla_interface'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+
+latex_elements: typing.Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
@@ -191,5 +193,3 @@ texinfo_documents = [
      author, 'commonroad_carla_interface', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-

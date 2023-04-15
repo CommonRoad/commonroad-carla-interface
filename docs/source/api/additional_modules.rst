@@ -5,11 +5,11 @@ Gif Creator
 ---------------------
 Handles the GIF creation
 
-.. automodule:: carlacr.helper.gif_creator
+.. automodule:: carlacr.helper.GifCreator
 
-``Gif_Creator`` class
+``GifCreator`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: Gif_Creator
+.. autoclass:: GifCreator
   :members:
   :member-order: bysource
  

@@ -1,105 +1,58 @@
 # CommonRoad-CARLA Interface
 ## Introduction
-This repository contains only the current draft version of the interface itself. 
+The CommonRoad-CARLA Interface provides APIs to use CommonRoad-based tools together with the 3D simulator CARLA 
+(version 0.0.14).   
 The code for converting a map from CommonRoad to OpenDRIVE is located in the CommonRoad Scenario Designer.
 
-## Requirements
-Interface for using CommonRoad together with CARLA
-Entrypoint is CarlaInterface.py
-- pygame
-- imageio 
-- moviepy
-- setuptools
-- numpy
-- carla
-- typer
-- (Optional) commonroad-motion-planning-library
-
 ## Installation
-to install requirement open terminal in CommonRoad-CARLA Interface and run:
+The usage of [Poetry](https://python-poetry.org/) is recommended. 
+Poetry can be installed using:
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+Please follow the prompted instructions and add poetry to your system paths so that you can use the _poetry_ command.
 
-`pip install -e .`
+Create a new Python environment:
+```bash
+poetry shell
+poetry install --with tests,docs,tutorials
+```
+We recommend to use PyCharm (Professional) as IDE.  
+The path to CARLA can either be provided manually via the config parameters or the CARLA release folder path corresponds 
+to one of our default locations: /opt/carla-simulator/, /~/CARLA_0.9.14_RSS/, /~/CARLA_0.9.14/ (default paths work only 
+for Ubuntu).
+
+### Documentation
+You can generate the documentation within your activated Python environment using
+```bash
+cd docs/source && sphinx-build -b html . ../public
+```
+The documentation will be located under docs/public. 
+
 
 ## Getting started
-To simulate only a CommonRoad scenario in CARLA:
-1. Run a CARLA server (Debian installation:)
-    ```
-   cd /opt/carla-simulator/
-    ./CarlaUE4.sh
-   ```
-2. Create a CARLA client object<br/>
-`client = carla.Client('localhost', 2000)`
-3. Initialize _CarlaInterface_<br/>
-    A. without MPL:
+We support five ways of interacting with CARLA:
+- CommonRoad scenario replay: 2D/3D visualization of CommonRoad scenarios together with solutions.  
+- Keyboard control: Controlling an ego vehicle via keyboard in a 2D/3D visualization.
+- Wheel control (not yet implemented): Controlling an ego vehicle via steering wheel and pedals in a 2D/3D 
+visualization.
+- Scenario Generation: Generation of CommonRoad scenarios with different configurations.
+- Motion planning (wip): Driving in a CARLA simulation with a CommonRoad-based motion planner.
 
-    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client, None)`
+We support CARLA's synchronous and asynchronous mode as well as its offscreen mode.  
+For the offscreen mode, we support a 2D birds-eye visualization.  
+The default configuration can be found under carlacr/helper/config.py.  
+The CARLA interface can take care about starting the CARLA server.
 
-    B. with MPL:
-
-    `ci = CarlaInterface(commonroad_scenario , open_drive_map, client, MotionPlanner)`
-
-4. Load the map in CARLA<br/>
-    require all user write permissition for directory: CarlaUE4/Content/Carla/Maps/OpenDrive/
-
-    `ci.load_map()`
-
-5. Setup CarlaInterface<br/>
-`ci.setup_carla()`
-6. Run the scenario<br/>
-`ci.run_scenario()`
-
-## Replay Mode
-Watching a scenario in vehicles view with Replay Mode
-    
-    replaymode=CarlaReplayMode(commonroad_scenario,open_drive_map)
-    replaymode.set_ego_vehicle_by_id(id)
-    replaymode.saving_video(path,name,as mp4 or gif)
-    replaymode.visualize()
-
-![](../test_image/None.gif)
-
-See in example_replay_mode
-## Using Replay Mode in command line
-Example command
-
-    python3 ./main.py ../scenarios/DEU_Test-1_1_T-1.xml ../maps/DEU_Test-1_1_T-1.xodr --veh-id 6
-
-For further Information
-
-    python3 ./main.py --help
-
-## Motion Planning Mode
-Watching a scenario in vehicles view with Motion Planning Mode.This allow user to put in a motion planner, scenario and a map them have a visualization in carla.
-            This API can setup map, scenario. Trigger the motion planning at the beginning of the simulation.
-    
-    motionplanner_mode=CarlaMotionPlannerMode(commonroad_scenario,open_drive_map,mp)
-    motionplanner_mode.set_ego_vehicle_by_id(id)
-    motionplanner_mode.saving_video(path,name,as mp4 or gif)
-    motionplanner_mode.visualize()
-
-See in example_motion_planning_mode
-![](../test_image/DEU_Test-1_1_T-1_06_01_2022_18_53_21/None.gif)
-(The black vehicle is controled by motion planner)
-
-This mode is currently not working with command
+You can find example scripts showing how to use the CommonRoad-CARLA Interface within the folder tutorials/.
 
 
-## Documentation
-to generate the documentation from the source, first install the dependencies with pip:
-`pip install -r docs/doc_requirements.txt`
 
-Afterward run:
 
-`cd docs && make html`
 
-## Additionally installed packages for testing:
 
-- pytest        6.2.4
-- pytest-cov    2.12.1
-- coverage      5.5
 
-To test the converter run:
-pytest -v --cov=conversion.converter --cov-report html
+
 
 
 
