@@ -346,7 +346,7 @@ class PedestrianParams(BaseParam):
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     simulation: SimulationParams = field(default_factory=SimulationParams)
-    controller_type: PedestrianControlType = PedestrianControlType.TRANSFORM
+    carla_controller_type: PedestrianControlType = PedestrianControlType.TRANSFORM
 
 
 @dataclass
