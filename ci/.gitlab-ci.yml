@@ -8,6 +8,7 @@ stages:
 before_script:
   - pip install poetry
   - poetry config installer.modern-installation false # this should be removed in the future, required because of invalid third-party wheels (https://github.com/python-poetry/poetry/issues/7686)
+  - poetry config experimental.system-git-client true
   - poetry config virtualenvs.in-project true
   - poetry install --with tests,docs
   - source .venv/bin/activate
