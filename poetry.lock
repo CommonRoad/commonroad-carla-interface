@@ -161,28 +161,9 @@ shapely = ">=2.0.1,<3.0.0"
 tqdm = ">=4.64"
 
 [[package]]
-name = "commonroad-prediction"
-version = "0.1.0"
-description = "Collection and interface of CommonRoad prediction algorithms."
-category = "main"
-optional = false
-python-versions = "^3.8"
-develop = false
-
-[package.dependencies]
-commonroad-drivability-checker = "^2022.2.1"
-commonroad-io = ">=2023.1"
-
-[package.source]
-type = "git"
-url = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git"
-reference = "HEAD"
-resolved_reference = "b2ecde10e63fd7fa85c34f93eca34f2fa1bf8272"
-
-[[package]]
 name = "commonroad-reactive-planner"
 version = "2022.1"
-description = ""
+description = "Reactive Planner: Sampling-based Frenet Planner"
 category = "main"
 optional = false
 python-versions = ">=3.7"
@@ -1695,7 +1676,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b968135ba969e17cb4885136bf1287730f7fa537e2272cd97797bb17321dcc55"
+content-hash = "2cab1c473e447e3d0d36504fef75109e595da56d8c8c626503d9c0ff88735597"
 
 [metadata.files]
 alabaster = [
@@ -1838,7 +1819,6 @@ commonroad-io = [
     {file = "commonroad_io-2023.1-py3-none-any.whl", hash = "sha256:768d9fa6005bb10e3bd404190736d7564aaca596925fa171d32718770fc02eb9"},
     {file = "commonroad_io-2023.1.tar.gz", hash = "sha256:ad2aa75823a201db91b2dd5e9e11f76e5a1f37a96c82ec15715cc6e631353141"},
 ]
-commonroad-prediction = []
 commonroad-reactive-planner = []
 commonroad-route-planner = [
     {file = "commonroad-route-planner-2022.3.tar.gz", hash = "sha256:eaefb365db8ac4692b1f18eb2cfea3c757acb7b973d58ad94feb809cfebd8897"},
