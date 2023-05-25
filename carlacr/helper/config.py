@@ -340,6 +340,7 @@ class EgoVehicleParams(VehicleParams):
     ego_planner: EgoPlanner = EgoPlanner.KEYBOARD
 
 
+@dataclass
 class PedestrianParams(BaseParam):
     """Parameters related to walkers/pedestrians"""
 
