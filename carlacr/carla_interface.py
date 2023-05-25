@@ -262,6 +262,8 @@ class CarlaInterface:
 
         if ego_id is not None:
             self._ego = VehicleInterface(ego_obs, self._world, self._tm)
+            # To spawn the carla actor.
+            self._ego.tick(0)
 
         self._set_scenario(sc)
 
@@ -412,13 +414,19 @@ class CarlaInterface:
         if self._ego is not None:
             time_step = self._ego.cr_obstacle.initial_state.time_step + 1 if len(self._ego.trajectory) == 0 else \
                 self._ego.trajectory[-1].time_step + 1
-            if self._config.vehicle.vehicle_ks_state:
+            if self._config.vehicle.vehicle_ks_state and self._ego.actor.is_alive:
                 state = create_cr_ks_state_from_actor(self._ego.actor, time_step)
-            else:
+            elif self._ego.actor.is_alive:
                 state = create_cr_pm_state_from_actor(self._ego.actor, time_step)
             self._ego.trajectory.append(state)
 
         for obs in self._cr_obstacles:
+
+            # TODO Investigate the reason why certain actors are being destroyed prior to the completion of the loop.
+            if not obs.actor.is_alive:
+                logger.warning("Actor was destroyed before loop finished!: %s", str(obs.actor))
+                continue
+
             time_step = obs.cr_obstacle.initial_state.time_step + 1 if len(obs.trajectory) == 0 else \
                 obs.trajectory[-1].time_step + 1
 

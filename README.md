@@ -46,13 +46,10 @@ The CARLA interface can take care about starting the CARLA server.
 
 You can find example scripts showing how to use the CommonRoad-CARLA Interface within the folder tutorials/.
 
-
-
-
-
-
-
-
-
-
-
+If you are developing on a virtual machine and want to use ofscreen mode:
+Paste: 
+```
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+```
+into carla_interface.py.
+This configures SDL to use the dummy NULL video driver so pygame can run without a windowing system.
