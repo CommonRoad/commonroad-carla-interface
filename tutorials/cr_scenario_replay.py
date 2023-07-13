@@ -23,9 +23,9 @@ scenario, pps = CommonRoadFileReader(cr_scenario_path).open()
 # Configure simulation and scenario settings
 param = CarlaParams()
 param.map = or_map_path
-param.offscreen_mode = False # set to true if your system (GPU) is powerful enough
-param.vis_type = CustomVis.NONE # change if your system (GPU) is powerful enough
-param.vehicle.carla_controller_type = VehicleControlType.PID
+param.offscreen_mode = False  # set to true if your system (GPU) is powerful enough
+param.vis_type = CustomVis.NONE  # change if your system (GPU) is powerful enough
+param.vehicle.carla_controller_type = VehicleControlType.PATH_TM
 param.pedestrian.carla_controller_type = PedestrianControlType.AI
 # param.simulation.record_video = False
 # param.simulation.video_path = os.path.join(os.path.dirname(__file__), "video")

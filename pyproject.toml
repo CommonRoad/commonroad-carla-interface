@@ -11,8 +11,6 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "License :: OSI Approved :: BSD License",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: MacOS",
-    "Operating System :: Microsoft :: Windows"
 ]
 packages = [{include = "carlacr"}]
 
@@ -24,21 +22,18 @@ packages = [{include = "carlacr"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = ">=1.20"
 pygame = ">=2.1.2"
 commonroad-io = "==2023.1"
-scipy = ">=1.2.0"
-carla = "==0.9.14"
-lxml = ">=4.8.0"
+carla = "0.9.14"
 omegaconf = ">=2.1.2"
-typing = "~=3.7.4.3"
-typer = ">=0.4.0"
-matplotlib = "~=3.5.2"
-commonroad-scenario-designer = "~=0.7.0"
+commonroad-scenario-designer = "~=0.7.1"
 commonroad-drivability-checker = "~=2022.2.1"
 commonroad-vehicle-models = "~=3.0.2"
+
 psutil = "^5.9.4"
 commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "carla_interface" }
+commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "main" }
+
 
 [tool.poetry.group.tests]
 optional = true

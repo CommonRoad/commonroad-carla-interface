@@ -17,14 +17,14 @@ param = CarlaParams()
 #param.map = or_map_path
 #param.map = "Town10HD"
 param.vehicle.vehicle_ks_state = False
-param.offscreen_mode = True # set to false if your system is powerful enough
-param.vis_type = CustomVis.EGO # set to false if your system is powerful enough
+param.offscreen_mode = True  # set to false if your system is powerful enough
+param.vis_type = CustomVis.BIRD  # set to EGO if your system is powerful enough
 param.simulation.record_video = False
 param.simulation.max_time_step = 1200
 
 # Initialize CARLA-Interface and start keyboard control
 ci = CarlaInterface(param)
-ci.keyboard_control() #scenario, list(planning_problem_set.planning_problem_dict.values())[0])
+ci.keyboard_control()  # scenario, list(planning_problem_set.planning_problem_dict.values())[0])
 
 # Extract solution driven by vehicle and store it
 # logger.info("Store solution")
