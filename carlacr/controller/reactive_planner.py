@@ -24,8 +24,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config = config
         self._planner = ReactivePlanner(config)
         self._planner.set_d_sampling_parameters(config.sampling.d_min, config.sampling.d_max)
-        self._planner.set_t_sampling_parameters(config.sampling.t_min, config.planning.dt,
-                                                config.planning.planning_horizon)
+        self._planner.set_t_sampling_parameters(config.sampling.t_min)
 
     def plan(self, sc: Scenario, pp: PlanningProblem, ref_path: Optional[np.ndarray] = None) -> Trajectory:
         """
@@ -63,6 +62,5 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
 
         self._planner.set_desired_velocity(desired_velocity, current_velocity)
         self._planner.set_reference_path(ref_path)
-        x_0 = self._planner.process_initial_state_from_pp(x0_pp=x_0)
 
-        return self._planner.plan(x_0)[0]
+        return self._planner.plan()[0]
