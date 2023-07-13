@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Specify CommonRoad and OpenDRIVE map
-# or_map_path = "Town10HD"
 or_map_path = os.path.dirname(__file__) + "/../maps/four_way_crossing.xodr"
 # cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/Town10HD.xml"
 cr_scenario_path = os.path.dirname(__file__) + "/../scenarios/four_way_crossing_Modi.xml"
