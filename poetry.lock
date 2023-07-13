@@ -97,7 +97,7 @@ python-versions = ">=3.7.0"
 
 [[package]]
 name = "click"
-version = "8.1.4"
+version = "8.1.5"
 description = "Composable command line interface toolkit"
 category = "main"
 optional = false
@@ -205,7 +205,7 @@ scipy = ">=1.5.2"
 type = "git"
 url = "git@gitlab.lrz.de:cps/reactive-planner.git"
 reference = "carla_interface"
-resolved_reference = "ec2edc807ef7ed025726dad7fdc23ff4981006af"
+resolved_reference = "fc1bd2c2e9c8c8010e503d93def196e5e362abc5"
 
 [[package]]
 name = "commonroad-route-planner"
@@ -1012,7 +1012,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "pygeodesy"
-version = "23.6.12"
+version = "23.7.12"
 description = "Pure Python geodesy tools"
 category = "main"
 optional = false
@@ -1826,8 +1826,8 @@ charset-normalizer = [
     {file = "charset_normalizer-3.2.0-py3-none-any.whl", hash = "sha256:8e098148dd37b4ce3baca71fb394c81dc5d9c7728c95df695d2dca218edf40e6"},
 ]
 click = [
-    {file = "click-8.1.4-py3-none-any.whl", hash = "sha256:2739815aaa5d2c986a88f1e9230c55e17f0caad3d958a5e13ad0797c166db9e3"},
-    {file = "click-8.1.4.tar.gz", hash = "sha256:b97d0c74955da062a7d4ef92fadb583806a585b2ea81958a81bd72726cbb8e37"},
+    {file = "click-8.1.5-py3-none-any.whl", hash = "sha256:e576aa487d679441d7d30abb87e1b43d24fc53bffb8758443b1a9e1cee504548"},
+    {file = "click-8.1.5.tar.gz", hash = "sha256:4be4b1af8d665c6d942909916d31a213a106800c47d0eeba73d34da3cbc11367"},
 ]
 colorama = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
@@ -2696,8 +2696,8 @@ pygame = [
     {file = "pygame-2.5.0.tar.gz", hash = "sha256:edd5745b79435976d92c0a7318aedcafcb7ac4567125ac6ba88aa473559ef9ab"},
 ]
 pygeodesy = [
-    {file = "PyGeodesy-23.6.12-py2.py3-none-any.whl", hash = "sha256:ea7deffd2636736e4ae2cf3d5cb71ca2e8582ec9355a122766a7a04197a9d9e3"},
-    {file = "PyGeodesy-23.6.12.zip", hash = "sha256:9469772f219038dd017d61dc5448ffb5c0a8f32005814c2198e54a4982686cf8"},
+    {file = "PyGeodesy-23.7.12-py2.py3-none-any.whl", hash = "sha256:f458481401615315780151715769f6c250414c10a696fedbe48b93ceadd423a5"},
+    {file = "PyGeodesy-23.7.12.zip", hash = "sha256:ec52664f9bc23e368aea22350a2e7cb81114029a0f5f250cfea29783acde39c4"},
 ]
 pygments = [
     {file = "Pygments-2.15.1-py3-none-any.whl", hash = "sha256:db2db3deb4b4179f399a09054b023b6a586b76499d36965813c71aa8ed7b5fd1"},

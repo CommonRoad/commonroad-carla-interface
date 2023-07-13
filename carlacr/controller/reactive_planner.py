@@ -1,4 +1,3 @@
-from copy import deepcopy
 import numpy as np
 from typing import Optional
 
@@ -15,16 +14,20 @@ from carlacr.helper.planner import TrajectoryPlannerInterface
 class ReactivePlannerInterface(TrajectoryPlannerInterface):
     """CARLA-Interface for reactive planner."""
 
-    def __init__(self, config: ReactiveParams = ReactiveParams()):
+    def __init__(self, sc: Scenario, pp: PlanningProblem, config: ReactiveParams = ReactiveParams()):
         """
         Initialization for reactive planner interface.
 
         :param config: Reactive planner configuration parameters.
         """
         self._config = config
+        self._config.scenario = sc
+        self._config.planning_problem = pp
+        route_planner = RoutePlanner(config.scenario, config.planning_problem)
+        route = route_planner.plan_routes().retrieve_first_route()
+        self._config.planning.route = route
+        self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)
-        self._planner.set_d_sampling_parameters(config.sampling.d_min, config.sampling.d_max)
-        self._planner.set_t_sampling_parameters(config.sampling.t_min)
 
     def plan(self, sc: Scenario, pp: PlanningProblem, ref_path: Optional[np.ndarray] = None) -> Trajectory:
         """
@@ -35,32 +38,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         :param ref_path: Reference path which the trajectory planner should follow.
         :return: CommonRoad trajectory.
         """
-        # initial state configuration
-        problem_init_state = pp.initial_state
-        current_velocity = problem_init_state.velocity
-        if not hasattr(problem_init_state, 'acceleration'):
-            problem_init_state.acceleration = 0.
-        x_0 = deepcopy(problem_init_state)
-        delattr(x_0, "slip_angle")
-
-        if hasattr(pp.goal.state_list[0], 'velocity'):
-            if pp.goal.state_list[0].velocity.start > 0:
-                desired_velocity = (pp.goal.state_list[0].velocity.start +
-                                    pp.goal.state_list[0].velocity.end) / 2
-            else:
-                desired_velocity = pp.goal.state_list[0].velocity.end / 2
-        else:
-            desired_velocity = x_0.velocity
-
-        # set collision checker
-        self._planner.set_collision_checker(sc)
-        # initialize route planner and set reference path
-        if ref_path is None:
-            route_planner = RoutePlanner(sc, pp)
-            route = route_planner.plan_routes().retrieve_first_route()
-            ref_path = route.reference_path
-
-        self._planner.set_desired_velocity(desired_velocity, current_velocity)
-        self._planner.set_reference_path(ref_path)
-
+        self._config.scenario = sc
+        self._config.planning_problem = pp
+        self._planner.reset(self._config)
         return self._planner.plan()[0]
