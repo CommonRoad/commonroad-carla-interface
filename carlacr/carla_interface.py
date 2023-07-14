@@ -96,7 +96,8 @@ class CarlaInterface:
                                                stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in off-screen mode using PID %s.", self._carla_pid.pid)
         else:
-            self._carla_pid = subprocess.Popen([path_to_carla], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+            self._carla_pid = subprocess.Popen([path_to_carla, '-opengl', '-prefernvidia'],
+                                               stdout=subprocess.PIPE, preexec_fn=os.setsid)
             logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
         time.sleep(self._config.sleep_time)
 
