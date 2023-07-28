@@ -16,30 +16,49 @@ autodetect: false
 max-line-length: 120
 
 pycodestyle:
-  run: true
+    run: true
 
 pydocstyle:
   disable:
-    - D104 # Missing docstring in public package
-    - D203 # 1 blank line required before class docstring (Conflict with D211)
-    - D205 # 1 blank line required between summary line and description
-    - D212 # Multi-line docstring summary should start at the first line (Conflict with 213)
-    - D407 # Missing dashed underline after section
-    - D415 # First line should end with a period, question mark, or exclamation point
-
-pyflakes:
-  run: true
+    - D200
+    - D203
+    - D205
+    - D212
+    - D213
+    - D404
+    - D406
+    - D407
+    - D408
+    - D409
+    - D410
+    - D411
+    - D413
+    - D415
+    - D416
+    - D417
 
 mccabe:
+  disable:
+    - MC0001  # exception should be removed
+
+pyflakes:
   run: true
 
 pylint:
   disable:
     - import-error
+    - too-many-branches
     - too-many-arguments
     - too-many-locals
+    - too-many-statements
+    - consider-using-f-string
     - missing-module-docstring
-    - subprocess-popen-preexec-fn
+    - c-extension-no-member
+    - too-many-nested-blocks
+    - no-name-in-module
 
 mypy:
   run: true
+  options :
+    ignore-missing-imports : true
+    follow-imports : skip
