@@ -20,6 +20,7 @@ pycodestyle:
 
 pydocstyle:
   disable:
+    - D104
     - D200
     - D203
     - D205
@@ -56,6 +57,7 @@ pylint:
     - c-extension-no-member
     - too-many-nested-blocks
     - no-name-in-module
+    - subprocess-popen-preexec-fn
 
 mypy:
   run: true
