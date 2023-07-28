@@ -31,7 +31,7 @@ commonroad-drivability-checker = "~=2022.2.1"
 commonroad-vehicle-models = "~=3.0.2"
 
 psutil = "^5.9.4"
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "carla_interface" }
+commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development" }
 commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "main" }
 
 
