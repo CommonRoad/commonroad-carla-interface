@@ -23,16 +23,16 @@ packages = [{include = "carlacr"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 pygame = ">=2.1.2"
-commonroad-io = "==2023.1"
+commonroad-io = "==2023.3"
 carla = "0.9.14"
 omegaconf = ">=2.1.2"
-commonroad-scenario-designer = "~=0.7.1"
-commonroad-drivability-checker = "~=2022.2.1"
+commonroad-drivability-checker = "~=2023.1"
 commonroad-vehicle-models = "~=3.0.2"
 
 psutil = "^5.9.4"
+commonroad-scenario-designer = { git = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git", branch = "develop" }
 commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development" }
-commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "main" }
+commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "develop" }
 
 
 [tool.poetry.group.tests]
