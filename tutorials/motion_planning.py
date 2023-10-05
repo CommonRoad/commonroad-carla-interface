@@ -21,7 +21,7 @@ param.map = or_map
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.vis_type = CustomVis.BIRD
+param.vis_type = CustomVis.EGO
 
 ci = CarlaInterface(param)
 planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]

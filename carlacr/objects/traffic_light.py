@@ -5,7 +5,8 @@ import math
 
 import carla
 
-from commonroad.scenario.traffic_light import TrafficLight, TrafficLightState, TrafficLightCycleElement
+from commonroad.scenario.traffic_light import (TrafficLight, TrafficLightState, TrafficLightCycleElement,
+                                               TrafficLightCycle)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -73,11 +74,9 @@ class CarlaTrafficLight:
         :param color: Current CARLA traffic light color.
         """
         if len(self._signal_profile) == 0:
-            self._signal_profile.append(
-                _match_carla_traffic_light_state_to_cr(color))
+            self._signal_profile.append(_match_carla_traffic_light_state_to_cr(color))
         else:
-            self._signal_profile[0] = _match_carla_traffic_light_state_to_cr(
-                color)
+            self._signal_profile[0] = _match_carla_traffic_light_state_to_cr(color)
 
     def add_color(self, color: carla.TrafficLightState):
         """
@@ -85,8 +84,7 @@ class CarlaTrafficLight:
 
         :param color: CARLA traffic light state color.
         """
-        self._signal_profile.append(
-            _match_carla_traffic_light_state_to_cr(color))
+        self._signal_profile.append(_match_carla_traffic_light_state_to_cr(color))
 
     def set_cr_light(self, cr_light: TrafficLight):
         """
@@ -102,9 +100,12 @@ class CarlaTrafficLight:
 
         :param time_step: Current time step.
         """
-        new_color = self._cr_tl.get_state_at_time_step(time_step)
-        self._actor.set_state(
-            _match_cr_traffic_light_state_to_carla(new_color))
+        if self._cr_tl is not None:
+            new_color = self._cr_tl.get_state_at_time_step(time_step)
+            self._actor.set_state(_match_cr_traffic_light_state_to_carla(new_color))
+            logger.debug("CarlaTrafficLight::tick: Successfully called tick!")
+        else:
+            logger.warning("CarlaTrafficLight::tick: Tick called on traffic light where _cr_tl is None!.")
 
     @property
     def carla_actor(self):
@@ -124,14 +125,17 @@ class CarlaTrafficLight:
         """
         return self._carla_position
 
-    def create_traffic_light_cycle(self) -> List[TrafficLightCycleElement]:
+    def create_traffic_light_cycle(self) -> Optional[TrafficLightCycle]:
         """
         Creates a CommonRoad traffic light cycle for traffic light.
 
         :return: List of CommonRoad traffic light cycle elements.
         """
         if len(self._signal_profile) == 0:
-            return []
+            return None
+
+        if len(self._signal_profile) == 0:
+            return None
 
         cycle = []
         current_state = self._signal_profile[0]
@@ -141,8 +145,7 @@ class CarlaTrafficLight:
             if state == current_state:
                 duration += 1
             else:
-                cycle_element = TrafficLightCycleElement(
-                    current_state, duration)
+                cycle_element = TrafficLightCycleElement(current_state, duration)
                 cycle.append(cycle_element)
                 current_state = state
                 duration = 1
@@ -151,7 +154,7 @@ class CarlaTrafficLight:
         cycle_element = TrafficLightCycleElement(current_state, duration)
         cycle.append(cycle_element)
 
-        return cycle
+        return TrafficLightCycle(cycle)
 
 
 def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLight]) -> TrafficLight:
@@ -163,11 +166,11 @@ def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLigh
     :param carla_lights: List of CARLA traffic lights.
     :return: Traffic light interface.
     """
-    best_carla_traffic_light = find_closest_traffic_light(
-        carla_lights, cr_light.position)
+    best_carla_traffic_light = find_closest_traffic_light(carla_lights, cr_light.position)
 
-    return TrafficLight(cr_light.traffic_light_id, best_carla_traffic_light.create_traffic_light_cycle(),
-                        cr_light.position, time_offset=0, direction=cr_light.direction, active=True)
+    return TrafficLight(cr_light.traffic_light_id, cr_light.position,
+                        best_carla_traffic_light.create_traffic_light_cycle(), direction=cr_light.direction,
+                        active=True)
 
 
 def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: np.array):
@@ -179,6 +182,7 @@ def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: 
     """
     best_carla_traffic_light = None
     best_diff = math.inf
+
     for light in carla_lights:
         diff_x = abs(light.carla_position[0] - position[0])
         # We add since map is mirrored compared to CommonRoad
@@ -188,6 +192,7 @@ def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: 
         if cur_diff < best_diff:
             best_diff = cur_diff
             best_carla_traffic_light = light
+
     return best_carla_traffic_light
 
 
@@ -290,8 +295,7 @@ def extract_cycle_from_history(tls: List[TrafficLight]) -> List[TrafficLightCycl
             "To few elements in input list! Extracted cycle might be incorrect!")
         return tls
 
-    first_full_red, first_full_green, yellow_after_red, yellow_after_green = get_tls_values(
-        tls)
+    first_full_red, first_full_green, yellow_after_red, yellow_after_green = get_tls_values(tls)
 
     if first_full_red is None or first_full_green is None:
         logger.info(
@@ -330,9 +334,7 @@ def extract_cycle_from_history(tls: List[TrafficLight]) -> List[TrafficLightCycl
             cycle.append(TrafficLightCycleElement(
                 tls[i].state,
                 get_cycle_duration(tls, cycle, first_full_red, first_full_green,
-                                   yellow_after_red,
-                                   yellow_after_green,
-                                   tls[i].state)))
+                                   yellow_after_red, yellow_after_green, tls[i].state)))
             if tls[i].state == tls[cycle_start].state:
                 found_end = True
                 break
