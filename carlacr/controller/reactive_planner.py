@@ -6,6 +6,7 @@ from commonroad.scenario.trajectory import Trajectory
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad_route_planner.route_planner import RoutePlanner
 from commonroad_rp.reactive_planner import ReactivePlanner
+from commonroad_rp.state import ReactivePlannerState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from carlacr.helper.planner import TrajectoryPlannerInterface
@@ -41,5 +42,12 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         """
         self._config.scenario = sc
         self._config.planning_problem = pp
-        self._planner.reset(self._config)
+        rp_state = ReactivePlannerState(position=pp.initial_state.position, steering_angle=0,
+                                        velocity=pp.initial_state.velocity,
+                                        orientation=pp.initial_state.orientation,
+                                        yaw_rate=pp.initial_state.yaw_rate,
+                                        acceleration=pp.initial_state.acceleration,
+                                        time_step=pp.initial_state.time_step)
+        self._planner.reset(self._config, rp_state)
+
         return self._planner.plan()[0]

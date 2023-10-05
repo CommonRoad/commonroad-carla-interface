@@ -186,5 +186,5 @@ class CommonRoadPlannerController(CarlaController):
         #                                                                  OverwriteExistingFile.ALWAYS)
 
         self._current_trajectory = self._planner.plan(sc, pp)
-        self._controller.control(self._current_trajectory.state_list[0])
+        self._controller.control(self._current_trajectory.state_list[1])
         self._current_time_step += 1
