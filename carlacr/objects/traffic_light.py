@@ -5,7 +5,7 @@ import math
 
 import carla
 
-from commonroad.scenario.traffic_sign import TrafficLight, TrafficLightState, TrafficLightCycleElement
+from commonroad.scenario.traffic_light import TrafficLight, TrafficLightState, TrafficLightCycleElement
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

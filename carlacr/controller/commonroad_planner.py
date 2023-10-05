@@ -12,7 +12,7 @@ from commonroad.scenario.state import CustomState
 from commonroad.planning.goal import GoalRegion, Interval
 from crpred.predictor_interface import PredictorInterface
 from commonroad_route_planner.route_planner import RoutePlanner
-from commonroad_rp.utility.config import VehicleParams
+from commonroad_rp.utility.config import VehicleConfiguration
 from commonroad_dc.geometry.geometry import compute_pathlength_from_polyline, compute_orientation_from_polyline
 from commonroad.geometry.shape import Rectangle
 
@@ -60,7 +60,7 @@ def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int) ->
     return sc
 
 
-def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleParams,
+def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleConfiguration,
                                     t_h: float, dt: float, global_route: RouteData, current_time_step: int) \
         -> PlanningProblem:
     """
@@ -111,7 +111,7 @@ class CommonRoadPlannerController(CarlaController):
 
     def __init__(self, actor: carla.Actor, planner: TrajectoryPlannerInterface, predictor: PredictorInterface,
                  pp: PlanningProblem, sc: Scenario, control_type: VehicleControlType, dt: float,
-                 control_config: ControlParams, vehicle_params: VehicleParams = VehicleParams()):
+                 control_config: ControlParams, vehicle_params: VehicleConfiguration = VehicleConfiguration()):
         """
         Initialization of CommonRoad planner controller.
 
