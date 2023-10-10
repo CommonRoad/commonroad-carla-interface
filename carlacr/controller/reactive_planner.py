@@ -63,4 +63,4 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
             fw = CommonRoadFileWriter(sc, PlanningProblemSet([pp]))
             sc.scenario_id.map_name += "ReactivePlannerError"
             fw.write_to_file(f"{sc.scenario_id}.xml", OverwriteExistingFile.ALWAYS)
-            exit()
+            return Trajectory(0, [])

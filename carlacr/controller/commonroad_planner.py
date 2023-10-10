@@ -1,9 +1,11 @@
 import copy
+import sys
 from dataclasses import dataclass
 from typing import Optional, Union
 import logging
 import carla
 import numpy as np
+from scipy import spatial
 
 from commonroad.scenario.state import TraceState
 from commonroad.scenario.scenario import Scenario
@@ -54,7 +56,7 @@ def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int) ->
     :return: CommonRoad scenario.
     """
     for actor in world.get_actors():
-        if actor.id == ego_id:
+        if actor.id == ego_id or "number_of_wheels" not in actor.attributes.keys():
             continue
         sc.add_objects(create_cr_vehicle_from_actor(actor, sc.generate_object_id()))
     return sc
@@ -75,10 +77,10 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleC
     :return: CommonRoad planning problem.
     """
     initial_state = create_cr_initial_state_from_actor(actor, current_time_step)
-    min_dist = max(0, initial_state.velocity + initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
-    max_dist = initial_state.velocity + initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
+    min_dist = max(0, initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
+    max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
 
-    init_idx = max(0, (np.abs(global_route.route - initial_state.position)).argmin() - 1)
+    _, init_idx = spatial.KDTree(global_route.route).query(initial_state.position)
     distance_min = global_route.path_length[init_idx] + min_dist
     distance_max = global_route.path_length[init_idx] + max_dist
 
@@ -91,7 +93,8 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleC
 
     return PlanningProblem(0, initial_state,
                            GoalRegion([CustomState(time_step=Interval(time-1, time),
-                                                   position=Rectangle(length, 10, position, orientation))]))
+                                                   position=Rectangle(float(length), 20, position,
+                                                                      float(orientation)))]))
 
 
 def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
@@ -129,6 +132,7 @@ class CommonRoadPlannerController(CarlaController):
         self._planner = planner
         self._predictor = predictor
         self._base_sc = copy.deepcopy(sc)
+        self._base_pp = copy.deepcopy(pp)
         self._actor_id = int
         self._global_route = RouteData(compute_global_route(self._base_sc, pp))
         self._current_trajectory = None
@@ -178,6 +182,10 @@ class CommonRoadPlannerController(CarlaController):
             sc = self._predictor.predict(sc, self._current_time_step)
         pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route,
                                              self._current_time_step)
+
+        if self._base_pp.goal.is_reached(pp.initial_state):
+            logger.info("CommonRoadPlannerController::control: Goal reached!")
+            sys.exit()
 
         # from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
         # from commonroad.planning.planning_problem import PlanningProblemSet
