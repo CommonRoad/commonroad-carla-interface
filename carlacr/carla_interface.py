@@ -163,7 +163,7 @@ class CarlaInterface:
         """
         for obs in sc.obstacles:
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
-                                     ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE]:
+                                     ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE, ObstacleType.PARKED_VEHICLE]:
                 self._cr_obstacles.append(VehicleInterface(obs, self._world, self._tm, config=self._config.vehicle))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
                 self._cr_obstacles.append(PedestrianInterface(obs, self._world, self._tm,
