@@ -31,7 +31,7 @@ commonroad-vehicle-models = "~=3.0.2"
 
 psutil = "^5.9.4"
 commonroad-scenario-designer = { git = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git", branch = "develop" }
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development" }
+commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "feature/support-crio-2023-3" }
 commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "develop" }
 
 

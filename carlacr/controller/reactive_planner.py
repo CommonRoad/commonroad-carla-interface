@@ -1,4 +1,6 @@
+import copy
 import logging
+import sys
 
 import numpy as np
 from typing import Optional
@@ -12,6 +14,7 @@ from commonroad_route_planner.route_planner import RoutePlanner
 from commonroad_rp.reactive_planner import ReactivePlanner
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 from commonroad_rp.state import ReactivePlannerState
+from commonroad_rp.utility.visualization import visualize_planner_at_timestep
 
 from carlacr.helper.planner import TrajectoryPlannerInterface
 
@@ -56,11 +59,27 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                                                  yaw_rate=pp.initial_state.yaw_rate,
                                                  time_step=pp.initial_state.time_step, steering_angle=0))
         try:
-            return self._planner.plan()[0]
+            optimal = self._planner.plan()[0]
+            # visualize the current time step of the simulation
+            if self._config.debug.save_plots:
+                ego_vehicle = self._planner.convert_state_list_to_commonroad_object(optimal.state_list)
+                sampled_trajectory_bundle = None
+                if self._config.debug.draw_traj_set:
+                    sampled_trajectory_bundle = copy.deepcopy(self._planner.stored_trajectories)
+
+                visualize_planner_at_timestep(scenario=self._config.scenario,
+                                              planning_problem=self._config.planning_problem,
+                                              ego=ego_vehicle,
+                                              traj_set=sampled_trajectory_bundle,
+                                              ref_path=self._planner.reference_path,
+                                              timestep=pp.initial_state.time_step,
+                                              config=self._config)
+
+            return optimal
         except AssertionError:
             logger.error("ReactivePlannerInterface::plan AssertionError: Scenario and "
                          "Planning Problem will be stored.")
             fw = CommonRoadFileWriter(sc, PlanningProblemSet([pp]))
             sc.scenario_id.map_name += "ReactivePlannerError"
             fw.write_to_file(f"{sc.scenario_id}.xml", OverwriteExistingFile.ALWAYS)
-            return Trajectory(0, [])
+            sys.exit()

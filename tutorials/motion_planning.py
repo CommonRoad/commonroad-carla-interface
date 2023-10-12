@@ -25,6 +25,15 @@ param.offscreen_mode = True
 param.vis_type = CustomVis.EGO
 
 rp_config = ReactivePlannerConfiguration()
+rp_config.debug.draw_traj_set = True
+rp_config.debug.save_plots = True
+#rp_config.sampling.num_sampling_levels = 4
+rp_config.sampling.v_max = 50
+rp_config.sampling.v_min = 0
+#rp_config.sampling.t_min = 0.2
+rp_config.sampling.d_min = -5
+rp_config.sampling.d_max = 5
+rp_config.general.path_output = "/home/maierhofer/code/commonroad-carla-interface/"
 ci = CarlaInterface(param)
 
 planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
