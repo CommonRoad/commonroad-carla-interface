@@ -1,6 +1,5 @@
 image: python:3.8
 
-
 stages:
   - static_check
   - test
