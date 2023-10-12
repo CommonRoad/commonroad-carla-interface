@@ -1,6 +1,5 @@
 import copy
 import logging
-import sys
 
 import numpy as np
 from typing import Optional
@@ -40,6 +39,8 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config.planning.route = route
         self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)
+        self._optimal = None
+        self._error_counter = 0
 
     def plan(self, sc: Scenario, pp: PlanningProblem, ref_path: Optional[np.ndarray] = None) -> Trajectory:
         """
@@ -59,10 +60,11 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                                                  yaw_rate=pp.initial_state.yaw_rate,
                                                  time_step=pp.initial_state.time_step, steering_angle=0))
         try:
-            optimal = self._planner.plan()[0]
+            self._optimal = self._planner.plan()[0]
+            self._error_counter = 0
             # visualize the current time step of the simulation
             if self._config.debug.save_plots:
-                ego_vehicle = self._planner.convert_state_list_to_commonroad_object(optimal.state_list)
+                ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal.state_list)
                 sampled_trajectory_bundle = None
                 if self._config.debug.draw_traj_set:
                     sampled_trajectory_bundle = copy.deepcopy(self._planner.stored_trajectories)
@@ -75,11 +77,16 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                                               timestep=pp.initial_state.time_step,
                                               config=self._config)
 
-            return optimal
+            return self._optimal
         except AssertionError:
             logger.error("ReactivePlannerInterface::plan AssertionError: Scenario and "
                          "Planning Problem will be stored.")
             fw = CommonRoadFileWriter(sc, PlanningProblemSet([pp]))
             sc.scenario_id.map_name += "ReactivePlannerError"
             fw.write_to_file(f"{sc.scenario_id}.xml", OverwriteExistingFile.ALWAYS)
-            sys.exit()
+
+            # if no optimal trajectory can be computed use last computed trajectory
+            self._error_counter += 1
+            traj = Trajectory(self._optimal.initial_time_step + self._error_counter,
+                              self._optimal.state_list[self._error_counter::])
+            return traj
