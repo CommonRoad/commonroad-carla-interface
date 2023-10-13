@@ -26,7 +26,7 @@ The usage of the [Poetry Package Manager](https://python-poetry.org/) is recomme
 3. Create a new Poetry environment:
 ```bash
 poetry env use /usr/bin/python3.8
-poetry install --with tests,docs,tutorials -vvv
+poetry install --with tests,docs -vvv
 poetry shell
 ```
 
@@ -73,3 +73,4 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 ```
 into carla_interface.py.
 This configures SDL to use the dummy NULL video driver so pygame can run without a windowing system.
+

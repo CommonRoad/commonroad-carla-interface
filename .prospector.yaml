@@ -58,6 +58,12 @@ pylint:
     - too-many-nested-blocks
     - no-name-in-module
     - subprocess-popen-preexec-fn
+    - too-many-branches
+    - no-value-for-parameter
+
+mccabe:
+  disable:
+   - MC0001 # Too-complex
 
 mypy:
   run: true

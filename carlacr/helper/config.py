@@ -78,9 +78,10 @@ class BaseParam:
     port: int = 2000  # carla default port setting
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
+    kill_carla_server: bool = True
     default_carla_paths: List[str] = field(default_factory=lambda: [
         "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
-        "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/", "/home/tmasc/teaching/carla2cr/carla"])
+        "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/", "/home/carla/"])
     offscreen_mode: bool = True
     map: str = "Town01"
     client_init_timeout: float = 30.0
@@ -101,6 +102,7 @@ class BaseParam:
         self.port = self.port
         self.sleep_time = self.sleep_time
         self.start_carla_server = self.start_carla_server
+        self.kill_carla_server = self.kill_carla_server
         self.default_carla_paths = self.default_carla_paths
         self.offscreen_mode = self.offscreen_mode
         self.client_init_timeout = self.client_init_timeout
@@ -268,11 +270,14 @@ class SimulationParams(BaseParam):
     number_walkers: int = 10
     number_vehicles: int = 30
     safe_vehicles: bool = True
+    # TODO: Add filter car https://carla.readthedocs.io/en/latest/bp_library/
+    filter_attribute_number_of_wheels: int = 4
     filter_vehicle: str = "vehicle.*"
     filter_pedestrian: str = 'walker.pedestrian.*'
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
+    ignore_video_driver: bool = False
 
 
 @dataclass
@@ -293,6 +298,9 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_kp: float = 0.01
     ackermann_pid_accel_ki: float = 0.0
     ackermann_pid_accel_kd: float = 0.01
+
+    # Distance to be within reference point before advancing to next time step.
+    distance_treshold: float = 2.5
 
     def pid_lat_dict(self, dt: float) -> Dict[str, float]:
         """
@@ -317,6 +325,21 @@ class ControlParams(BaseParam):
                 "K_I": self.basic_control_pid_lon_ki,
                 "K_D": self.basic_control_pid_lon_kd,
                 "dt": dt}
+
+    def ackermann_pid_dic(self) -> Dict[str, float]:
+        """
+        Converts lateral PID parameters to dictionary.
+
+        :return: Dictionary of control parameter name to value.
+
+        """
+        return {"speed_kp": self.ackermann_pid_speed_kp,
+                "speed_ki": self.ackermann_pid_speed_ki,
+                "speed_kd": self.ackermann_pid_speed_kd,
+                "accel_kp": self.ackermann_pid_accel_kp,
+                "accel_ki": self.ackermann_pid_accel_ki,
+                "accel_kd": self.ackermann_pid_accel_kd
+                }
 
 
 @dataclass
