@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import math
 
 import carla
