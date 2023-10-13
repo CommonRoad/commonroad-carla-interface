@@ -41,7 +41,7 @@ class VehicleTMPathFollowingControl(CarlaController):
         """
         if hasattr(tm, "set_desired_speed"):
             if hasattr(state, "velocity_y"):
-                vel = math.sqrt(state.velocity ** 2 + state.velocity_y ** 2)
+                vel = math.sqrt(state.velocity**2 + state.velocity_y**2)
                 tm.set_desired_speed(self._actor, vel)
             else:
                 tm.set_desired_speed(self._actor, state.velocity)
@@ -98,7 +98,7 @@ class PIDController(CarlaController):
         :param state: State which should be reached at next time step.
         """
         target = CarlaCRWaypoint(create_carla_transform(state))
-        speed = state.velocity
+        speed = state.velocity * 3.6
 
         control = self._pid.run_step(speed, target)
         self._actor.apply_control(control)
@@ -149,8 +149,7 @@ class AckermannController(CarlaController):
             self._actor.apply_ackermann_control(ackermann_control)
 
         except Exception as e:
-            logger.error("Error while updating position")
-            raise e
+            logger.error("AckermannController::control Error while updating position %s", str(e))
 
 
 class WheelController(CarlaController):

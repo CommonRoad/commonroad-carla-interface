@@ -1,8 +1,38 @@
+"""
+Welcome to CARLA manual control.
+
+Use ARROWS or WASD keys for control.
+
+    W            : throttle
+    S            : brake
+    A/D          : steer left/right
+    Q            : toggle reverse
+    Space        : hand-brake
+    P            : toggle autopilot
+
+    L            : toggle next light type
+    SHIFT + L    : toggle high beam
+    Z/X          : toggle right/left blinker
+    I            : toggle interior light
+
+    TAB          : change sensor position
+
+    O            : open/close all doors of vehicle
+    T            : toggle vehicle's telemetry
+
+    V            : toogle visualization tools
+
+    F1           : toggle HUD
+    H/?          : toggle help
+    ESC          : quit
+"""
+
 from typing import Optional
 import pygame
 import pygame.locals as keys
 import carla
 from carlacr.controller.controller import CarlaController
+from carlacr.visualization.visualization_base import VisualizationBase
 from commonroad.scenario.state import TraceState
 
 
@@ -63,6 +93,10 @@ class KeyboardVehicleController(CarlaController):
                     current_lights ^= carla.VehicleLightState.LeftBlinker
                 elif event.key == keys.K_x:
                     current_lights ^= carla.VehicleLightState.RightBlinker
+                elif event.key == keys.K_v:
+                    VisualizationBase.is_visible = not VisualizationBase.is_visible
+                elif event.key == keys.K_h:
+                    print(__doc__)
 
     def _parse_vehicle_keys(self):
         """Parses control-related key inputs (steering, acceleration)."""
@@ -89,6 +123,7 @@ class KeyboardVehicleController(CarlaController):
             if pressed_keys[keys.K_DOWN] or pressed_keys[keys.K_s] else 0.0
         # self._control.brake = 1.0 if keys[K_DOWN] or keys[K_s] else 0.0
         self._control.hand_brake = pressed_keys[keys.K_SPACE]
+        self._control.reverse = pressed_keys[keys.K_q]
 
     def _parse_input(self):
         """Parses the input, which is classified in keyboard events and mouse"""

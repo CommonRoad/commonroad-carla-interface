@@ -97,6 +97,9 @@ class VehicleInterface(ActorInterface):
         else:
             raise RuntimeError("Unknown obstacle type")
 
+        if not self._actor:
+            logger.warning("VehicleInterface::_spawn: After _spawn got called self._actor is still None!")
+
         # init traffic manager if vehicle will be controlled by it
         self._init_tm_actor_path()
 
@@ -105,6 +108,7 @@ class VehicleInterface(ActorInterface):
         if self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC:
             if self._config.carla_controller_type == VehicleControlType.PATH_TM:
                 self._tm.set_path(self._actor, self._get_path())
+
             elif self._config.carla_controller_type == VehicleControlType.PATH_AGENT:
                 self._controller.set_path(self._get_path())
 
@@ -142,7 +146,17 @@ class VehicleInterface(ActorInterface):
     def _create_random_actor(self):
         """Creates a random actor"""
         # TODO check whether this can be combined with function in traffic manager.
-        blueprint = random.choice(self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle))
+
+        # randomly select a blueprint and check, if the config settings are matching with the bp.
+        lib = self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle)
+        while True:
+            blueprint = random.choice(lib)
+            filter_num_wheel = self._config.simulation.filter_attribute_number_of_wheels
+            if filter_num_wheel is not None and blueprint.has_attribute('number_of_wheels'):
+                if blueprint.get_attribute('number_of_wheels').as_int() == filter_num_wheel:
+                    break  # vehicle passed through filter
+                logger.debug("skip bike")
+
         if blueprint.has_attribute('color'):
             color = random.choice(blueprint.get_attribute('color').recommended_values)
             blueprint.set_attribute('color', color)

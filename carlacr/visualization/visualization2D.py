@@ -41,7 +41,9 @@ from typing import Tuple, List, Callable, Union, Dict
 import pygame
 import pygame.locals as keys
 from carlacr.helper.config import BirdsEyeParams
-from carlacr.visualization.common import FadingText, HelpText, get_actor_display_name, exit_game, is_quit_shortcut
+from carlacr.visualization.common import get_actor_display_name, exit_game, is_quit_shortcut
+from carlacr.visualization.canvas.ui_elements.fading_text import FadingText
+from carlacr.visualization.canvas.ui_elements.help_text import HelpText
 
 
 # Colors

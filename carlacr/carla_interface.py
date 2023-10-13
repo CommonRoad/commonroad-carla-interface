@@ -21,12 +21,12 @@ from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
 from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
 from crpred.predictor_interface import PredictorInterface
 
-from carlacr.visualization.birds_eye_view import HUD2D, World2D
-from carlacr.visualization.ego_view import HUD3D, World3D
+from carlacr.visualization.visualization2D import HUD2D, World2D
+from carlacr.visualization.visualization3D import Visualization3D
 from carlacr.helper.config import CarlaParams, CustomVis, WeatherParams, EgoPlanner
 from carlacr.helper.traffic_generation import create_actors
 from carlacr.helper.utils import create_cr_pm_state_from_actor, create_cr_ks_state_from_actor, \
-    create_goal_region_from_state, find_pid_by_name, calc_max_timestep, make_video, find_carla_distribution
+    create_goal_region_from_state, calc_max_timestep, make_video, find_carla_distribution, kill_existing_servers
 from carlacr.objects.traffic_light import CarlaTrafficLight, create_new_light, find_closest_traffic_light
 from carlacr.objects.vehicle import VehicleInterface
 from carlacr.objects.pedestrian import PedestrianInterface
@@ -73,32 +73,73 @@ class CarlaInterface:
 
         self._world.set_weather(carla.WeatherParameters.WetSunset)
         self.set_weather(self._config.simulation.weather)
-
         logger.info("CARLA-Interface initialization finished.")
 
     def __del__(self):
         """Kill CARLA server in case it was started by the CARLA-Interface."""
+        if self._config.kill_carla_server:
+            self.cleanup()
+
+    def __enter__(self):
+        """For use with context-manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Kill CARLA server in case it was started by the CARLA-Interface."""
+        if self._config.kill_carla_server:
+            self.cleanup()
+
+    def cleanup(self):
+        """Kill CARLA server in case it was started by the CARLA-Interface."""
         if self._carla_pid is not None:
-            logger.info("Killing CARLA server.")
-            os.killpg(os.getpgid(self._carla_pid.pid), signal.SIGTERM)
+            try:
+                os.killpg(os.getpgid(self._carla_pid.pid), 0)
+            except ProcessLookupError:
+                logger.warning(
+                    "CARLA server with PID %s has already terminated.", self._carla_pid.pid)
+            else:
+                os.killpg(os.getpgid(self._carla_pid.pid), signal.SIGTERM)
+                self._carla_pid.wait()
+                if self._carla_pid.poll() is None:
+                    logger.warning("CARLA server with PID %s did not terminate. Sending SIGKILL.",
+                                   self._carla_pid.pid)
+                    os.killpg(os.getpgid(self._carla_pid.pid), signal.SIGKILL)
+                logger.info("CARLA server with PID %s terminated.", self._carla_pid.pid)
+
             time.sleep(self._config.sleep_time)
+
+    def get_simulation_fps(self) -> int:
+        """
+        Returns the frames per second (fps) of the simulation.
+        :return: fps as int
+        """
+        settings = self._world.get_settings()
+        if settings.fixed_delta_seconds is not None:
+            fps = 1.0 / settings.fixed_delta_seconds
+            if int(fps) != fps:
+                logging.warning("Calculated fps is not a whole number: %s", fps)
+            return int(fps)
+        return 30
 
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
         path_to_carla = os.path.join(find_carla_distribution(self._config.default_carla_paths), "CarlaUE4.sh")
-        for pid in find_pid_by_name("CarlaUE4-Linux-"):
-            logger.info("Kill existing CARLA servers.")
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
+
+        kill_existing_servers(self._config.sleep_time)
+
         logger.info("Start CARLA server.")
         # pylint: disable=consider-using-with
+
+        popen_base_params = {"stdout": subprocess.PIPE, "preexec_fn": os.setsid, "shell": False}
+
         if self._config.offscreen_mode:
-            self._carla_pid = subprocess.Popen([path_to_carla, '-RenderOffScreen'],
-                                               stdout=subprocess.PIPE, preexec_fn=os.setsid)
-            logger.info("CARLA server started in off-screen mode using PID %s.", self._carla_pid.pid)
+            cmd = [path_to_carla, "-RenderOffScreen", f"-carla-world-port={self._config.port}"]
         else:
-            self._carla_pid = subprocess.Popen([path_to_carla, '-opengl', '-prefernvidia'],
-                                               stdout=subprocess.PIPE, preexec_fn=os.setsid)
-            logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
+            cmd = [path_to_carla, f"-carla-world-port={self._config.port}"]
+
+        self._carla_pid = subprocess.Popen(cmd, **popen_base_params)
+        logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
+
         time.sleep(self._config.sleep_time)
 
     def _init_carla_world(self):
@@ -133,11 +174,12 @@ class CarlaInterface:
         """
         if map_name[0:4] == "Town":
             logger.info("Load CARLA default map: %s", map_name)
+
             self._client.load_world(map_name)
             self._config.simulation.osm_mode = True
         elif os.path.exists(map_name):
             logger.info("Load OpenDRIVE map: %s", os.path.basename(map_name))
-            with open(map_name, encoding='utf-8') as od_file:
+            with open(map_name, encoding="utf-8") as od_file:
                 try:
                     data = od_file.read()
                 except OSError:
@@ -166,14 +208,15 @@ class CarlaInterface:
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE, ObstacleType.PARKED_VEHICLE]:
                 self._cr_obstacles.append(VehicleInterface(obs, self._world, self._tm, config=self._config.vehicle))
             elif obs.obstacle_type == ObstacleType.PEDESTRIAN:
-                self._cr_obstacles.append(PedestrianInterface(obs, self._world, self._tm,
-                                                              config=self._config.pedestrian))
+                self._cr_obstacles.append(PedestrianInterface(obs, self._world,
+                                                              self._tm, config=self._config.pedestrian))
 
         for tl in sc.lanelet_network.traffic_lights:
-            closest_tl = find_closest_traffic_light(self.traffic_lights, tl)
+            closest_tl = find_closest_traffic_light(self.traffic_lights, tl.position)
             if closest_tl is not None:
-                logger.error("traffic light could not be matched")
                 closest_tl.set_cr_light(tl)
+            else:
+                logger.error("traffic light could not be matched")
 
         self._set_cr_weather(sc.location.environment)
 
@@ -222,7 +265,7 @@ class CarlaInterface:
         carla_map = self._world.get_map()
 
         # Convert the CARLA map into OpenDRIVE in a temporary file
-        with open("temp.xodr", "w", encoding='UTF-8') as file:
+        with open("temp.xodr", "w", encoding="UTF-8") as file:
             file.write(carla_map.to_opendrive())
             file.close()
 
@@ -280,6 +323,7 @@ class CarlaInterface:
         """
         trajectory = solution_feasible(solution, self._config.simulation.time_step, pps)[ego_id][2]
         vehicle_params = VehicleParameterMapping.from_vehicle_type(solution.planning_problem_solutions[0].vehicle_type)
+
         shape = Rectangle(vehicle_params.l, vehicle_params.w)
 
         return DynamicObstacle(ego_id, ObstacleType.CAR, shape, pps.planning_problem_dict[ego_id].initial_state,
@@ -295,15 +339,14 @@ class CarlaInterface:
         assert self._config.sync is True
 
         logger.info("Scenario generation: Create actors.")
-        self._cr_obstacles = create_actors(self._client, self._world, self._tm, self._config.simulation,
-                                           sc.generate_object_id())
-
+        self._cr_obstacles = \
+            create_actors(self._client, self._world, self._tm, self._config.simulation, sc.generate_object_id())
         logger.info("Scenario generation: Start Simulation.")
         self._run_simulation(obstacle_only=True)
 
         for obs in self._cr_obstacles[1:]:
-            obs.cr_obstacle.prediction = TrajectoryPrediction(Trajectory(1, obs.trajectory),
-                                                              obs.cr_obstacle.obstacle_shape)
+            obs.cr_obstacle.prediction = \
+                TrajectoryPrediction(Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape)
             sc.add_objects(obs.cr_obstacle)
 
         # define goal region
@@ -319,23 +362,23 @@ class CarlaInterface:
             sc.add_objects(new_light)
 
         return sc, PlanningProblemSet([PlanningProblem(sc.generate_object_id(),
-                                                       self._cr_obstacles[0].cr_obstacle.initial_state,
-                                                       goal_region)])
+                                                       self._cr_obstacles[0].cr_obstacle.initial_state, goal_region)])
 
-    def keyboard_control(self, sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None,
-                         vehicle_type: VehicleType = VehicleType.BMW_320i):
+    def external_control(self, controller_type: EgoPlanner, sc: Optional[Scenario] = None,
+                         pp: Optional[PlanningProblem] = None, vehicle_type: VehicleType = VehicleType.BMW_320i):
         """
         Executes keyboard control. Either a provided CommonRoad scenario with planning problem is used or
         a random vehicle from CARLA is used.
 
+        :param controller_type: Type of external controller which should be used, e.g., keyboard, steering wheel, etc.
         :param sc: CommonRoad scenario.
         :param pp: CommonRoad planning problem.
         :param vehicle_type: CommonRoad vehicle type used for simulation.
         """
         logger.info("Start keyboard manual control.")
 
-        if self._config.ego.ego_planner is not EgoPlanner.KEYBOARD:
-            self._config.ego.ego_planner = EgoPlanner.KEYBOARD
+        if self._config.ego.ego_planner is not controller_type:
+            self._config.ego.ego_planner = controller_type
             logger.info("Keyboard control type not set for ego! Will be set.")
         self._init_external_control_mode(None, None, pp, sc, vehicle_type)
 
@@ -359,8 +402,8 @@ class CarlaInterface:
         else:
             ego_obs = None
         logger.info("Init ego vehicle.")
-        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, predictor=predictor, sc=sc, pp=pp,
-                                     config=self._config.ego)
+        self._ego = VehicleInterface(ego_obs, self._world, self._tm, planner=planner, predictor=predictor,
+                                     sc=sc, pp=pp, config=self._config.ego)
         if sc is not None:
             logger.info("Spawn CommonRoad obstacles.")
             self._set_scenario(sc)
@@ -368,8 +411,10 @@ class CarlaInterface:
         else:
             self._cr_obstacles = create_actors(self._client, self._world, self._tm, self._config.simulation, 1)
             obstacle_control = False
+
         logger.info("Spawn ego.")
         self._ego.tick(0)
+
         self._run_simulation(obstacle_control=obstacle_control)
 
     def plan(self, planner: TrajectoryPlannerInterface, predictor: Optional[PredictorInterface] = None,
@@ -457,8 +502,7 @@ class CarlaInterface:
             elif env.weather is Weather.LIGHT_RAIN:
                 self._world.set_weather(carla.WeatherParameters.SoftRainNoon)
             elif env.weather is Weather.FOG:
-                pass
-                # TODO set weather since fog in general supported by CARLA
+                pass  # TODO set weather since fog in general supported by CARLA
             elif env.weather is Weather.HAIL:
                 logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:
@@ -471,8 +515,7 @@ class CarlaInterface:
             elif env.weather is Weather.LIGHT_RAIN:
                 self._world.set_weather(carla.WeatherParameters.SoftRainNight)
             elif env.weather is Weather.FOG:
-                pass
-                # TODO set weather since fog in general supported by CARLA
+                pass  # TODO set weather since fog in general supported by CARLA
             elif env.weather is Weather.HAIL:
                 logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:
@@ -493,16 +536,15 @@ class CarlaInterface:
                                                 config.wetness, config.fog_falloff, config.scattering_intensity,
                                                 config.mie_scattering_scale, config.rayleigh_scattering_scale))
 
-    def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
+    def _init_visualization(self, obstacle_only: bool):
         """
-        Performs simulation by iteratively calling tick and render functions.
-        Initializes visualization worlds and head-up display.
+        Initializes the visualization world, clock,
+        and display based on the visualization type specified in the configuration.
 
-        :param obstacle_control: Boolean indicating whether obstacles are controlled based on CommonRoad scenario.
         :param obstacle_only: Boolean indicating whether only obstacles should be simulated, i.e. no ego vehicle.
+        :return: A tuple containing the visualization world, clock, and display.
         """
         vis_world = None
-        time_step = 0
         clock = None
         display = None
 
@@ -513,12 +555,30 @@ class CarlaInterface:
         if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
             logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.visualization.width, self._config.visualization.height)
-            vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor,
-                                self._config.birds_eye_view)
+            vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.birds_eye_view)
         elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
             logger.info("Init 3D.")
-            hud = HUD3D(self._world, self._config.ego_view)
-            vis_world = World3D(self._world, hud, self._config.ego_view, self._ego.actor)
+            vis_world = Visualization3D(self._world, self._config.ego_view, self._ego.actor)
+
+        return vis_world, clock, display
+
+    def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
+        """
+        Performs simulation by iteratively calling tick and render functions.
+        Initializes visualization worlds and head-up display.
+
+        :param obstacle_control: Boolean indicating whether obstacles are controlled based on CommonRoad scenario.
+        :param obstacle_only: Boolean indicating whether only obstacles should be simulated, i.e. no ego vehicle.
+        """
+        # set SDL to use the dummy NULL video driver,
+        # so it doesn't need a windowing system.
+        # (to run pygame without a display)
+        if self._config.simulation.ignore_video_driver:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+        vis_world, clock, display = self._init_visualization(obstacle_only)
+
+        time_step = 0
 
         logger.info("Loop.")
         while time_step <= self._config.simulation.max_time_step:
@@ -536,7 +596,7 @@ class CarlaInterface:
                     tl.tick(time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
-                clock.tick_busy_loop(60)
+                clock.tick_busy_loop(1 / self._config.simulation.time_step)
                 vis_world.tick(clock)
                 vis_world.render(display)
                 pygame.display.flip()
@@ -545,7 +605,7 @@ class CarlaInterface:
             self._update_cr_state()
 
         if self._config.vis_type is CustomVis.EGO:
-            vis_world.destroy_sensors()
+            vis_world.destroy()
 
         if self._config.ego_view.record_video:
             make_video(self._config.ego_view.video_path, self._config.ego_view.video_name)
@@ -563,7 +623,7 @@ class CarlaInterface:
         pygame.display.set_caption(self._config.visualization.description)  # Place a title to game window
         # Show loading screen
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
-        text_surface = font.render('Rendering map...', True, pygame.Color(255, 255, 255))
+        text_surface = font.render("Rendering map...", True, pygame.Color(255, 255, 255))
         display.blit(text_surface, text_surface.get_rect(center=(self._config.visualization.width / 2,
                                                                  self._config.visualization.height / 2)))
         display.fill((0, 0, 0))
