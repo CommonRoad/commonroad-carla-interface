@@ -40,7 +40,20 @@ prospector_source:
 #    - python -m pip install prospector[with_mypy]
 #    - prospector tutorials/
 
-# test
+
+test:
+  stage: test
+  image: gitlab.lrz.de:5005/cps/commonroad-carla-interface/carla_image
+  tags :
+    - gpu
+  script:
+    - bash /home/carla/CarlaUE4.sh -RenderOffScreen &> carla.log &
+    - sleep 30
+    - cat carla.log
+    - python3 -m unittest tests/main.py
+    - pkill -f Carla || true
+
+
 #build_test_python_3_8:
 #  image: "python:3.8"
 #  stage: test
@@ -48,8 +61,6 @@ prospector_source:
 #    - *install-and-run
 
 # build
-
-
 #build_package_py_38:
 #    stage: build
 #    image: "python:3.8"
