@@ -507,7 +507,10 @@ class CarlaInterface:
                 logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:
                 logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
-            elif env.weather is Weather.SUNNY:
+            elif env.weather is Weather.CLEAR:
+                self._world.set_weather(carla.WeatherParameters.ClearNoon)
+            else:
+                logger.info("CarlaInterface::set_cr_weather: Unsupported CommonRoad weather.")
                 self._world.set_weather(carla.WeatherParameters.ClearNoon)
         else:
             if env.weather is Weather.HEAVY_RAIN:
@@ -520,7 +523,10 @@ class CarlaInterface:
                 logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:
                 logger.info("CarlaInterface::set_cr_weather: Snow not supported by CARLA.")
-            elif env.weather is Weather.SUNNY:
+            elif env.weather is Weather.CLEAR:
+                self._world.set_weather(carla.WeatherParameters.ClearNight)
+            else:
+                logger.info("CarlaInterface::set_cr_weather: Unsupported CommonRoad weather.")
                 self._world.set_weather(carla.WeatherParameters.ClearNight)
 
     def set_weather(self, config: WeatherParams = WeatherParams()):
