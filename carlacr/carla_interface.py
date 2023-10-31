@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple, Union
 import pygame
 import time
 import copy
+from pathlib import Path
 
 from commonroad.scenario.scenario import Scenario, Environment, TimeOfDay, Weather
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
@@ -270,7 +271,7 @@ class CarlaInterface:
             file.close()
 
         # Load OpenDRIVE file, parse it, and convert it to a CommonRoad scenario
-        scenario = opendrive_to_commonroad("./temp.xodr")
+        scenario = opendrive_to_commonroad(Path("./temp.xodr"))
 
         # Delete temporary file
         os.remove("./temp.xodr")
