@@ -12,7 +12,7 @@ from pathlib import Path
 
 from commonroad.scenario.scenario import Scenario, Environment, TimeOfDay, Weather
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
-from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, StaticObstacle
+from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, StaticObstacle, ObstacleRole
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.trajectory import Trajectory
@@ -205,6 +205,10 @@ class CarlaInterface:
         :param sc: CommonRoad scenario.
         """
         for obs in sc.obstacles:
+            if obs.obstacle_role != ObstacleRole.DYNAMIC:
+                logger.error("CarlaInterface::_set_scenario: Only dynamic obstacles are supported. "
+                             "Obstacle with ID %s will be skipped", obs.obstacle_id)
+                continue
             if obs.obstacle_type in [ObstacleType.CAR, ObstacleType.BUS, ObstacleType.TAXI, ObstacleType.TRUCK,
                                      ObstacleType.MOTORCYCLE, ObstacleType.BICYCLE, ObstacleType.PARKED_VEHICLE]:
                 self._cr_obstacles.append(VehicleInterface(obs, self._world, self._tm, config=self._config.vehicle))
@@ -611,7 +615,7 @@ class CarlaInterface:
             time_step += 1
             self._update_cr_state()
 
-        if self._config.vis_type is CustomVis.EGO:
+        if vis_world is not None:
             vis_world.destroy()
 
         if self._config.ego_view.record_video:
