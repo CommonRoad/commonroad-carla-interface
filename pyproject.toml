@@ -21,10 +21,10 @@ packages = [{include = "carlacr"}]
 
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.11"
 pygame = ">=2.1.2"
 commonroad-io = "2023.3"
-carla = "0.9.14"
+carla = "0.9.15"
 omegaconf = ">=2.1.2"
 commonroad-drivability-checker = "~=2023.1"
 commonroad-vehicle-models = "~=3.0.2"
