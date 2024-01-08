@@ -80,7 +80,7 @@ class BaseParam:
     start_carla_server: bool = True
     kill_carla_server: bool = True
     default_carla_paths: List[str] = field(default_factory=lambda: [
-        "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
+        "/opt/carla-simulator/", "/~/CARLA_0.9.15_RSS/", "/~/CARLA_0.9.15/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
         "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/", "/home/carla/"])
     offscreen_mode: bool = True
     map: str = "Town01"
