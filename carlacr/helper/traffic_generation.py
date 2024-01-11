@@ -14,7 +14,7 @@ SpawnActor = carla.command.SpawnActor
 
 
 def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficManager,
-                  config: SimulationParams, cr_id: int) -> List[Union[PedestrianInterface, VehicleInterface]]:
+                  config: SimulationParams, cr_id: int, sync: bool) -> List[Union[PedestrianInterface, VehicleInterface]]:
     """
     Spawns actors in CARLA as defined in configuration.
 
@@ -29,13 +29,31 @@ def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficMan
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    all_vehicle_actors = spawn_vehicle(config, blueprints_vehicles, world, tm, cr_id)
-    cr_id += len(all_vehicle_actors)
+    spawn_vehicle(config, blueprints_vehicles, world, tm)
 
     # Spawn Walkers
     all_walker_actors = spawn_walker_with_control(config, blueprints_walkers, client, world, cr_id)
+    cr_id += len(all_walker_actors)
 
-    return all_vehicle_actors + all_walker_actors
+    # tick required, otherwise call to get_transform returns [0, 0] position since world object contains the state
+    # from last time step where obstacles were not present (https://github.com/carla-simulator/carla/issues/1424)
+    if sync:
+        world.tick()
+    else:
+        world.wait_for_tick()
+
+    return init_cr_vehicles(cr_id, world, tm) + all_walker_actors
+
+
+def init_cr_vehicles(cr_id: int, world: carla.World, traffic_manager: carla.TrafficManager) -> List[VehicleInterface]:
+    obstacle_list = []
+    for actor in world.get_actors():
+        if "vehicle" in actor.type_id:
+            cr_obstacle = create_cr_vehicle_from_actor(actor, cr_id)
+            obstacle_list.append(VehicleInterface(cr_obstacle, world, traffic_manager, actor=actor))
+            cr_id += 1
+
+    return obstacle_list
 
 
 def extract_blueprints(config: SimulationParams, world: carla.World) \
@@ -219,7 +237,7 @@ def spawn_walkers(blueprints_walkers: List[carla.ActorBlueprint], config: Simula
 
 
 def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprint],
-                  world: carla.World, traffic_manager: carla.TrafficManager, cr_id: int) -> List[VehicleInterface]:
+                  world: carla.World, traffic_manager: carla.TrafficManager):
     """
     Spawns vehicles as defined in provided config.
 
@@ -227,10 +245,8 @@ def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprin
     :param blueprints: Available CARLA blueprints for vehicles.
     :param world: CARLA world.
     :param traffic_manager: CARLA traffic manager.
-    :param cr_id: Initial ID for CommonRoad obstacles.
     """
     logging.info("Traffic Generation spawn vehicles.")
-    vehicles_list = []
 
     spawn_points = world.get_map().get_spawn_points()
     number_of_spawn_points = len(spawn_points)
@@ -248,8 +264,6 @@ def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprin
         spawned_actor = world.try_spawn_actor(blueprint, transform)
 
         if spawned_actor is not None:
-            cr_obstacle = create_cr_vehicle_from_actor(spawned_actor, cr_id)
-            vehicles_list.append(VehicleInterface(cr_obstacle, world, traffic_manager, actor=spawned_actor))
             spawned_actor.set_autopilot(True)
             traffic_manager.update_vehicle_lights(spawned_actor, True)
             traffic_manager.ignore_walkers_percentage(spawned_actor, config.tm.ignore_walkers_percentage)
@@ -261,12 +275,9 @@ def spawn_vehicle(config: SimulationParams, blueprints: List[carla.ActorBlueprin
                                                               config.tm.random_left_lane_change_percentage)
             traffic_manager.random_right_lanechange_percentage(spawned_actor,
                                                                config.tm.random_right_lane_change_percentage)
-            cr_id += 1
             num_vehicles += 1
         else:
             continue
-
-    return vehicles_list
 
 
 def select_blueprint(blueprints: List[carla.ActorBlueprint]) -> carla.ActorBlueprint:

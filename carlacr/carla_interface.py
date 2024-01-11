@@ -345,7 +345,7 @@ class CarlaInterface:
 
         logger.info("Scenario generation: Create actors.")
         self._cr_obstacles = \
-            create_actors(self._client, self._world, self._tm, self._config.simulation, sc.generate_object_id())
+            create_actors(self._client, self._world, self._tm, self._config.simulation, sc.generate_object_id(), self._config.sync)
         logger.info("Scenario generation: Start Simulation.")
         self._run_simulation(obstacle_only=True)
 
@@ -414,7 +414,8 @@ class CarlaInterface:
             self._set_scenario(sc)
             obstacle_control = True
         else:
-            self._cr_obstacles = create_actors(self._client, self._world, self._tm, self._config.simulation, 1)
+            self._cr_obstacles = create_actors(self._client, self._world, self._tm, self._config.simulation, 1,
+                                               self._config.sync)
             obstacle_control = False
 
         logger.info("Spawn ego.")

@@ -19,7 +19,7 @@ from carlacr.objects.actor import ActorInterface
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.geometry.shape import Rectangle, Circle
-from commonroad.scenario.state import InitialState, PMState, KSState, CustomState
+from commonroad.scenario.state import InitialState, PMState, KSState, CustomState, ExtendedPMState
 from commonroad.common.util import make_valid_orientation
 from commonroad.planning.goal import GoalRegion, Interval, AngleInterval
 from commonroad.scenario.scenario import Scenario
@@ -88,7 +88,7 @@ def create_cr_vehicle_from_actor(actor: carla.Vehicle, cr_id: int) -> DynamicObs
                                         orientation, vel, 0, 0, 0))
 
 
-def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState:
+def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> ExtendedPMState:
     """
     Creates point-mass model state of a CARLA actor at a time step.
 
@@ -97,13 +97,13 @@ def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> PMState
     :return: CommonRoad point-mass model state.
     """
     vel_vec = actor.get_velocity()
-    vel = math.sqrt(vel_vec.x**2 + vel_vec.y**2)
+    acc_vec = actor.get_acceleration()
+    vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
+    acc = math.sqrt(acc_vec.x ** 2 + acc_vec.y ** 2)
     transform = actor.get_transform()
     location = transform.location
     orientation = -((transform.rotation.yaw * math.pi) / 180)
-    velocity_x = math.cos(orientation) * vel
-    velocity_y = math.sin(orientation) * vel
-    return PMState(time_step, np.array([location.x, -location.y]), velocity_x, velocity_y)
+    return ExtendedPMState(time_step, np.array([location.x, -location.y]), vel, orientation, acc)
 
 
 def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSState:
