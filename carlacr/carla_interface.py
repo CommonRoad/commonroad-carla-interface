@@ -348,6 +348,25 @@ class CarlaInterface:
             create_actors(self._client, self._world, self._tm, self._config.simulation, sc.generate_object_id(),
                           self._config.sync)
         logger.info("Scenario generation: Start Simulation.")
+
+        # camera_blueprint = self._world.get_blueprint_library().find('sensor.camera.rgb')
+        # camera_transform_horizontal = carla.Transform(carla.Location(z=5, x=-45, y=-25),
+        #                                    carla.Rotation(pitch=-5.0, yaw=90, roll=0.0))
+        # camera_transform_bird = carla.Transform(carla.Location(z=50, x=-45, y=19),
+        #                                    carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0))
+        # camera_horizontal = self._world.spawn_actor(camera_blueprint, camera_transform_horizontal)
+        # camera_bird = self._world.spawn_actor(camera_blueprint, camera_transform_bird)
+        # image_width = camera_blueprint.get_attribute("image_size_x").as_int()
+        # image_height = camera_blueprint.get_attribute("image_size_y").as_int()
+        # camera_data = {'image': np.zeros((image_height, image_width, 4))}
+        #
+        # camera_bird.listen(lambda image: camera_callback(image, camera_data, "images_bird"))
+        # camera_horizontal.listen(lambda image: camera_callback(image, camera_data, "images_horizontal"))
+        #
+        # def camera_callback(image, data, path):
+        #     data['image'] = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
+        #     image.save_to_disk(f"{path}/{image.frame}.png")
+
         self._run_simulation(obstacle_only=True)
 
         for obs in self._cr_obstacles[1:]:
