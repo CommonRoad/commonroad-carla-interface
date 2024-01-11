@@ -14,7 +14,8 @@ SpawnActor = carla.command.SpawnActor
 
 
 def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficManager,
-                  config: SimulationParams, cr_id: int, sync: bool) -> List[Union[PedestrianInterface, VehicleInterface]]:
+                  config: SimulationParams, cr_id: int, sync: bool) \
+        -> List[Union[PedestrianInterface, VehicleInterface]]:
     """
     Spawns actors in CARLA as defined in configuration.
 
@@ -23,6 +24,7 @@ def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficMan
     :param tm: CARLA traffic manager.
     :param config: Simulation configuration.
     :param cr_id: Initial ID for CommonRoad obstacles.
+    :param sync: Boolean indicating whether synchronous mode is used.
     """
     random.seed(config.tm.seed if config.tm.seed is not None else int(time.time()))
 
@@ -46,6 +48,13 @@ def create_actors(client: carla.Client, world: carla.World, tm: carla.TrafficMan
 
 
 def init_cr_vehicles(cr_id: int, world: carla.World, traffic_manager: carla.TrafficManager) -> List[VehicleInterface]:
+    """
+    Initializes CommonRoad vehicle obstacles.
+
+    :param cr_id: Maximum CR ID.
+    :param world: CARLA world.
+    :param traffic_manager: CARLA traffic manager.
+    """
     obstacle_list = []
     for actor in world.get_actors():
         if "vehicle" in actor.type_id:
