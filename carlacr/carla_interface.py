@@ -109,6 +109,8 @@ class CarlaInterface:
 
             time.sleep(self._config.sleep_time)
 
+            kill_existing_servers(self._config.sleep_time)
+
     def get_simulation_fps(self) -> int:
         """
         Returns the frames per second (fps) of the simulation.
