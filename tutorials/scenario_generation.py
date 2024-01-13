@@ -19,13 +19,16 @@ param.simulation.number_vehicles = 5
 param.simulation.number_walkers = 5
 param.simulation.osm_mode = True
 param.simulation.tm.ignore_lights_percentage = 50
-param.simulation.weather.fog_density = 50
 
 # Execute scenario generation
 ci = CarlaInterface(param)
 sc, pps = ci.scenario_generation(ci.create_cr_map())  # generate scenario and convert default map to CommonRoad format
 
 # Store generated scenario
-CommonRoadFileWriter(sc, pps,
-                     author="TUM-CPS", affiliation="Technical University of Munich", source="CARLA", tags={Tag.URBAN}
-                     ).write_to_file(None, OverwriteExistingFile.ALWAYS)
+fw_pb = (
+    CommonRoadFileWriter(sc, pps, author="TUM-CPS", affiliation="Technical University of Munich",
+                         source="CARLA", tags={Tag.URBAN}))
+
+fw_pb.write_map_to_file(overwrite_existing_file=OverwriteExistingFile.ALWAYS)
+fw_pb.write_scenario_to_file(overwrite_existing_file=OverwriteExistingFile.ALWAYS)
+fw_pb.write_dynamic_to_file(overwrite_existing_file=OverwriteExistingFile.ALWAYS)

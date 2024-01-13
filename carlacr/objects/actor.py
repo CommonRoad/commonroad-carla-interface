@@ -5,7 +5,7 @@ from abc import ABC
 import carla
 
 from commonroad.scenario.obstacle import DynamicObstacle
-from commonroad.scenario.trajectory import PMState, KSState
+from commonroad.scenario.state import PMState, KSState
 
 from carlacr.helper.config import VehicleParams, PedestrianParams
 

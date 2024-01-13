@@ -10,7 +10,8 @@ import time
 import copy
 from pathlib import Path
 
-from commonroad.scenario.scenario import Scenario, Environment, TimeOfDay, Weather
+from commonroad.common.common_scenario import Environment, TimeOfDay, Weather
+from commonroad.scenario.scenario import Scenario
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.obstacle import ObstacleType, DynamicObstacle, StaticObstacle, ObstacleRole
 from commonroad.geometry.shape import Rectangle
@@ -108,6 +109,8 @@ class CarlaInterface:
                 logger.info("CARLA server with PID %s terminated.", self._carla_pid.pid)
 
             time.sleep(self._config.sleep_time)
+
+            kill_existing_servers(self._config.sleep_time)
 
     def get_simulation_fps(self) -> int:
         """

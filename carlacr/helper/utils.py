@@ -253,7 +253,7 @@ def find_carla_distribution(default_carla_paths: List[str]) -> str:
     raise FileNotFoundError("CARLA executable not found.")
 
 
-def kill_existing_servers(sleep_time: int):
+def kill_existing_servers(sleep_time: float):
     """
     Kills all running carla servers.
 
