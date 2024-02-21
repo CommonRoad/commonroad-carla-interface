@@ -1,11 +1,16 @@
-from tests.base_test_case.carla_server_test_case import CarlaServerTestCase
 import os
-from carlacr.helper.config import PedestrianControlType, VehicleControlType
-from utils import make_output_dir
-from carlacr.helper.utils import render_trajectory_video, render_obs_trajectory_and_speed_comparisons
-from commonroad.common.file_reader import CommonRoadFileReader
 
-CONTROLLERS = [ VehicleControlType.PID]
+from commonroad.common.file_reader import CommonRoadFileReader
+from utils import make_output_dir
+
+from carlacr.helper.config import PedestrianControlType, VehicleControlType
+from carlacr.helper.utils import (
+    render_obs_trajectory_and_speed_comparisons,
+    render_trajectory_video,
+)
+from tests.base_test_case.carla_server_test_case import CarlaServerTestCase
+
+CONTROLLERS = [VehicleControlType.PID]
 
 PEDESTRIAN_CONTROLLER = PedestrianControlType.AI
 

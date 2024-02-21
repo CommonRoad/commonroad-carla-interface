@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Tuple, Dict
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import carla
 import pygame
@@ -15,7 +15,7 @@ class LineToVehicle(VisualizationBase):
     A class to visualize bounding boxes of objects in a 3D world.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Initializes an instance of BoundingBox3D.
 
@@ -44,9 +44,9 @@ class LineToVehicle(VisualizationBase):
         :type color: Tuple[int, int, int]
         """
         target = self._targets.setdefault(vehicle.id, {})
-        target['vehicle'] = vehicle
-        target['color'] = color
-        target['max_dist'] = max_dist
+        target["vehicle"] = vehicle
+        target["color"] = color
+        target["max_dist"] = max_dist
 
     def remove_connection(self, vehicle: carla.Vehicle):
         """
@@ -74,9 +74,9 @@ class LineToVehicle(VisualizationBase):
         ego_forward_vec = ego_vehicle.get_transform().get_forward_vector()
 
         for _, target in self._targets.items():
-            vehicle: carla.Vehicle = target['vehicle']
-            max_dist = target['max_dist']
-            color = target['color']
+            vehicle: carla.Vehicle = target["vehicle"]
+            max_dist = target["max_dist"]
+            color = target["color"]
             loc = vehicle.get_location()
 
             ray = loc - ego_location
@@ -84,8 +84,12 @@ class LineToVehicle(VisualizationBase):
 
             if self._min_distance < distance < max_dist:
                 self._lines.append(
-                    {'start': ego_image_point, 'end': self._vis3d.vis_tool_controller.get_image_point(loc),
-                        'color': color, })
+                    {
+                        "start": ego_image_point,
+                        "end": self._vis3d.vis_tool_controller.get_image_point(loc),
+                        "color": color,
+                    }
+                )
 
     def render(self, display: pygame.display):
         """
@@ -98,9 +102,9 @@ class LineToVehicle(VisualizationBase):
         if not VisualizationBase.is_visible:
             return
         for target in self._lines:
-            color = target['color']
-            start = target['start']
-            end = target['end']
+            color = target["color"]
+            start = target["start"]
+            end = target["end"]
 
             line = shapely.LineString([start, end])
             pygame_linie = list(line.coords)

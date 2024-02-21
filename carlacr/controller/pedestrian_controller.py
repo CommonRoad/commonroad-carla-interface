@@ -1,12 +1,12 @@
 import logging
-from typing import Optional
 import math
+from typing import Optional
+
 import carla
 import numpy as np
+from commonroad.scenario.state import TraceState
 
 from carlacr.controller.controller import CarlaController
-
-from commonroad.scenario.state import TraceState
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,7 +25,7 @@ class AIWalkerControl(CarlaController):
         """
         super().__init__(actor)
         world = actor.get_world()
-        walker_controller_bp = world.get_blueprint_library().find('controller.ai.walker')
+        walker_controller_bp = world.get_blueprint_library().find("controller.ai.walker")
         ai_actor = world.spawn_actor(walker_controller_bp, carla.Transform(), actor)
         ai_actor.start()
         location = carla.Location(x=final_pos[0], y=-final_pos[1], z=0.5)

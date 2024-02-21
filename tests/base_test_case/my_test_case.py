@@ -1,8 +1,10 @@
-import unittest
 import inspect
 import os
 import shutil
+import unittest
+
 import tests.utils
+
 """
 Todo when Using the StandardTestCase class:
 
@@ -26,12 +28,10 @@ class StandardTestCase(unittest.TestCase):
         cls.edge_cases = None
         cls.log_dir = tests.utils.make_log_dir()
 
-    def assertWithLogging(
-        self, assertion, assertion_arguments, expected_response, actual_response
-    ):
+    def assertWithLogging(self, assertion, assertion_arguments, expected_response, actual_response):
         try:
             assertion(*assertion_arguments)
-        except AssertionError as ae:
+        except AssertionError:
             test_name = inspect.stack()[1][3]
             file_path = os.path.join(self.log_dir, "{}-Failure.log".format(test_name))
             with open(file_path, "w") as log_file:
@@ -41,7 +41,9 @@ class StandardTestCase(unittest.TestCase):
                     # {}
                     # Actual response:
                     # {}
-                    """.format(test_name, expected_response, actual_response)
+                    """.format(
+                    test_name, expected_response, actual_response
+                )
                 log_file.write(message)
 
             raise
@@ -60,9 +62,9 @@ class StandardTestCase(unittest.TestCase):
             raise NotImplementedError("Subclasses must specify the 'edge_cases' variable")
 
         for edge_case in self.edge_cases:
-            self.assertWithLogging(self.assertEqual,
-                                   [edge_case.expected, edge_case.output], edge_case.expected,
-                                   edge_case.output)
+            self.assertWithLogging(
+                self.assertEqual, [edge_case.expected, edge_case.output], edge_case.expected, edge_case.output
+            )
 
     def test_basic_cases(self):
         """

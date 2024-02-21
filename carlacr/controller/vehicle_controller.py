@@ -1,21 +1,21 @@
-from dataclasses import dataclass
 import logging
-from typing import Optional, List
-import carla
 import math
+from dataclasses import dataclass
+from typing import List, Optional
 
-from carlacr.helper.config import ControlParams
-from carlacr.controller.controller import CarlaController, create_carla_transform
-from agents.navigation.controller import VehiclePIDController
+import carla
 from agents.navigation.behavior_agent import BehaviorAgent
+from agents.navigation.controller import VehiclePIDController
+from commonroad.scenario.state import InputState, KSState, TraceState
 
-from commonroad.scenario.state import TraceState
+from carlacr.controller.controller import CarlaController, create_carla_transform
+from carlacr.helper.config import ControlParams
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 try:
-    from carla import VehicleAckermannControl, AckermannControllerSettings
+    from carla import AckermannControllerSettings, VehicleAckermannControl
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
 
@@ -73,8 +73,9 @@ class VehicleBehaviorAgentPathFollowingControl(CarlaController):
 
         :param path: List of CARLA locations.
         """
-        self._agent.set_global_plan([(CarlaCRWaypoint(elem), None) for elem in path],
-                                    stop_waypoint_creation=True, clean_queue=True)
+        self._agent.set_global_plan(
+            [(CarlaCRWaypoint(elem), None) for elem in path], stop_waypoint_creation=True, clean_queue=True
+        )
 
 
 class PIDController(CarlaController):
@@ -107,7 +108,7 @@ class PIDController(CarlaController):
 class AckermannController(CarlaController):
     """Controller which uses CARLA's Ackermann controller to control the vehicle."""
 
-    def __init__(self, actor: carla.Actor, config: ControlParams = ControlParams()):
+    def __init__(self, actor: carla.Actor, dt: float, config: ControlParams = ControlParams()):
         """
         Initialization of Ackermann controller.
 
@@ -115,49 +116,54 @@ class AckermannController(CarlaController):
         :param config: Controller configuration.
         """
         super().__init__(actor)
-        ackermann_settings = AckermannControllerSettings(speed_kp=config.ackermann_pid_speed_kp,
-                                                         speed_ki=config.ackermann_pid_speed_ki,
-                                                         speed_kd=config.ackermann_pid_speed_kd,
-                                                         accel_kp=config.ackermann_pid_accel_kp,
-                                                         accel_ki=config.ackermann_pid_accel_ki,
-                                                         accel_kd=config.ackermann_pid_accel_kd)
+        ackermann_settings = AckermannControllerSettings(
+            speed_kp=config.ackermann_pid_speed_kp,
+            speed_ki=config.ackermann_pid_speed_ki,
+            speed_kd=config.ackermann_pid_speed_kd,
+            accel_kp=config.ackermann_pid_accel_kp,
+            accel_ki=config.ackermann_pid_accel_ki,
+            accel_kd=config.ackermann_pid_accel_kd,
+        )
         self._actor.apply_ackermann_controller_settings(ackermann_settings)
+        self._previous_state: Optional[KSState] = None
+        self._dt = dt
 
-    def control(self, state: Optional[TraceState] = None):
+    def control(self, state: Optional[KSState] = None, input: Optional[InputState] = None):
         """
         Computes and applies CARLA Ackermann control for one time step.
 
         :param state: State which should be reached at next time step.
         """
-        try:
-            _steering_angle = self.trajectory.steering_angle(state.time_step)
-            _steering_angle_speed = self.trajectory.steering_angle_speed(state.time_step)
-            _speed = self.trajectory.velocity(state.time_step)
-            _acceleration = _speed = self.trajectory.acceleration(state.time_step)
-            _jerk = self.trajectory.jerk(state.time_step)
-
-            # Define the Ackermann control
-            ackermann_control = VehicleAckermannControl(
-                steer=_steering_angle,
-                steer_speed=_steering_angle_speed,
-                speed=_speed,
-                acceleration=_acceleration,
-                jerk=_jerk
+        if not isinstance(state, KSState):
+            logger.error("AckermannController::control: state must be of type KSState.")
+            raise RuntimeError("AckermannController::control: state must be of type KSState.")
+        acc_vec = self._actor.get_acceleration()
+        acc = math.sqrt(acc_vec.x**2 + acc_vec.y**2)
+        if input is None and self._previous_state is not None:
+            input_state = InputState(
+                acceleration=(state.velocity - self._previous_state.velocity) / self._dt,
+                steering_angle_speed=(state.steering_angle - self._previous_state.steering_angle) / self._dt,
             )
+            jerk = (((state.velocity - self._previous_state.velocity) / self._dt) - acc) / self._dt
+        elif input is None and self._previous_state is None:
+            vel_vec = self._actor.get_velocity()
+            vel = math.sqrt(vel_vec.x**2 + vel_vec.y**2)
+            steer = self._actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
+            input_state = InputState(
+                acceleration=(state.velocity - vel) / self._dt,
+                steering_angle_speed=(state.steering_angle - steer) / self._dt,
+            )
+            jerk = (((state.velocity - vel) / self._dt) - acc) / self._dt
+        else:
+            input_state = input
+            jerk = (input.acceleration - acc) / self._dt
 
-            # Apply the Ackermann control to the vehicle
-            self._actor.apply_ackermann_control(ackermann_control)
+        ackermann_control = VehicleAckermannControl(
+            steer=state.steering_angle,
+            steer_speed=input_state.steering_angle_speed,
+            speed=state.velocity,
+            acceleration=input_state.acceleration,
+            jerk=jerk,
+        )
 
-        except Exception as e:
-            logger.error("AckermannController::control Error while updating position %s", str(e))
-
-
-class WheelController(CarlaController):
-    """Controller which uses steering wheel as input."""
-
-    def control(self, state: Optional[TraceState] = None):
-        """
-        Computes and applies CARLA steering wheel control.
-
-        :param state: State which should be reached at next time step.
-        """
+        self._actor.apply_ackermann_control(ackermann_control)

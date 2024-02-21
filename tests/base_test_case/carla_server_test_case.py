@@ -1,7 +1,8 @@
-from tests.base_test_case.my_test_case import StandardTestCase
-from carlacr.helper.config import CarlaParams
-from carlacr.carla_interface import CarlaInterface
 import os
+
+from carlacr.carla_interface import CarlaInterface
+from carlacr.helper.config import CarlaParams
+from tests.base_test_case.my_test_case import StandardTestCase
 
 """
 Todo when Using the CarlaServerTestCase class:

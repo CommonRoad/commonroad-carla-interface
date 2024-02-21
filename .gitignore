@@ -60,3 +60,4 @@ carlacr/helper/.mypy_cache
 carlacr/.mypy_cache
 .pylintrc
 
+/eval_paper/generated_scenarios/

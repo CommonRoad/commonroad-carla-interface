@@ -1,29 +1,35 @@
-import carla
+import hashlib
+import logging
 import math
 import os
-import numpy as np
-from typing import Union, List, Tuple
-import logging
-import psutil
-import matplotlib.pyplot as plt
-import time
-import signal
-import hashlib
-import subprocess
-import matplotlib
 import shutil
+import signal
+import subprocess
+import time
+from typing import List, Tuple, Union
+
+import carla
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import psutil
+from commonroad.common.util import make_valid_orientation
+from commonroad.geometry.shape import Circle, Rectangle
+from commonroad.planning.goal import AngleInterval, GoalRegion, Interval
+from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
+from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.state import (
+    CustomState,
+    ExtendedPMState,
+    InitialState,
+    KSState,
+    PMState,
+)
+from commonroad.visualization.mp_renderer import MPRenderer
 from PIL import Image
 
 from carlacr.helper.config import BaseParam
 from carlacr.objects.actor import ActorInterface
-
-from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
-from commonroad.geometry.shape import Rectangle, Circle
-from commonroad.scenario.state import InitialState, PMState, KSState, CustomState, ExtendedPMState
-from commonroad.common.util import make_valid_orientation
-from commonroad.planning.goal import GoalRegion, Interval, AngleInterval
-from commonroad.scenario.scenario import Scenario
-from commonroad.visualization.mp_renderer import MPRenderer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,6 +52,7 @@ logger.setLevel(logging.DEBUG)
 #             info_text.append('% 5d %s' % (vehicle.id, vehicle_type))
 #     self._hud.add_info('NEARBY VEHICLES', info_text)
 
+
 def create_goal_region_from_state(state: Union[KSState, PMState], ks_state: bool = True) -> GoalRegion:
     """
     Creates a CommonRoad goal region object given a state for a planning problem.
@@ -55,25 +62,38 @@ def create_goal_region_from_state(state: Union[KSState, PMState], ks_state: bool
     :return: CommonRoad goal region.
     """
     if ks_state:
-        return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
-                                       position=Circle(3, state.position),
-                                       velocity=Interval(max(0.0, state.velocity - 10), state.velocity + 10),
-                                       orientation=AngleInterval(state.orientation - 0.25, state.orientation + 0.25))])
+        return GoalRegion(
+            [
+                CustomState(
+                    time_step=Interval(state.time_step, state.time_step),
+                    position=Circle(3, state.position),
+                    velocity=Interval(max(0.0, state.velocity - 10), state.velocity + 10),
+                    orientation=AngleInterval(state.orientation - 0.25, state.orientation + 0.25),
+                )
+            ]
+        )
 
     velocity = max(state.velocity, state.velocity_y)
     orientation = math.atan2(state.velocity_y, state.velocity)
-    return GoalRegion([CustomState(time_step=Interval(state.time_step, state.time_step),
-                                   position=Circle(10, state.position),
-                                   velocity=Interval(max(0.0, velocity - 10), velocity + 10),
-                                   orientation=AngleInterval(orientation - 0.25, orientation + 0.25))])
+    return GoalRegion(
+        [
+            CustomState(
+                time_step=Interval(state.time_step, state.time_step),
+                position=Circle(10, state.position),
+                velocity=Interval(max(0.0, velocity - 10), velocity + 10),
+                orientation=AngleInterval(orientation - 0.25, orientation + 0.25),
+            )
+        ]
+    )
 
 
-def create_cr_vehicle_from_actor(actor: carla.Vehicle, cr_id: int) -> DynamicObstacle:
+def create_cr_vehicle_from_actor(actor: carla.Vehicle, cr_id: int, initial_time_step: int) -> DynamicObstacle:
     """
     Creates CommonRoad dynamic obstacle of type car given a CARLA actor.
 
     :param actor: CARLA vehicle actor.
     :param cr_id: CommonRoad ID which the dynamic obstacle should have.
+    :param initial_time_step: Initial time step which should be used.
     :return: CommonRoad dynamic obstacle of type car.
     """
     vel_vec = actor.get_velocity()
@@ -83,9 +103,31 @@ def create_cr_vehicle_from_actor(actor: carla.Vehicle, cr_id: int) -> DynamicObs
     orientation = -((transform.rotation.yaw * math.pi) / 180)
     length = actor.bounding_box.extent.x * 2
     width = actor.bounding_box.extent.y * 2
-    return DynamicObstacle(cr_id, ObstacleType.CAR, Rectangle(length, width),
-                           InitialState(0, np.array([location.x, -location.y]),
-                                        orientation, vel, 0, 0, 0))
+    obs_type = extract_obstacle_type(actor.attributes["base_type"].lower())
+    return DynamicObstacle(
+        cr_id,
+        obs_type,
+        Rectangle(length, width),
+        InitialState(initial_time_step, np.array([location.x, -location.y]), orientation, vel, 0, 0, 0),
+    )
+
+
+def extract_obstacle_type(carla_base_type: str) -> ObstacleType:
+    """
+    Matches CARLA actor base type to CommonRoad obstacle type.
+
+    :param carla_base_type: CARLA actor base type.
+    :return: CommonRoad obstacle type.
+    """
+    if carla_base_type == "car":
+        return ObstacleType.CAR
+    if carla_base_type == "bus":
+        return ObstacleType.BUS
+    if carla_base_type == "truck":
+        return ObstacleType.TRUCK
+    if carla_base_type == "motorcycle":
+        return ObstacleType.MOTORCYCLE
+    return ObstacleType.CAR
 
 
 def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> ExtendedPMState:
@@ -98,8 +140,8 @@ def create_cr_pm_state_from_actor(actor: carla.Actor, time_step: int) -> Extende
     """
     vel_vec = actor.get_velocity()
     acc_vec = actor.get_acceleration()
-    vel = math.sqrt(vel_vec.x ** 2 + vel_vec.y ** 2)
-    acc = math.sqrt(acc_vec.x ** 2 + acc_vec.y ** 2)
+    vel = math.sqrt(vel_vec.x**2 + vel_vec.y**2)
+    acc = math.sqrt(acc_vec.x**2 + acc_vec.y**2)
     transform = actor.get_transform()
     location = transform.location
     orientation = -((transform.rotation.yaw * math.pi) / 180)
@@ -124,7 +166,7 @@ def create_cr_ks_state_from_actor(actor: carla.Vehicle, time_step: int) -> KSSta
         steer = actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
     except RuntimeError:
         steer = 0
-    steering_angle = make_valid_orientation(steer * (math.pi/180))
+    steering_angle = make_valid_orientation(steer * (math.pi / 180))
     return KSState(time_step, np.array([location.x, -location.y]), steering_angle, vel, orientation)
 
 
@@ -179,9 +221,12 @@ def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_sh
         shape = Circle(length / 2)
     else:
         shape = Rectangle(length, width)
-    return DynamicObstacle(cr_id, ObstacleType.PEDESTRIAN, shape,
-                           InitialState(0, np.array([location.x, -location.y]),
-                                        -((rotation.yaw * math.pi) / 180), vel, 0, 0, 0))
+    return DynamicObstacle(
+        cr_id,
+        ObstacleType.PEDESTRIAN,
+        shape,
+        InitialState(0, np.array([location.x, -location.y]), -((rotation.yaw * math.pi) / 180), vel, 0, 0, 0),
+    )
 
 
 def calc_max_timestep(sc: Scenario) -> int:
@@ -204,12 +249,17 @@ def find_pid_by_name(process_name: str) -> List[int]:
     :return: List of possible PIDs
     """
     processes = []
-    for proc in psutil.process_iter():
-        try:
-            if process_name.lower() in proc.name().lower():
-                processes.append(proc.pid)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            logger.error("Error finding process.")
+    try:
+        for proc in psutil.process_iter():
+            try:
+                if process_name.lower() in proc.name().lower():
+                    processes.append(proc.pid)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                logger.error("Error finding process.")
+    except AttributeError:
+        logger.error("Error iterating over processes.")
+    except KeyError:
+        logger.error("Error iterating over processes.")
 
     return processes
 
@@ -227,9 +277,14 @@ def make_video(path: str, video_name: str):
     if not os.path.exists(tmp_path):
         os.mkdir(tmp_path)
     try:
-        os.system(f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i \'{tmp_path}/*.png\'"
-                  f" -c:v libx264 -pix_fmt yuv420p {path}/{video_name}.mp4")
+        logger.debug("Start creating video.")
+        os.system(
+            f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{tmp_path}/*.png'"
+            f" -c:v libx264 -pix_fmt yuv420p {path}/{video_name}.mp4"
+        )
         shutil.rmtree(tmp_path)
+        if os.path.exists(os.path.join(path, video_name + ".mp4")):
+            logger.debug("mp4 created!")
     except Exception as e:
         if os.path.exists(os.path.join(path, video_name + ".mp4")):
             logger.debug("mp4 created!")
@@ -253,7 +308,7 @@ def find_carla_distribution(default_carla_paths: List[str]) -> str:
     raise FileNotFoundError("CARLA executable not found.")
 
 
-def kill_existing_servers(sleep_time: int):
+def kill_existing_servers(sleep_time: float):
     """
     Kills all running carla servers.
 
@@ -266,9 +321,7 @@ def kill_existing_servers(sleep_time: int):
     time.sleep(sleep_time)
 
     for pid in find_pid_by_name("CarlaUE4"):
-        logger.warning(
-            "CARLA server with PID %s did not terminate. Sending     SIGKILL.", pid
-        )
+        logger.warning("CARLA server with PID %s did not terminate. Sending     SIGKILL.", pid)
         os.killpg(os.getpgid(pid), signal.SIGKILL)
 
     time.sleep(sleep_time)
@@ -283,7 +336,7 @@ def id_to_color(id_to_convert: Union[int, str]) -> Tuple[float, float, float]:
     """
     id_bytes = str(id_to_convert).encode("utf-8")
     color_hash = hashlib.md5(id_bytes).hexdigest()
-    r, g, b = tuple(int(color_hash[i: i + 2], 16) for i in (0, 2, 4))
+    r, g, b = tuple(int(color_hash[i : i + 2], 16) for i in (0, 2, 4))
     r, g, b = r / 255.0, g / 255.0, b / 255.0
     return r, g, b
 
@@ -374,16 +427,8 @@ def render_from_trajectory(
         actual_color = id_to_color(actual_label)
         predicted_color = id_to_color(predicted_label)
 
-        legend_elements.append(
-            matplotlib.lines.Line2D(
-                [0], [0], color=actual_color, lw=4, label=actual_label
-            )
-        )
-        legend_elements.append(
-            matplotlib.lines.Line2D(
-                [0], [0], color=predicted_color, lw=4, label=predicted_label
-            )
-        )
+        legend_elements.append(matplotlib.lines.Line2D([0], [0], color=actual_color, lw=4, label=actual_label))
+        legend_elements.append(matplotlib.lines.Line2D([0], [0], color=predicted_color, lw=4, label=predicted_label))
         actual_velocity = actual_trajectory.velocity
         legend_elements.append(
             matplotlib.lines.Line2D(
@@ -394,11 +439,7 @@ def render_from_trajectory(
                 label=f"Actual Velocity: {actual_velocity:.3f}",
             )
         )
-        legend_elements.append(
-            matplotlib.lines.Line2D(
-                [0], [0], color="none", lw=4, label="Target Velocity: 20"
-            )
-        )
+        legend_elements.append(matplotlib.lines.Line2D([0], [0], color="none", lw=4, label="Target Velocity: 20"))
 
         predicted_positions = np.array([t.position for t in predicted_trajectories[i]])
         x = predicted_positions[:, 0]
@@ -425,8 +466,9 @@ def render_from_trajectory(
     plt.savefig(output_file, bbox_inches="tight")
 
 
-def render_trajectory_video(scenario: Scenario, fps: int, obstacles: List[any], output_file: str, title: str,
-                            exclude_pedestrians: bool = True):
+def render_trajectory_video(
+    scenario: Scenario, fps: int, obstacles: List[any], output_file: str, title: str, exclude_pedestrians: bool = True
+):
     """
     Renders a video of actual and predicted trajectories for a given scenario.
 
@@ -465,8 +507,17 @@ def render_trajectory_video(scenario: Scenario, fps: int, obstacles: List[any], 
 
         actual = [a[i] for a in actuall_trajectories]
 
-        render_from_trajectory(scenario, actual, predicted_trajectories, ids, actor_types,
-                               f"{tmp_dir}/frame_{i:04d}.png", car_widths, car_lengths, title)
+        render_from_trajectory(
+            scenario,
+            actual,
+            predicted_trajectories,
+            ids,
+            actor_types,
+            f"{tmp_dir}/frame_{i:04d}.png",
+            car_widths,
+            car_lengths,
+            title,
+        )
 
         plt.close()
 
@@ -504,14 +555,15 @@ def render_trajectory_video(scenario: Scenario, fps: int, obstacles: List[any], 
             "yuv420p",
             video_file,
         ],
-        check=True
+        check=True,
     )
 
     shutil.rmtree(tmp_dir)
 
 
-def render_obs_trajectory_and_speed_comparisons(obstacles: List[ActorInterface], output_file: str, title: str,
-                                                exclude_pedestrians: bool = True):
+def render_obs_trajectory_and_speed_comparisons(
+    obstacles: List[ActorInterface], output_file: str, title: str, exclude_pedestrians: bool = True
+):
     """
     Renders obstacle trajectories and compares speed to ground truth visually
 
@@ -541,9 +593,7 @@ def render_obs_trajectory_and_speed_comparisons(obstacles: List[ActorInterface],
                 (actual_state.position[0] - predicted_state.position[0]) ** 2
                 + (actual_state.position[1] - predicted_state.position[1]) ** 2
             )
-            for actual_state, predicted_state in zip(
-                actual_trajectory, predicted_trajectory
-            )
+            for actual_state, predicted_state in zip(actual_trajectory, predicted_trajectory)
         ]
         actual_speeds = [state.velocity for state in actual_trajectory]
         predicted_speeds = [state.velocity for state in predicted_trajectory]
@@ -558,9 +608,7 @@ def render_obs_trajectory_and_speed_comparisons(obstacles: List[ActorInterface],
     box1 = ax1.get_position()
     box2 = ax2.get_position()
 
-    ax1.set_position(
-        [box1.x0, box1.y0 + box1.height * 0.1, box1.width * 0.8, box1.height]
-    )
+    ax1.set_position([box1.x0, box1.y0 + box1.height * 0.1, box1.width * 0.8, box1.height])
     ax2.set_position([box2.x0, box2.y0, box2.width * 0.8, box2.height])
 
     ax1.legend()
@@ -569,3 +617,33 @@ def render_obs_trajectory_and_speed_comparisons(obstacles: List[ActorInterface],
     plt.subplots_adjust(hspace=0.4)
 
     plt.savefig(output_file + ".png")
+
+
+def init_camera_sensor(
+    world: carla.World,
+    camera_transform_horizontal: carla.Transform,
+    camera_transform_bird: carla.Transform,
+    image_path: str,
+) -> List[carla.Actor]:
+    """
+    Initializes cameras for custom images. The default cameras are intended for horizontal and
+    birds-eye view for Town10, but they can be placed arbitrarily
+    :param world: CARLA world.
+    :param camera_transform_horizontal: Transform for "horizontal" camera.
+    :param camera_transform_bird:  Transform for "birds-eye" camera
+    :param image_path: Path where images should be stored.
+    """
+    camera_blueprint = world.get_blueprint_library().find("sensor.camera.rgb")
+    camera_horizontal = world.spawn_actor(camera_blueprint, camera_transform_horizontal)
+    camera_bird = world.spawn_actor(camera_blueprint, camera_transform_bird)
+    image_width = camera_blueprint.get_attribute("image_size_x").as_int()
+    image_height = camera_blueprint.get_attribute("image_size_y").as_int()
+    camera_data = {"image": np.zeros((image_height, image_width, 4))}
+    camera_bird.listen(lambda image: camera_callback(image, camera_data, f"{image_path}/images_bird"))
+    camera_horizontal.listen(lambda image: camera_callback(image, camera_data, f"{image_path}/images_horizontal"))
+
+    def camera_callback(image, data, path):
+        data["image"] = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
+        image.save_to_disk(f"{path}/{image.frame}.png")
+
+    return [camera_bird, camera_horizontal]

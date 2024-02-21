@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import TYPE_CHECKING, Dict, Tuple
 
 import carla
 import pygame
@@ -15,7 +15,7 @@ class PolygonTool(VisualizationBase):
     A class to visualize bounding boxes of objects in a 3D world.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Initializes an instance of BoundingBox3D.
 
@@ -50,8 +50,9 @@ class PolygonTool(VisualizationBase):
         poly = shapely.Polygon(scaled_verts)
         self.set_polygon(vehicle, poly, max_dist, color)
 
-    def set_polygon(self, vehicle: carla.Vehicle, polygon: shapely.Polygon, max_dist=200,
-                    color: Tuple[int, int, int] = (255, 0, 0)) -> int:
+    def set_polygon(
+        self, vehicle: carla.Vehicle, polygon: shapely.Polygon, max_dist=200, color: Tuple[int, int, int] = (255, 0, 0)
+    ) -> int:
         """
         Enables the display of vehicles as polygons.
 
@@ -68,8 +69,15 @@ class PolygonTool(VisualizationBase):
         :rtype: int
         """
         self._id_counter += 1
-        self._polygons.setdefault(self._id_counter,
-                                  {'vehicle': vehicle, 'polygon': polygon, 'color': color, 'max_dist': max_dist, })
+        self._polygons.setdefault(
+            self._id_counter,
+            {
+                "vehicle": vehicle,
+                "polygon": polygon,
+                "color": color,
+                "max_dist": max_dist,
+            },
+        )
 
         return self._id_counter
 
@@ -98,15 +106,15 @@ class PolygonTool(VisualizationBase):
         ego_forward_vec = ego_vehicle.get_transform().get_forward_vector()
 
         for _, target in self._polygons.items():
-            vehicle: carla.Vehicle = target['vehicle']
-            max_dist = target['max_dist']
+            vehicle: carla.Vehicle = target["vehicle"]
+            max_dist = target["max_dist"]
             loc = vehicle.get_location()
 
             ray = loc - ego_location
             distance = ego_forward_vec.dot(ray)
 
             if distance < self._min_distance or distance >= max_dist:
-                target['render'] = False
+                target["render"] = False
                 continue
 
             bb = vehicle.bounding_box
@@ -133,24 +141,25 @@ class PolygonTool(VisualizationBase):
                 if p[1] < y_min:
                     y_min = p[1]
 
-            target['render'] = True
+            target["render"] = True
             image_point = self._vis3d.vis_tool_controller.get_image_point(loc)
 
             scale = distance / max_dist
             image_point[0] = (x_max + x_min) // 2
             image_point[1] = y_min - 40 + 40 * scale
 
-            poly: shapely.Polygon = target['polygon']
-            pygame_polygon = [(x - x * scale + image_point[0], y - y * scale + image_point[1]) for x, y in
-                              poly.exterior.coords]
-            target['pygame_polygon'] = pygame_polygon
+            poly: shapely.Polygon = target["polygon"]
+            pygame_polygon = [
+                (x - x * scale + image_point[0], y - y * scale + image_point[1]) for x, y in poly.exterior.coords
+            ]
+            target["pygame_polygon"] = pygame_polygon
 
-            color = target['color']
+            color = target["color"]
             color_scaled = [0, 0, 0]
             color_scaled[0] = int(color[0] - color[0] * scale)
             color_scaled[1] = int(color[1] - color[1] * scale)
             color_scaled[2] = int(color[2] - color[2] * scale)
-            target['color_scaled'] = tuple(color_scaled)
+            target["color_scaled"] = tuple(color_scaled)
 
     def render(self, display: pygame.display):
         """
@@ -164,7 +173,7 @@ class PolygonTool(VisualizationBase):
             return
         for _, target in self._polygons.items():
 
-            if target['render'] is True:
-                color = target['color_scaled']
-                pygame_polygon = target['pygame_polygon']
+            if target["render"] is True:
+                color = target["color_scaled"]
+                pygame_polygon = target["pygame_polygon"]
                 pygame.draw.polygon(display, color, pygame_polygon, 3)

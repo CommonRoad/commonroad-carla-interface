@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Actor:
 	"""
@@ -833,9 +833,9 @@ class VehicleFailureState:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class ActorAttributeType:
 	"""
@@ -1254,9 +1254,9 @@ class BlueprintLibrary:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Client:
 	"""
@@ -1853,9 +1853,9 @@ class OpendriveGenerationParameters:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class VehicleControl:
 	"""
@@ -2277,9 +2277,9 @@ class WheelPhysicsControl:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Vector2D:
 	"""
@@ -2970,9 +2970,9 @@ class GeoLocation:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class LightGroup:
 	"""
@@ -3310,9 +3310,9 @@ __Note.__ So far, though there is a `vehicle` group, vehicle lights are not avai
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class LaneType:
 	"""
@@ -4030,9 +4030,9 @@ Example: In a road with 5 lanes, being 3 not affected: [(from_lane1,to_lane2),(f
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Osm2Odr:
 	"""
@@ -4106,9 +4106,9 @@ class Osm2OdrSettings:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Sensor(Actor):
 	"""
@@ -4337,9 +4337,9 @@ class RssLogLevel:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class SensorData:
 	"""
@@ -5289,9 +5289,9 @@ class GBufferTextureID:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class WorldSnapshot:
 	"""
@@ -5408,9 +5408,9 @@ class ActorSnapshot:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class WeatherParameters:
 	"""
@@ -5525,9 +5525,9 @@ class WeatherParameters:
 from __future__ import annotations
 
 from typing import Any
-import numpy as np
 
 import command
+import numpy as np
 
 class Timestamp:
 	"""

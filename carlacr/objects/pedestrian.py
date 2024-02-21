@@ -1,23 +1,28 @@
-import logging
 from typing import Optional
-import carla
 
+import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
-from carlacr.helper.config import PedestrianParams, PedestrianControlType
+from carlacr.controller.controller import TransformControl, create_carla_transform
+from carlacr.controller.pedestrian_controller import (
+    AIWalkerControl,
+    ManualWalkerControl,
+)
+from carlacr.helper.config import PedestrianControlType, PedestrianParams
 from carlacr.objects.actor import ActorInterface
-from carlacr.controller.controller import create_carla_transform, TransformControl
-from carlacr.controller.pedestrian_controller import AIWalkerControl, ManualWalkerControl
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class PedestrianInterface(ActorInterface):
     """Interface between CARLA walker and CommonRoad pedestrian."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
-                 actor: Optional[carla.Walker] = None, config: PedestrianParams = PedestrianParams()):
+    def __init__(
+        self,
+        cr_obstacle: DynamicObstacle,
+        world: carla.World,
+        tm: Optional[carla.TrafficManager],
+        actor: Optional[carla.Walker] = None,
+        config: PedestrianParams = PedestrianParams(),
+    ):
         """
         Initializer of pedestrian interface.
 
@@ -34,9 +39,11 @@ class PedestrianInterface(ActorInterface):
         if self._config.carla_controller_type is PedestrianControlType.TRANSFORM:
             self._controller = TransformControl(self._actor)
         elif self._config.carla_controller_type is PedestrianControlType.AI:
-            self._controller = \
-                AIWalkerControl(self._actor, self._cr_obstacle.prediction.trajectory.final_state.position,
-                                max(state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list))
+            self._controller = AIWalkerControl(
+                self._actor,
+                self._cr_obstacle.prediction.trajectory.final_state.position,
+                max(state.velocity for state in self._cr_obstacle.prediction.trajectory.state_list),
+            )
         elif self._config.carla_controller_type is PedestrianControlType.WALKER:
             self._controller = ManualWalkerControl(self._actor)
 
@@ -49,14 +56,16 @@ class PedestrianInterface(ActorInterface):
         if time_step != self._cr_obstacle.initial_state.time_step or self.spawned:
             return
         transform = create_carla_transform(self._cr_obstacle.initial_state)
-        obstacle_blueprint_walker = self._world.get_blueprint_library().find('walker.pedestrian.0002')
+        obstacle_blueprint_walker = self._world.get_blueprint_library().find("walker.pedestrian.0002")
         try:
             actor = self._world.spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
             if actor:
                 actor.set_simulate_physics(self._config.physics)
-                logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
+                self._config.logger.debug(
+                    "Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id
+                )
         except Exception as e:
-            logger.error("Error while spawning PEDESTRIAN: %s", e)
+            self._config.logger.error("Error while spawning PEDESTRIAN: %s", e)
             raise e
 
         self._actor = actor

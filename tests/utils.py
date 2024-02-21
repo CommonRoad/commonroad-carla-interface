@@ -1,12 +1,13 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Optional
 import datetime
 import json
-from carlacr.helper.config import BaseParam
-from carlacr.helper.utils import find_carla_distribution, kill_existing_servers
 import os
 import subprocess
 import time
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
+
+from carlacr.helper.config import BaseParam
+from carlacr.helper.utils import find_carla_distribution, kill_existing_servers
 
 TEST_CASE_PORT = 2001
 
@@ -70,9 +71,7 @@ def start_carla_test_case_server():
 
     kill_existing_servers(_p.sleep_time)
 
-    path_to_carla = os.path.join(
-        find_carla_distribution(_p.default_carla_paths), "CarlaUE4.sh"
-    )
+    path_to_carla = os.path.join(find_carla_distribution(_p.default_carla_paths), "CarlaUE4.sh")
 
     popen_base_params = {
         "stdout": subprocess.PIPE,

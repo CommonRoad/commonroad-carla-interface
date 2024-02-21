@@ -1,6 +1,6 @@
 import pygame
 
-from carlacr.visualization.canvas.ui_elements.text import Text, COLOR_BLACK, COLOR_WHITE
+from carlacr.visualization.canvas.ui_elements.text import COLOR_BLACK, COLOR_WHITE, Text
 
 
 class HelpText(Text):
@@ -14,7 +14,7 @@ class HelpText(Text):
         :param width: Width of pygame window [px] (used to position text)
         :param height: Height of pygame window [px] (used to position text)
         """
-        self._lines = self.__doc__.split('\n')
+        self._lines = self.__doc__.split("\n")
         dim = (680, len(self._lines) * 22 + 12)
         pos = (0.5 * width - 0.5 * dim[0], 0.5 * height - 0.5 * dim[1])
 

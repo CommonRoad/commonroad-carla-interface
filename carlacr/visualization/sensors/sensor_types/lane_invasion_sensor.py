@@ -1,9 +1,10 @@
-import carla
 import weakref
+from typing import TYPE_CHECKING
+
+import carla
 
 from carlacr.visualization.visualization_base import VisualizationBase
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from carlacr.visualization.canvas.canvas_controller import CanvasController
 
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 class LaneInvasionSensor(VisualizationBase):
     """Manages lane invasion sensor attached to ego vehicle."""
 
-    def __init__(self, parent_actor: carla.Vehicle, canvas_controller: 'CanvasController'):
+    def __init__(self, parent_actor: carla.Vehicle, canvas_controller: "CanvasController"):
         """
         Initialization of lane invasion sensor.
 
@@ -27,7 +28,7 @@ class LaneInvasionSensor(VisualizationBase):
         # If the spawn object is not a vehicle, we cannot use the Lane Invasion Sensor
         if parent_actor.type_id.startswith("vehicle."):
             world = self._parent.get_world()
-            bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
+            bp = world.get_blueprint_library().find("sensor.other.lane_invasion")
             self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
             # We need to pass the lambda a weak reference to self to avoid circular
             # reference.

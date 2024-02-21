@@ -1,7 +1,9 @@
-import pygame
 import os
-from carlacr.visualization.visualization_base import VisualizationBase
 from typing import Tuple
+
+import pygame
+
+from carlacr.visualization.visualization_base import VisualizationBase
 
 COLOR_WHITE = pygame.Color(255, 255, 255)
 COLOR_BLACK = pygame.Color(0, 0, 0)
@@ -37,12 +39,12 @@ class Text(VisualizationBase):
     def font_mono(cls):
         """Create pygame font classic mono."""
         if cls.Font_mono is None:
-            font_name = 'courier' if os.name == 'nt' else 'mono'
+            font_name = "courier" if os.name == "nt" else "mono"
             fonts = [x for x in pygame.font.get_fonts() if font_name in x]
-            default_font = 'ubuntumono'
+            default_font = "ubuntumono"
             mono = default_font if default_font in fonts else fonts[0]
             mono = pygame.font.match_font(mono)
-            cls.Font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
+            cls.Font_mono = pygame.font.Font(mono, 12 if os.name == "nt" else 14)
             cls.Font_mono_16 = pygame.font.Font(mono, 16)
         return cls.Font_mono
 
@@ -50,12 +52,12 @@ class Text(VisualizationBase):
     def font_mono_16(cls):
         """Create pygame font mono 16."""
         if cls.Font_mono is None:
-            font_name = 'courier' if os.name == 'nt' else 'mono'
+            font_name = "courier" if os.name == "nt" else "mono"
             fonts = [x for x in pygame.font.get_fonts() if font_name in x]
-            default_font = 'ubuntumono'
+            default_font = "ubuntumono"
             mono = default_font if default_font in fonts else fonts[0]
             mono = pygame.font.match_font(mono)
-            cls.Font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
+            cls.Font_mono = pygame.font.Font(mono, 12 if os.name == "nt" else 14)
             cls.Font_mono_16 = pygame.font.Font(mono, 16)
         return cls.Font_mono_16
 

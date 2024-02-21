@@ -1,11 +1,17 @@
 """
 Test cases for the creation of traffic light cycles from the signal profile.
 """
-from tests.base_test_case.carla_server_test_case import CarlaServerTestCase
-import random
-from commonroad.scenario.traffic_light import TrafficLightState, TrafficLightCycleElement, TrafficLightCycle
-from tests.utils import TCase
 
+import random
+
+from commonroad.scenario.traffic_light import (
+    TrafficLightCycle,
+    TrafficLightCycleElement,
+    TrafficLightState,
+)
+
+from tests.base_test_case.carla_server_test_case import CarlaServerTestCase
+from tests.utils import TCase
 
 RANDOM_TEST_CASE_COUNT = 1000
 MAX_TLC_LENGTH = 5
@@ -18,6 +24,7 @@ class TrafficLightCycleCreationTestCases(CarlaServerTestCase):
     """
     Test cases for the creation of traffic light cycles from the signal profile.
     """
+
     dummy_light = None
 
     def __init__(self, method_name: str = "runTest") -> None:
@@ -31,10 +38,15 @@ class TrafficLightCycleCreationTestCases(CarlaServerTestCase):
         cls.dummy_light = cls.carla_interface.traffic_lights[0]
 
         base_input = [[TrafficLightState.GREEN, TrafficLightState.YELLOW, TrafficLightState.RED]]
-        base_expected = [TrafficLightCycle([
-            TrafficLightCycleElement(TrafficLightState.GREEN, 1),
-            TrafficLightCycleElement(TrafficLightState.YELLOW, 1),
-            TrafficLightCycleElement(TrafficLightState.RED, 1)])]
+        base_expected = [
+            TrafficLightCycle(
+                [
+                    TrafficLightCycleElement(TrafficLightState.GREEN, 1),
+                    TrafficLightCycleElement(TrafficLightState.YELLOW, 1),
+                    TrafficLightCycleElement(TrafficLightState.RED, 1),
+                ]
+            )
+        ]
 
         edge_input = [[], [TrafficLightState.RED]]
         edge_expected = [None, [TrafficLightCycle([TrafficLightCycleElement(TrafficLightState.RED, 1)])]]
