@@ -1,33 +1,38 @@
 import copy
-import sys
+import math
 from dataclasses import dataclass
 from typing import Optional, Union
-import logging
+
 import carla
 import numpy as np
-from scipy import spatial
-
-from commonroad.scenario.state import TraceState
-from commonroad.scenario.scenario import Scenario
-from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.state import CustomState
+from commonroad.common.util import make_valid_orientation
+from commonroad.geometry.shape import Rectangle
 from commonroad.planning.goal import GoalRegion, Interval
-from crpred.predictor_interface import PredictorInterface
+from commonroad.planning.planner_interface import TrajectoryPlannerInterface
+from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.state import CustomState, TraceState
+from commonroad_dc.geometry.geometry import (
+    compute_orientation_from_polyline,
+    compute_pathlength_from_polyline,
+)
 from commonroad_route_planner.route_planner import RoutePlanner
 from commonroad_rp.utility.config import VehicleConfiguration
-from commonroad_dc.geometry.geometry import compute_pathlength_from_polyline, compute_orientation_from_polyline
-from commonroad.geometry.shape import Rectangle
+from crpred.predictor_interface import PredictorInterface
+from scipy import spatial
 
-from carlacr.controller.controller import CarlaController
-from carlacr.helper.config import VehicleControlType, ControlParams
-from carlacr.controller.controller import TransformControl
-from carlacr.controller.vehicle_controller import PIDController, AckermannController, \
-    VehicleTMPathFollowingControl, VehicleBehaviorAgentPathFollowingControl
-from carlacr.helper.planner import TrajectoryPlannerInterface
-from carlacr.helper.utils import create_cr_vehicle_from_actor, create_cr_initial_state_from_actor
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+from carlacr.controller.controller import CarlaController, TransformControl
+from carlacr.controller.vehicle_controller import (
+    AckermannController,
+    PIDController,
+    VehicleBehaviorAgentPathFollowingControl,
+    VehicleTMPathFollowingControl,
+)
+from carlacr.helper.config import ControlParams, VehicleControlType
+from carlacr.helper.utils import (
+    create_cr_initial_state_from_actor,
+    create_cr_vehicle_from_actor,
+)
 
 
 @dataclass
@@ -46,25 +51,31 @@ class RouteData:
             self.orientation = compute_orientation_from_polyline(self.route)
 
 
-def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int) -> Scenario:
+def create_scenario_from_world(world: carla.World, sc: Scenario, ego_id: int, time_step: int) -> Scenario:
     """
     Creates scenario without prediction from CARLA world.
 
     :param world: CARLA world.
     :param sc: Base scenario containing road network and static obstacles.
     :param ego_id: ID of ego vehicle.
+    :param time_step: Initial time step which should be used.
     :return: CommonRoad scenario.
     """
     for actor in world.get_actors():
         if actor.id == ego_id or "number_of_wheels" not in actor.attributes.keys():
             continue
-        sc.add_objects(create_cr_vehicle_from_actor(actor, sc.generate_object_id()))
+        sc.add_objects(create_cr_vehicle_from_actor(actor, sc.generate_object_id(), time_step))
     return sc
 
 
-def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleConfiguration,
-                                    t_h: float, dt: float, global_route: RouteData, current_time_step: int) \
-        -> PlanningProblem:
+def get_planning_problem_from_world(
+    actor: carla.Actor,
+    vehicle_params: VehicleConfiguration,
+    t_h: float,
+    dt: float,
+    global_route: RouteData,
+    current_time_step: int,
+) -> PlanningProblem:
     """
     Creates planning problem from global route.
 
@@ -77,8 +88,8 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleC
     :return: CommonRoad planning problem.
     """
     initial_state = create_cr_initial_state_from_actor(actor, current_time_step)
-    min_dist = max(0, initial_state.velocity * t_h + 0.5 * -vehicle_params.a_max * 6 ** 2)
-    max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6 ** 2
+    min_dist = (initial_state.velocity**2) / (2 * vehicle_params.a_max)
+    max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6**2
 
     _, init_idx = spatial.KDTree(global_route.route).query(initial_state.position)
     distance_min = global_route.path_length[init_idx] + min_dist
@@ -89,12 +100,20 @@ def get_planning_problem_from_world(actor: carla.Actor, vehicle_params: VehicleC
     position = 0.5 * (global_route.route[idx_min] + global_route.route[idx_max])
     length = global_route.path_length[idx_max] - global_route.path_length[idx_min]
     orientation = global_route.orientation[idx_min]
-    time = int(initial_state.time_step + t_h/dt)
+    time = int(initial_state.time_step + t_h / dt)
 
-    return PlanningProblem(0, initial_state,
-                           GoalRegion([CustomState(time_step=Interval(time-1, time),
-                                                   position=Rectangle(float(length), 20, position,
-                                                                      float(orientation)))]))
+    return PlanningProblem(
+        0,
+        initial_state,
+        GoalRegion(
+            [
+                CustomState(
+                    time_step=Interval(time - 1, time),
+                    position=Rectangle(float(length), 20, position, float(orientation)),
+                )
+            ]
+        ),
+    )
 
 
 def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
@@ -112,9 +131,18 @@ def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
 class CommonRoadPlannerController(CarlaController):
     """Controller which uses trajectory generated by CommonRoad planner as input."""
 
-    def __init__(self, actor: carla.Actor, planner: TrajectoryPlannerInterface, predictor: PredictorInterface,
-                 pp: PlanningProblem, sc: Scenario, control_type: VehicleControlType, dt: float,
-                 control_config: ControlParams, vehicle_params: VehicleConfiguration = VehicleConfiguration()):
+    def __init__(
+        self,
+        actor: carla.Actor,
+        planner: TrajectoryPlannerInterface,
+        predictor: PredictorInterface,
+        pp: PlanningProblem,
+        sc: Scenario,
+        control_type: VehicleControlType,
+        dt: float,
+        control_config: ControlParams,
+        vehicle_params: VehicleConfiguration = VehicleConfiguration(),
+    ):
         """
         Initialization of CommonRoad planner controller.
 
@@ -139,10 +167,15 @@ class CommonRoadPlannerController(CarlaController):
         self._controller = self._create_controller(control_type, dt, control_config)
         self._vehicle_params = vehicle_params
         self._current_time_step = 0
+        self._logger = control_config.logger
 
-    def _create_controller(self, control_type: VehicleControlType, dt: float, control_config: ControlParams) \
-            -> Union[TransformControl, PIDController, AckermannController, VehicleBehaviorAgentPathFollowingControl,
-                     VehicleTMPathFollowingControl]:
+    def _create_controller(self, control_type: VehicleControlType, dt: float, control_config: ControlParams) -> Union[
+        TransformControl,
+        PIDController,
+        AckermannController,
+        VehicleBehaviorAgentPathFollowingControl,
+        VehicleTMPathFollowingControl,
+    ]:
         """
         Creates CARLA controller object.
 
@@ -156,12 +189,12 @@ class CommonRoadPlannerController(CarlaController):
         if control_type is VehicleControlType.PID:
             return PIDController(actor=self._actor, config=control_config, dt=dt)
         if control_type is VehicleControlType.ACKERMANN:
-            return AckermannController(self._actor, config=control_config)
+            return AckermannController(self._actor, config=control_config, dt=dt)
         if control_type is VehicleControlType.PATH_TM:
             return VehicleTMPathFollowingControl(self._actor)
         if control_type is VehicleControlType.PATH_AGENT:
             return VehicleBehaviorAgentPathFollowingControl(self._actor)
-        logger.error("CommonRoadPlannerController::_create_controller: Unknown controller type.")
+        self._logger.error("CommonRoadPlannerController::_create_controller: Unknown controller type.")
         return TransformControl(self._actor)
 
     def _reset_base_scenario(self):
@@ -177,15 +210,13 @@ class CommonRoadPlannerController(CarlaController):
         """
         self._reset_base_scenario()
         world = self._actor.get_world()
-        sc = create_scenario_from_world(world, self._base_sc, self._actor.id)
+        sc = create_scenario_from_world(world, self._base_sc, self._actor.id, self._current_time_step)
         if self._predictor is not None:
             sc = self._predictor.predict(sc, self._current_time_step)
-        pp = get_planning_problem_from_world(self._actor, self._vehicle_params, 6, 0.1, self._global_route,
-                                             self._current_time_step)
-
-        if self._base_pp.goal.is_reached(pp.initial_state):
-            logger.info("CommonRoadPlannerController::control: Goal reached!")
-            sys.exit()
+        pp = get_planning_problem_from_world(
+            self._actor, self._vehicle_params, 6, 0.1, self._global_route, self._current_time_step
+        )
+        pp.goal = self._base_pp.goal
 
         # from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
         # from commonroad.planning.planning_problem import PlanningProblemSet
@@ -193,6 +224,11 @@ class CommonRoadPlannerController(CarlaController):
         # CommonRoadFileWriter(sc, PlanningProblemSet([pp])).write_to_file(f"test{self._current_time_step}.xml",
         #                                                                  OverwriteExistingFile.ALWAYS)
 
-        self._current_trajectory = self._planner.plan(sc, pp)
-        self._controller.control(self._current_trajectory.state_list[0])
+        try:
+            steer = self._actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
+        except RuntimeError:
+            steer = 0
+        steering_angle = make_valid_orientation(steer * (math.pi / 180))
+        self._current_trajectory = self._planner.plan(sc, pp, steering_angle)
+        self._controller.control(self._current_trajectory.state_list[1])
         self._current_time_step += 1

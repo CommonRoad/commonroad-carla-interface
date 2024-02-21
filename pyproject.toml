@@ -23,29 +23,56 @@ packages = [{include = "carlacr"}]
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
 pygame = ">=2.1.2"
-commonroad-io = "2023.3"
+commonroad-io = "2023.4"
 carla = "0.9.15"
 omegaconf = ">=2.1.2"
 commonroad-drivability-checker = "~=2023.1"
 commonroad-vehicle-models = "~=3.0.2"
 
 psutil = "^5.9.4"
-commonroad-scenario-designer = { git = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git", branch = "develop" }
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "feature/support-crio-2023-3" }
+commonroad-scenario-designer = { git = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git", branch = "cr2odr" }
+commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "feature/carla" }
 commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "develop" }
+numpy = [
+    { version = ">=1.22, <1.26", python = "3.8" },
+    { version = "^1.26.1", python = ">=3.9,<3.13" }
+]
+scipy = [
+    { version = ">=1.10.0,<1.11", python = "3.8" },
+    { version = "^1.11.3", python = ">=3.9,<3.13" }
+]
 
+#[tool.poetry.group.tests]
+#optional = true
+#
+#[tool.poetry.group.tests.dependencies]
 
-[tool.poetry.group.tests]
-optional = true
-
-[tool.poetry.group.tests.dependencies]
-prospector = {extras = ["with-mypy"], version = "^1.9.0"}
 
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^6.1.3"
 sphinx-autodoc-typehints = "^1.22"
 sphinx-rtd-theme = "^1.2.0"
+
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.1.1"
+isort = "^5.13.1"
+flake8 = [
+    { version = "^5.0.4", python = ">=3.8,<3.8.1" },
+    { version = "^6.1.0", python = ">=3.8.1" }
+]
+
+[tool.black]
+extend-exclude = "(gen/)"
+line-length = 120
+
+[tool.isort]
+profile = "black"
+extend_skip = ["gen"]
 
 [build-system]
 requires = ["poetry-core"]

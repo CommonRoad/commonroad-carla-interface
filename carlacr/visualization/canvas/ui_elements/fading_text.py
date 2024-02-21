@@ -1,6 +1,8 @@
-import pygame
 from typing import Tuple
-from carlacr.visualization.canvas.ui_elements.text import Text, COLOR_WHITE
+
+import pygame
+
+from carlacr.visualization.canvas.ui_elements.text import COLOR_WHITE, Text
 
 
 class FadingText(Text):

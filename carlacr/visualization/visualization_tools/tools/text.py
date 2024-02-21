@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, List
 
 import pygame
+
 from carlacr.visualization.visualization_base import VisualizationBase
 
 if TYPE_CHECKING:
@@ -12,7 +13,7 @@ class Text(VisualizationBase):
     This class is generating different types of text to visualize information from the environment.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Set important parameters to print text with pygame.
 
@@ -43,7 +44,7 @@ class Text(VisualizationBase):
         :param color: RGB font color. Defaults to (255, 0, 0).
         :type color: tuple[int, int, int]
         """
-        self._data.append({'text': text, 'x': x, 'y': y, 'size': size, 'color': color, 'lifetime': lifetime})
+        self._data.append({"text": text, "x": x, "y": y, "size": size, "color": color, "lifetime": lifetime})
 
     def tick(self, clock: pygame.time.Clock):
         """
@@ -72,12 +73,12 @@ class Text(VisualizationBase):
         dead_items = []
         for item in self._data:
             item: dict
-            text = item['text']
-            pos_x = item['x']
-            pos_y = item['y']
-            size = item['size']
-            color = item['color']
-            lifetime = item['lifetime']
+            text = item["text"]
+            pos_x = item["x"]
+            pos_y = item["y"]
+            size = item["size"]
+            color = item["color"]
+            lifetime = item["lifetime"]
 
             # Schriftgröße festlegen
             font = pygame.font.Font(None, size)
@@ -94,7 +95,7 @@ class Text(VisualizationBase):
             display.blit(text, text_rect)
 
             if lifetime > 0:
-                item['lifetime'] -= 1
+                item["lifetime"] -= 1
 
             if lifetime == 0:
                 dead_items.append(item)

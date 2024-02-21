@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Tuple, Dict
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import carla
 import pygame
@@ -14,7 +14,7 @@ class BoundingBoxTool(VisualizationBase):
     A class to visualize bounding boxes of objects in a 3D world.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Initializes an instance of BoundingBox3D.
 
@@ -31,15 +31,21 @@ class BoundingBoxTool(VisualizationBase):
         self.render_dicts = []
 
         # Settings for displaying vehicles
-        self._show_vehicles_dict = {'enable': True, 'color': (255, 0, 0), 'show_as_3d': False, 'max_dist': 200.0,
-                                    'print_distance': True, }
+        self._show_vehicles_dict = {
+            "enable": True,
+            "color": (255, 0, 0),
+            "show_as_3d": False,
+            "max_dist": 200.0,
+            "print_distance": True,
+        }
         self._forward_delta_distance = 1.0
 
         # Settings for displaying city object labels
         self._active_city_object_label: Dict[carla.CityObjectLabel, dict] = {}
 
-    def show_vehicles(self, max_dist, color: Tuple[int, int, int] = (255, 0, 0), print_distance=True,
-                      show_as_3d: bool = False):
+    def show_vehicles(
+        self, max_dist, color: Tuple[int, int, int] = (255, 0, 0), print_distance=True, show_as_3d: bool = False
+    ):
         """
         Enables the display of vehicles.
 
@@ -52,15 +58,21 @@ class BoundingBoxTool(VisualizationBase):
         :param show_as_3d: Whether to show the bounding boxes in 3D.
         :type show_as_3d: bool
         """
-        self._show_vehicles_dict = {'enable': True, 'color': color, 'show_as_3d': show_as_3d, 'max_dist': max_dist,
-                                    'print_distance': print_distance, }
+        self._show_vehicles_dict = {
+            "enable": True,
+            "color": color,
+            "show_as_3d": show_as_3d,
+            "max_dist": max_dist,
+            "print_distance": print_distance,
+        }
 
     def hide_vehicles(self):
         """Disables the display of vehicles."""
         self._show_vehicles = False
 
-    def show_city_object_label(self, label: carla.CityObjectLabel, max_dist: float,
-                               color: Tuple[int, int, int] = (0, 255, 0), show_as_3d=False):
+    def show_city_object_label(
+        self, label: carla.CityObjectLabel, max_dist: float, color: Tuple[int, int, int] = (0, 255, 0), show_as_3d=False
+    ):
         """
         Activates a label to display the respective bounding boxes.
 
@@ -74,13 +86,13 @@ class BoundingBoxTool(VisualizationBase):
         :type show_as_3d: bool
         """
         data = self._active_city_object_label.setdefault(label, {})
-        if 'bbs' not in data:
-            data['bbs'] = self._vis3D.carla_world.get_level_bbs(label)
+        if "bbs" not in data:
+            data["bbs"] = self._vis3D.carla_world.get_level_bbs(label)
 
-        self._active_city_object_label[label]['max_dist'] = max_dist
-        self._active_city_object_label[label]['color'] = color
-        self._active_city_object_label[label]['show_as_3d'] = show_as_3d
-        self._active_city_object_label[label]['enable'] = True
+        self._active_city_object_label[label]["max_dist"] = max_dist
+        self._active_city_object_label[label]["color"] = color
+        self._active_city_object_label[label]["show_as_3d"] = show_as_3d
+        self._active_city_object_label[label]["enable"] = True
 
     def hide_city_object_label(self, label: carla.CityObjectLabel):
         """
@@ -90,7 +102,7 @@ class BoundingBoxTool(VisualizationBase):
         :type label: carla.CityObjectLabel
         """
         if label in self._active_city_object_label:
-            self._active_city_object_label[label]['enable'] = False
+            self._active_city_object_label[label]["enable"] = False
 
     def tick(self, clock: pygame.time.Clock):
         """
@@ -118,8 +130,8 @@ class BoundingBoxTool(VisualizationBase):
         if not VisualizationBase.is_visible:
             return
         for item in self.render_dicts:
-            lines = item['lines']
-            color = item['color']
+            lines = item["lines"]
+            color = item["color"]
             for line in lines:
                 pygame.draw.line(display, color, line[0], line[1], 1)
 
@@ -135,18 +147,18 @@ class BoundingBoxTool(VisualizationBase):
         # Update the bounding boxes for the activated city object labels
         for label in self._active_city_object_label:  # pylint: disable=consider-using-dict-items
             dict_tmp = self._active_city_object_label[label]
-            if not dict_tmp['enable']:
+            if not dict_tmp["enable"]:
                 continue
-            color = dict_tmp['color']
-            max_dist = dict_tmp['max_dist']
-            show_as_3d = dict_tmp['show_as_3d']
+            color = dict_tmp["color"]
+            max_dist = dict_tmp["max_dist"]
+            show_as_3d = dict_tmp["show_as_3d"]
 
             # if object is dynam object, update them every tick (to update location)
             if label is carla.CityObjectLabel.Pedestrians:
-                dict_tmp['bbs'] = self._vis3D.carla_world.get_level_bbs(label)
+                dict_tmp["bbs"] = self._vis3D.carla_world.get_level_bbs(label)
 
             # get over all bounding boxes
-            for bb in dict_tmp['bbs']:
+            for bb in dict_tmp["bbs"]:
                 bb: carla.BoundingBox
                 distance = bb.location.distance(ego_vehicle_location)
 
@@ -165,12 +177,12 @@ class BoundingBoxTool(VisualizationBase):
         ego_vehicle = self._vis3D.ego_vehicle
         ego_vehicle_location = ego_vehicle.get_transform().location
         forward_vec = ego_vehicle.get_transform().get_forward_vector()
-        if self._show_vehicles_dict['enable'] is False:
+        if self._show_vehicles_dict["enable"] is False:
             return
-        color = self._show_vehicles_dict['color']
-        max_dist = self._show_vehicles_dict['max_dist']
-        show_as_3d = self._show_vehicles_dict['show_as_3d']
-        print_distance = self._show_vehicles_dict['print_distance']
+        color = self._show_vehicles_dict["color"]
+        max_dist = self._show_vehicles_dict["max_dist"]
+        show_as_3d = self._show_vehicles_dict["show_as_3d"]
+        print_distance = self._show_vehicles_dict["print_distance"]
 
         # Get vehicles in front up to a specific distance
         vehicles: List[carla.Vehicle] = []
@@ -197,8 +209,8 @@ class BoundingBoxTool(VisualizationBase):
             self.render_dicts.append(linedata)
 
             if print_distance:
-                x = (linedata['x_max'] + linedata['x_min']) // 2
-                y = linedata['y_min']
+                x = (linedata["x_max"] + linedata["x_min"]) // 2
+                y = linedata["y_min"]
                 size = int(40 - 39 * dist / max_dist)
                 self._vis3D.vis_tool_controller.text.add_static_text_2d(str(int(dist)), x, y, size, 1, color2)
 
@@ -256,4 +268,11 @@ class BoundingBoxTool(VisualizationBase):
             lines.append([(int(x_min), int(y_min)), (int(x_min), int(y_max))])
             lines.append([(int(x_max), int(y_min)), (int(x_max), int(y_max))])
 
-        return {'x_min': x_min, 'y_min': y_min, 'x_max': x_max, 'y_max': y_max, 'lines': lines, 'color': color, }
+        return {
+            "x_min": x_min,
+            "y_min": y_min,
+            "x_max": x_max,
+            "y_max": y_max,
+            "lines": lines,
+            "color": color,
+        }

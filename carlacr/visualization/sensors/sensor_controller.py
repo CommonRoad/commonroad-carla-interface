@@ -1,14 +1,18 @@
-from carlacr.visualization.visualization_base import VisualizationBase
+from typing import TYPE_CHECKING
+
 from carlacr.visualization.sensors.sensor_types.camera_sensor import CameraSensor
 from carlacr.visualization.sensors.sensor_types.collision_sensor import CollisionSensor
 from carlacr.visualization.sensors.sensor_types.gnss_sensor import GnssSensor
-from carlacr.visualization.sensors.sensor_types.lane_invasion_sensor import LaneInvasionSensor
 from carlacr.visualization.sensors.sensor_types.imu_sensor import IMUSensor
-from typing import TYPE_CHECKING
+from carlacr.visualization.sensors.sensor_types.lane_invasion_sensor import (
+    LaneInvasionSensor,
+)
+from carlacr.visualization.visualization_base import VisualizationBase
 
 if TYPE_CHECKING:
-    from carlacr.visualization.visualization3D import \
-        Visualization3D  # from carlacr.visualization.visualization2D import World2D
+    from carlacr.visualization.visualization3D import (  # from carlacr.visualization.visualization2D import World2D
+        Visualization3D,
+    )
 
 
 class SensorController(VisualizationBase):
@@ -16,7 +20,7 @@ class SensorController(VisualizationBase):
     Sensor controller is managing and accessing the different sensors for the ego-vehicle.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Initialize the sensor controller
 

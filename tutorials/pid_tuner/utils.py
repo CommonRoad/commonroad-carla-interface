@@ -1,20 +1,22 @@
 # longitudinal pid controller -> responsible for the speed
-from dataclasses import dataclass
 import os
-from tests.utils import make_output_dir
+from dataclasses import dataclass
+
+import matplotlib.pyplot as plt
+
 from carlacr.helper.config import (
     CarlaParams,
     ControlParams,
-    VehicleParams,
     VehicleControlType,
+    VehicleParams,
 )
-import matplotlib.pyplot as plt
+from tests.utils import make_output_dir
 
 file_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-scenario_file = os.path.join(file_dir,  "/../../scenarios/ZAM_Tutorial-1_2_T-1.xml")
-map_file =  os.path.join(file_dir, "/../../maps/ZAM_Test-1_2_T-1.xodr")
+scenario_file = os.path.join(file_dir, "/../../scenarios/ZAM_Tutorial-1_2_T-1.xml")
+map_file = os.path.join(file_dir, "/../../maps/ZAM_Test-1_2_T-1.xodr")
 
 output_dir = make_output_dir()
 

@@ -1,15 +1,15 @@
 import logging
-import numpy as np
-from typing import Optional, List, Tuple
 import math
+from typing import List, Optional, Tuple
 
 import carla
-
-from commonroad.scenario.traffic_light import (TrafficLight, TrafficLightState, TrafficLightCycleElement,
-                                               TrafficLightCycle)
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+import numpy as np
+from commonroad.scenario.traffic_light import (
+    TrafficLight,
+    TrafficLightCycle,
+    TrafficLightCycleElement,
+    TrafficLightState,
+)
 
 
 def _match_carla_traffic_light_state_to_cr(carla_state: carla.TrafficLightState) -> TrafficLightState:
@@ -53,11 +53,12 @@ def _match_cr_traffic_light_state_to_carla(cr_state: TrafficLightState) -> carla
 class CarlaTrafficLight:
     """Interface between CARLA traffic light and CommonRoad traffic light"""
 
-    def __init__(self, actor: carla.TrafficLight, cr_tl: Optional[TrafficLight] = None):
+    def __init__(self, actor: carla.TrafficLight, logger: logging.Logger, cr_tl: Optional[TrafficLight] = None):
         """
         Initializer carla traffic light interface.
 
         :param actor: CARLA traffic light.
+        :param logger: Logger instance.
         :param cr_tl: CommonRoad traffic light object.
         """
         self._actor = actor
@@ -66,6 +67,7 @@ class CarlaTrafficLight:
         self._signal_profile: List[TrafficLightState] = []
         self._cr_tl = cr_tl
         self._set_initial_color(actor.state)
+        self._logger = logger
 
     def _set_initial_color(self, color: carla.TrafficLightState):
         """
@@ -103,9 +105,9 @@ class CarlaTrafficLight:
         if self._cr_tl is not None:
             new_color = self._cr_tl.get_state_at_time_step(time_step)
             self._actor.set_state(_match_cr_traffic_light_state_to_carla(new_color))
-            logger.debug("CarlaTrafficLight::tick: Successfully called tick!")
+            self._logger.debug("CarlaTrafficLight::tick: Successfully called tick!")
         else:
-            logger.warning("CarlaTrafficLight::tick: Tick called on traffic light where _cr_tl is None!.")
+            self._logger.warning("CarlaTrafficLight::tick: Tick called on traffic light where _cr_tl is None!.")
 
     @property
     def carla_actor(self):
@@ -168,9 +170,13 @@ def create_new_light(cr_light: TrafficLight, carla_lights: List[CarlaTrafficLigh
     """
     best_carla_traffic_light = find_closest_traffic_light(carla_lights, cr_light.position)
 
-    return TrafficLight(cr_light.traffic_light_id, cr_light.position,
-                        best_carla_traffic_light.create_traffic_light_cycle(), direction=cr_light.direction,
-                        active=True)
+    return TrafficLight(
+        cr_light.traffic_light_id,
+        cr_light.position,
+        best_carla_traffic_light.create_traffic_light_cycle(),
+        direction=cr_light.direction,
+        active=True,
+    )
 
 
 def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: np.array):
@@ -187,7 +193,7 @@ def find_closest_traffic_light(carla_lights: List[CarlaTrafficLight], position: 
         diff_x = abs(light.carla_position[0] - position[0])
         # We add since map is mirrored compared to CommonRoad
         diff_y = abs(light.carla_position[1] + position[1])
-        cur_diff = math.sqrt(diff_x ** 2 + diff_y ** 2)
+        cur_diff = math.sqrt(diff_x**2 + diff_y**2)
 
         if cur_diff < best_diff:
             best_diff = cur_diff
@@ -218,25 +224,39 @@ def get_tls_values(tls: List[TrafficLightState]) -> Tuple[int, int, int, int]:
             first_full_red = i
         elif t_l.state == TrafficLightState.GREEN and first_full_green is None:
             first_full_green = i
-        elif (t_l.state == TrafficLightState.YELLOW and
-              tls[i - 1].state == TrafficLightState.RED and
-              yellow_after_red is None):
+        elif (
+            t_l.state == TrafficLightState.YELLOW
+            and tls[i - 1].state == TrafficLightState.RED
+            and yellow_after_red is None
+        ):
             yellow_after_red = i
-        elif (t_l.state == TrafficLightState.YELLOW and
-              tls[i - 1].state == TrafficLightState.GREEN and
-              yellow_after_green is None):
+        elif (
+            t_l.state == TrafficLightState.YELLOW
+            and tls[i - 1].state == TrafficLightState.GREEN
+            and yellow_after_green is None
+        ):
             yellow_after_green = i
 
-        if (first_full_red is not None and first_full_green is not None and
-                yellow_after_red is not None and yellow_after_green is not None):
+        if (
+            first_full_red is not None
+            and first_full_green is not None
+            and yellow_after_red is not None
+            and yellow_after_green is not None
+        ):
             break
 
     return first_full_red, first_full_green, yellow_after_red, yellow_after_green
 
 
-def get_cycle_duration(tls: List[TrafficLight], cycle, first_full_red: int,
-                       first_full_green: int, yellow_after_red: int,
-                       yellow_after_green: int, tl_state: TrafficLightState) -> int:
+def get_cycle_duration(
+    tls: List[TrafficLight],
+    cycle,
+    first_full_red: int,
+    first_full_green: int,
+    yellow_after_red: int,
+    yellow_after_green: int,
+    tl_state: TrafficLightState,
+) -> int:
     """
     Get the duration of the cycle.
 
@@ -260,8 +280,7 @@ def get_cycle_duration(tls: List[TrafficLight], cycle, first_full_red: int,
     return 0
 
 
-def rotate_cycle(cycle: List[TrafficLightCycleElement],
-                 tls: List[TrafficLight]) -> List[TrafficLightCycleElement]:
+def rotate_cycle(cycle: List[TrafficLightCycleElement], tls: List[TrafficLight]) -> List[TrafficLightCycleElement]:
     """
     Rotates the extracted cycle to match the input list.
 
@@ -274,25 +293,24 @@ def rotate_cycle(cycle: List[TrafficLightCycleElement],
             break
         cycle = cycle[1:] + [cycle[0]]
     else:
-        raise ValueError(
-            "Could not rotate the extracted cycle to match the input list")
+        raise ValueError("Could not rotate the extracted cycle to match the input list")
     return cycle
 
 
-def extract_cycle_from_history(tls: List[TrafficLight]) -> List[TrafficLightCycleElement]:
+def extract_cycle_from_history(tls: List[TrafficLight], logger: logging.Logger) -> List[TrafficLightCycleElement]:
     """
     Extracts the current traffic light cycle from a list of traffic lights.
     Requires tls to contain a full cycle.
 
     :param tls: List of TrafficLight objects gathered from state Carla.
+    :param logger: Logger instance.
     :return: List of TrafficLightCycleElement objects. The extracted 2(RED,GREEN,RED..)
     ,3(yellow between RED and GREEN or GREEN and RED)
     or 4 element cycle(YELLOW between RED and GREEN AND GREEN and RED).
     """
     # Find the first none partial RED or GREEN element in the list
     if len(tls) < 3:
-        logger.info(
-            "To few elements in input list! Extracted cycle might be incorrect!")
+        logger.info("To few elements in input list! Extracted cycle might be incorrect!")
         return tls
 
     first_full_red, first_full_green, yellow_after_red, yellow_after_green = get_tls_values(tls)
@@ -300,41 +318,64 @@ def extract_cycle_from_history(tls: List[TrafficLight]) -> List[TrafficLightCycl
     if first_full_red is None or first_full_green is None:
         logger.info(
             """Could not find a full RED or GREEN state in input list!
-            "Extracted cycle might be incorrect!""")
+            "Extracted cycle might be incorrect!"""
+        )
         return tls
 
-    if yellow_after_red is None and yellow_after_green is None and any(
-            element.state == TrafficLightState.YELLOW for element in tls):
+    if (
+        yellow_after_red is None
+        and yellow_after_green is None
+        and any(element.state == TrafficLightState.YELLOW for element in tls)
+    ):
         logger.info(
             """Could not find a full RED or GREEN state
-            in input list! Extracted cycle might be incorrect!""")
+            in input list! Extracted cycle might be incorrect!"""
+        )
         return tls
 
     cycle = []
     found_end = False
-    cycle_start = (0 if tls[0].state in (TrafficLightState.RED, TrafficLightState.GREEN) else min(
-        first_full_green, first_full_red))
+    cycle_start = (
+        0 if tls[0].state in (TrafficLightState.RED, TrafficLightState.GREEN) else min(first_full_green, first_full_red)
+    )
 
-    cycle.append(TrafficLightCycleElement(
-        tls[cycle_start].state, get_cycle_duration(tls, cycle, first_full_red,
-                                                   first_full_green, yellow_after_red,
-                                                   yellow_after_green, tls[cycle_start].state)))
+    cycle.append(
+        TrafficLightCycleElement(
+            tls[cycle_start].state,
+            get_cycle_duration(
+                tls,
+                cycle,
+                first_full_red,
+                first_full_green,
+                yellow_after_red,
+                yellow_after_green,
+                tls[cycle_start].state,
+            ),
+        )
+    )
 
     for i in range(cycle_start + 1, len(tls)):
-        cycle.append(TrafficLightCycleElement(
-            tls[i].state,
-            get_cycle_duration(tls, cycle, first_full_red, first_full_green, yellow_after_red,
-                               yellow_after_green,
-                               tls[i].state)))
+        cycle.append(
+            TrafficLightCycleElement(
+                tls[i].state,
+                get_cycle_duration(
+                    tls, cycle, first_full_red, first_full_green, yellow_after_red, yellow_after_green, tls[i].state
+                ),
+            )
+        )
         if tls[i].state == tls[cycle_start].state:
             found_end = True
             break
     if not found_end:
         for i in range(cycle_start + 1):
-            cycle.append(TrafficLightCycleElement(
-                tls[i].state,
-                get_cycle_duration(tls, cycle, first_full_red, first_full_green,
-                                   yellow_after_red, yellow_after_green, tls[i].state)))
+            cycle.append(
+                TrafficLightCycleElement(
+                    tls[i].state,
+                    get_cycle_duration(
+                        tls, cycle, first_full_red, first_full_green, yellow_after_red, yellow_after_green, tls[i].state
+                    ),
+                )
+            )
             if tls[i].state == tls[cycle_start].state:
                 found_end = True
                 break

@@ -1,6 +1,6 @@
 import math
 import sys
-from typing import Tuple, List
+from typing import List, Tuple
 
 import carla
 import pygame
@@ -33,13 +33,13 @@ def get_actor_display_name(actor: carla.Actor, truncate: int = 250) -> str:
     :param truncate: Maximum length name can have.
     :return: Name of actor.
     """
-    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
-    return (name[:truncate - 1] + '\u2026') if len(name) > truncate else name
+    name = " ".join(actor.type_id.replace("_", ".").title().split(".")[1:])
+    return (name[: truncate - 1] + "\u2026") if len(name) > truncate else name
 
 
-def sort_vehicles_by_dist(vehicles: carla.ActorList,
-                          actor: carla.Actor,
-                          max_dist: float = 200.0) -> List[Tuple[carla.Vehicle, float]]:
+def sort_vehicles_by_dist(
+    vehicles: carla.ActorList, actor: carla.Actor, max_dist: float = 200.0
+) -> List[Tuple[carla.Vehicle, float]]:
     """
     Returns a list of vehicles sorted by distance from a given actor.
 
@@ -50,8 +50,11 @@ def sort_vehicles_by_dist(vehicles: carla.ActorList,
     actor_t = actor.get_transform()
 
     def distance(location: carla.Location):
-        return math.sqrt((location.x - actor_t.location.x) ** 2 + (location.y - actor_t.location.y) ** 2 + (
-            location.z - actor_t.location.z) ** 2)
+        return math.sqrt(
+            (location.x - actor_t.location.x) ** 2
+            + (location.y - actor_t.location.y) ** 2
+            + (location.z - actor_t.location.z) ** 2
+        )
 
     vehicles: carla.ActorList = [(x, distance(x.get_location())) for x in vehicles if x.id != actor.id]
     if len(vehicles) == 0:

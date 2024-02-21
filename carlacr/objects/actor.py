@@ -1,23 +1,24 @@
-import logging
-from typing import List, Optional, Union
 from abc import ABC
+from typing import List, Optional, Union
 
 import carla
-
 from commonroad.scenario.obstacle import DynamicObstacle
-from commonroad.scenario.trajectory import PMState, KSState
+from commonroad.scenario.state import KSState, PMState
 
-from carlacr.helper.config import VehicleParams, PedestrianParams
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+from carlacr.helper.config import PedestrianParams, VehicleParams
 
 
 class ActorInterface(ABC):
     """Abstract interface between CARLA actor and CommonRoad obstacles."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
-                 actor: Union[carla.Vehicle, carla.Walker], config: Union[VehicleParams, PedestrianParams]):
+    def __init__(
+        self,
+        cr_obstacle: DynamicObstacle,
+        world: carla.World,
+        tm: Optional[carla.TrafficManager],
+        actor: Union[carla.Vehicle, carla.Walker],
+        config: Union[VehicleParams, PedestrianParams],
+    ):
         """
         Initializer of actor interface.
 

@@ -1,12 +1,13 @@
-import carla
-import weakref
-import math
-from typing import Dict
 import collections
+import math
+import weakref
+from typing import TYPE_CHECKING, Dict
+
+import carla
 
 from carlacr.visualization.common import get_actor_display_name
 from carlacr.visualization.visualization_base import VisualizationBase
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from carlacr.visualization.canvas.canvas_controller import CanvasController
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 class CollisionSensor(VisualizationBase):
     """Manages GNSS sensor attached to ego vehicle."""
 
-    def __init__(self, parent_actor: carla.Vehicle, canvas_controller: 'CanvasController'):
+    def __init__(self, parent_actor: carla.Vehicle, canvas_controller: "CanvasController"):
         """
         Initialization of collision sensor.
 
@@ -30,7 +31,7 @@ class CollisionSensor(VisualizationBase):
         self._canvas_controller = canvas_controller
 
         world = self._parent.get_world()
-        bp = world.get_blueprint_library().find('sensor.other.collision')
+        bp = world.get_blueprint_library().find("sensor.other.collision")
         self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
         # We need to pass the lambda a weak reference to self to avoid circular
         # reference.
@@ -62,7 +63,7 @@ class CollisionSensor(VisualizationBase):
         actor_type = get_actor_display_name(event.other_actor)
         self._canvas_controller.notify(f"Collision with {actor_type}")  # pylint: disable=protected-access
         impulse = event.normal_impulse
-        intensity = math.sqrt(impulse.x ** 2 + impulse.y ** 2 + impulse.z ** 2)
+        intensity = math.sqrt(impulse.x**2 + impulse.y**2 + impulse.z**2)
         self.history.append((event.frame, intensity))
         if len(self.history) > 4000:
             self.history.pop(0)

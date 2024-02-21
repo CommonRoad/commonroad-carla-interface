@@ -1,7 +1,7 @@
 image: python:3.8
 
 stages:
-  - static_check
+  - style_check
   - test
   - build
 
@@ -19,26 +19,20 @@ before_script:
   - coverage report -m --omit="*/src/*,*/tests/*" || true
 
 # static_check
-prospector_source:
-  stage: static_check
-  image: python:3.8
+formatting_check:
+  stage: style_check
+  before_script: [ ]
   script:
-    - python -m pip install prospector[with_mypy]
-    - prospector carlacr/
+    - pip install black isort
+    - black --check carlacr eval_paper tutorials tests docs
+    - isort --check-only .
 
-#prospector_test:
-#  stage: static_check
-#  image: "python:3.8"
-#  script:
-#    - python -m pip install prospector[with_mypy]
-#    - prospector tests/
-#
-#prospector_tutorials:
-#  stage: static_check
-#  image: "python:3.8"
-#  script:
-#    - python -m pip install prospector[with_mypy]
-#    - prospector tutorials/
+lint_flake8:
+  stage: style_check
+  before_script: [ ]
+  script:
+    - pip install flake8
+    - flake8 .
 
 
 #test:

@@ -3,10 +3,15 @@ from typing import TYPE_CHECKING
 import carla
 import numpy as np
 import pygame
+
 from carlacr.visualization.sensors.sensor_types.camera_sensor import CameraSensor
 from carlacr.visualization.visualization_base import VisualizationBase
-from carlacr.visualization.visualization_tools.tools.bounding_box_tool import BoundingBoxTool
-from carlacr.visualization.visualization_tools.tools.line_to_vehicle import LineToVehicle
+from carlacr.visualization.visualization_tools.tools.bounding_box_tool import (
+    BoundingBoxTool,
+)
+from carlacr.visualization.visualization_tools.tools.line_to_vehicle import (
+    LineToVehicle,
+)
 from carlacr.visualization.visualization_tools.tools.polygon_tool import PolygonTool
 from carlacr.visualization.visualization_tools.tools.text import Text
 
@@ -19,7 +24,7 @@ class VisualizationToolsController(VisualizationBase):
     Managing the visualization tools.
     """
 
-    def __init__(self, vis3d: 'Visualization3D', z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
         """
         Initializes an instance of VisualizationToolsController.
 
@@ -78,13 +83,14 @@ class VisualizationToolsController(VisualizationBase):
         self._poly_tool = PolygonTool(self._vis3d)
 
         self._bb_tool.show_vehicles(200, show_as_3d=True)
-        self._bb_tool.show_city_object_label(label=carla.CityObjectLabel.Pedestrians, max_dist=200, color=(0, 0, 255),
-                                             show_as_3d=True)
+        self._bb_tool.show_city_object_label(
+            label=carla.CityObjectLabel.Pedestrians, max_dist=200, color=(0, 0, 255), show_as_3d=True
+        )
         self._bb_tool.show_city_object_label(label=carla.CityObjectLabel.TrafficSigns, max_dist=200, show_as_3d=False)
 
         for vehicle in self._vis3d.vehicles:
-            self._line_to_vehicle.set_connection(vehicle, 20)
-            self._poly_tool.set_arrow(vehicle, max_dist=200)
+            self._line_to_vehicle.set_connection(vehicle, 50)
+            self._poly_tool.set_arrow(vehicle, max_dist=150)
 
     def tick(self, clock: pygame.time.Clock):
         """

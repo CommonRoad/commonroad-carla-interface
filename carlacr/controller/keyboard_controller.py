@@ -28,12 +28,14 @@ Use ARROWS or WASD keys for control.
 """
 
 from typing import Optional
+
+import carla
 import pygame
 import pygame.locals as keys
-import carla
+from commonroad.scenario.state import TraceState
+
 from carlacr.controller.controller import CarlaController
 from carlacr.visualization.visualization_base import VisualizationBase
-from commonroad.scenario.state import TraceState
 
 
 class KeyboardVehicleController(CarlaController):
@@ -101,8 +103,9 @@ class KeyboardVehicleController(CarlaController):
     def _parse_vehicle_keys(self):
         """Parses control-related key inputs (steering, acceleration)."""
         pressed_keys = pygame.key.get_pressed()
-        self._control.throttle = min(self._control.throttle + 0.01, 1.00) \
-            if pressed_keys[keys.K_UP] or pressed_keys[keys.K_w] else 0.0
+        self._control.throttle = (
+            min(self._control.throttle + 0.01, 1.00) if pressed_keys[keys.K_UP] or pressed_keys[keys.K_w] else 0.0
+        )
         #  self._control.throttle = 1.0 if keys[K_UP] or keys[K_w] else 0.0
         steer_increment = 5e-4 * self._dt * 1000
         if pressed_keys[keys.K_LEFT] or pressed_keys[keys.K_a]:
@@ -119,8 +122,9 @@ class KeyboardVehicleController(CarlaController):
             self._steer_cache = 0.0
         self._steer_cache = min(0.7, max(-0.7, self._steer_cache))
         self._control.steer = round(self._steer_cache, 1)
-        self._control.brake = min(self._control.brake + 0.2, 1) \
-            if pressed_keys[keys.K_DOWN] or pressed_keys[keys.K_s] else 0.0
+        self._control.brake = (
+            min(self._control.brake + 0.2, 1) if pressed_keys[keys.K_DOWN] or pressed_keys[keys.K_s] else 0.0
+        )
         # self._control.brake = 1.0 if keys[K_DOWN] or keys[K_s] else 0.0
         self._control.hand_brake = pressed_keys[keys.K_SPACE]
         self._control.reverse = pressed_keys[keys.K_q]

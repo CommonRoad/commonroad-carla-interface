@@ -1,6 +1,7 @@
-import carla
-import weakref
 import math
+import weakref
+
+import carla
 
 from carlacr.visualization.visualization_base import VisualizationBase
 
@@ -22,7 +23,7 @@ class IMUSensor(VisualizationBase):
         self.gyroscope = (0.0, 0.0, 0.0)
         self.compass = 0.0
         world = self._parent.get_world()
-        bp = world.get_blueprint_library().find('sensor.other.imu')
+        bp = world.get_blueprint_library().find("sensor.other.imu")
         self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
         # We need to pass the lambda a weak reference to self to avoid circular
         # reference.
@@ -41,12 +42,16 @@ class IMUSensor(VisualizationBase):
         if not self:
             return
         limits = (-99.9, 99.9)
-        self.accelerometer = (max(limits[0], min(limits[1], sensor_data.accelerometer.x)),
-                              max(limits[0], min(limits[1], sensor_data.accelerometer.y)),
-                              max(limits[0], min(limits[1], sensor_data.accelerometer.z)))
-        self.gyroscope = (max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.x))),
-                          max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.y))),
-                          max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.z))))
+        self.accelerometer = (
+            max(limits[0], min(limits[1], sensor_data.accelerometer.x)),
+            max(limits[0], min(limits[1], sensor_data.accelerometer.y)),
+            max(limits[0], min(limits[1], sensor_data.accelerometer.z)),
+        )
+        self.gyroscope = (
+            max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.x))),
+            max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.y))),
+            max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.z))),
+        )
         self.compass = math.degrees(sensor_data.compass)
 
     def destroy(self):

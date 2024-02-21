@@ -1,10 +1,16 @@
-from tutorials.pid_tuner.utils import PidTunerParams, scenario_file, get_params, render_position_differences
-import numpy as np
-from carlacr.carla_interface import CarlaInterface
-import scipy
-from commonroad.common.file_reader import CommonRoadFileReader
 from typing import List
 
+import numpy as np
+import scipy
+from commonroad.common.file_reader import CommonRoadFileReader
+
+from carlacr.carla_interface import CarlaInterface
+from tutorials.pid_tuner.utils import (
+    PidTunerParams,
+    get_params,
+    render_position_differences,
+    scenario_file,
+)
 
 scenario, pps = CommonRoadFileReader(scenario_file).open()
 
@@ -46,9 +52,7 @@ def calculate_final_params(KU: float, PU: float):
     return {"Kp": 0.6 * KU, "TI": PU / 2.0, "TD": PU / 8.0}
 
 
-def are_oscillations_stable(
-    array: List[float], percentage: int = 90, atol: float = 0.001
-):
+def are_oscillations_stable(array: List[float], percentage: int = 90, atol: float = 0.001):
     """
     Check if the oscillations in an array are stable.
 

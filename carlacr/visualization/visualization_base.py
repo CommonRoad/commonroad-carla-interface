@@ -1,8 +1,12 @@
-from abc import ABC
-import pygame
+import logging
 import weakref
-
+from abc import ABC
 from typing import List
+
+import pygame
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class VisualizationBase(ABC):
@@ -36,7 +40,7 @@ class VisualizationBase(ABC):
         self.__instances.append(weakref.ref(self))
 
     @classmethod
-    def get_instances(cls) -> List['VisualizationBase']:
+    def get_instances(cls) -> List["VisualizationBase"]:
         """
         Retrieves all instances of VisualizationBase child classes.
 
@@ -91,8 +95,9 @@ class VisualizationBase(ABC):
         This function should be called when the object is no longer needed,
         to allow Python's garbage collector to reclaim its memory.
         """
-        VisualizationBase.__instances = [ref for ref in VisualizationBase.__instances if
-                                         ref() is not None and ref() != self]
+        VisualizationBase.__instances = [
+            ref for ref in VisualizationBase.__instances if ref() is not None and ref() != self
+        ]
 
     def __del__(self):
         """
@@ -114,4 +119,4 @@ class VisualizationBase(ABC):
             to ensure proper cleanup of resources.
 
         """
-        print(f"VisualizationBase object {self.__class__.__name__} destroyed")
+        logger.debug("VisualizationBase object %s destroyed", self.__class__.__name__)

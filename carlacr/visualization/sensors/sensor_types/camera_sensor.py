@@ -1,12 +1,12 @@
-import carla
 import weakref
-import pygame
+from typing import TYPE_CHECKING
+
+import carla
 import numpy as np
+import pygame
 
 from carlacr.helper.config import EgoViewParams
-
 from carlacr.visualization.visualization_base import VisualizationBase
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from carlacr.visualization.canvas.canvas_controller import CanvasController
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class CameraSensor(VisualizationBase):
     """Manages camera sensor attached to ego vehicle."""
 
-    def __init__(self, parent_actor: carla.Vehicle, config: EgoViewParams, canvas_controller: 'CanvasController'):
+    def __init__(self, parent_actor: carla.Vehicle, config: EgoViewParams, canvas_controller: "CanvasController"):
         """
         Initialization of camera manager.
 
@@ -44,10 +44,10 @@ class CameraSensor(VisualizationBase):
 
         self.index = None
 
-        if self._config.record_video:
-            self.toggle_recording()
         self.transform_index = 0
         self.set_sensor(0, notify=False)
+
+        self._images = []  # storage for images
 
     def _create_camera_transforms(self):
         """
@@ -62,27 +62,50 @@ class CameraSensor(VisualizationBase):
 
         if not self._parent.type_id.startswith("walker.pedestrian"):
             # Camera transforms for non-pedestrian actors
-            return [(carla.Transform(carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
-                    carla.Rotation(pitch=8.0)), carla.AttachmentType.SpringArm), (
+            return [
+                (
+                    carla.Transform(
+                        carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z), carla.Rotation(pitch=8.0)
+                    ),
+                    carla.AttachmentType.SpringArm,
+                ),
+                (
                     carla.Transform(carla.Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)),
-                    carla.AttachmentType.Rigid), (
+                    carla.AttachmentType.Rigid,
+                ),
+                (
                     carla.Transform(carla.Location(x=+1.9 * bound_x, y=+1.0 * bound_y, z=1.2 * bound_z)),
-                    carla.AttachmentType.SpringArm), (
-                    carla.Transform(carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z),
-                                    carla.Rotation(pitch=6.0)), carla.AttachmentType.SpringArm), (
+                    carla.AttachmentType.SpringArm,
+                ),
+                (
+                    carla.Transform(
+                        carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z), carla.Rotation(pitch=6.0)
+                    ),
+                    carla.AttachmentType.SpringArm,
+                ),
+                (
                     carla.Transform(carla.Location(x=-1.0, y=-1.0 * bound_y, z=0.4 * bound_z)),
-                    carla.AttachmentType.Rigid)]
+                    carla.AttachmentType.Rigid,
+                ),
+            ]
 
         # Camera transforms for pedestrian actors
-        return [(carla.Transform(carla.Location(x=-2.5, z=0.0), carla.Rotation(pitch=-8.0)),
-                carla.AttachmentType.SpringArm),
-                (carla.Transform(carla.Location(x=1.6, z=1.7)), carla.AttachmentType.Rigid), (
+        return [
+            (
+                carla.Transform(carla.Location(x=-2.5, z=0.0), carla.Rotation(pitch=-8.0)),
+                carla.AttachmentType.SpringArm,
+            ),
+            (carla.Transform(carla.Location(x=1.6, z=1.7)), carla.AttachmentType.Rigid),
+            (
                 carla.Transform(carla.Location(x=2.5, y=0.5, z=0.0), carla.Rotation(pitch=-8.0)),
-                carla.AttachmentType.SpringArm), (
-                carla.Transform(carla.Location(x=-4.0, z=2.0), carla.Rotation(pitch=6.0)),
-                carla.AttachmentType.SpringArm), (
+                carla.AttachmentType.SpringArm,
+            ),
+            (carla.Transform(carla.Location(x=-4.0, z=2.0), carla.Rotation(pitch=6.0)), carla.AttachmentType.SpringArm),
+            (
                 carla.Transform(carla.Location(x=0, y=-2.5, z=-0.0), carla.Rotation(yaw=90.0)),
-                carla.AttachmentType.Rigid)]
+                carla.AttachmentType.Rigid,
+            ),
+        ]
 
     def _create_sensors(self):
         """
@@ -91,21 +114,31 @@ class CameraSensor(VisualizationBase):
         :return: List of sensor definitions.
         :rtype: List
         """
-        sensors = [['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB', {}],
-                   ['sensor.camera.dvs', carla.ColorConverter.Raw, 'Dynamic Vision Sensor', {}],
-                   ['sensor.camera.rgb', carla.ColorConverter.Raw, 'Camera RGB Distorted',
-                    {'lens_circle_multiplier': '3.0', 'lens_circle_falloff': '3.0',
-                     'chromatic_aberration_intensity': '0.5', 'chromatic_aberration_offset': '0'}]]
+        sensors = [
+            ["sensor.camera.rgb", carla.ColorConverter.Raw, "Camera RGB", {}],
+            ["sensor.camera.dvs", carla.ColorConverter.Raw, "Dynamic Vision Sensor", {}],
+            [
+                "sensor.camera.rgb",
+                carla.ColorConverter.Raw,
+                "Camera RGB Distorted",
+                {
+                    "lens_circle_multiplier": "3.0",
+                    "lens_circle_falloff": "3.0",
+                    "chromatic_aberration_intensity": "0.5",
+                    "chromatic_aberration_offset": "0",
+                },
+            ],
+        ]
 
         world = self._parent.get_world()
         bp_library = world.get_blueprint_library()
         for item in sensors:
             bp = bp_library.find(item[0])
-            if item[0].startswith('sensor.camera'):
-                bp.set_attribute('image_size_x', str(self._config.width))
-                bp.set_attribute('image_size_y', str(self._config.height))
-                if bp.has_attribute('gamma'):
-                    bp.set_attribute('gamma', str(self._config.gamma))
+            if item[0].startswith("sensor.camera"):
+                bp.set_attribute("image_size_x", str(self._config.width))
+                bp.set_attribute("image_size_y", str(self._config.height))
+                if bp.has_attribute("gamma"):
+                    bp.set_attribute("gamma", str(self._config.gamma))
                 for attr_name, attr_value in item[3].items():
                     bp.set_attribute(attr_name, attr_value)
                 image_w = bp.get_attribute("image_size_x").as_int()
@@ -141,8 +174,9 @@ class CameraSensor(VisualizationBase):
         :param force_respawn: Boolean indicating whether the sensor has to be respawned.
         """
         index = index % len(self.sensors)
-        needs_respawn = True if self.index is None else (
-            force_respawn or (self.sensors[index][2] != self.sensors[self.index][2]))
+        needs_respawn = (
+            True if self.index is None else (force_respawn or (self.sensors[index][2] != self.sensors[self.index][2]))
+        )
         if needs_respawn:
             if self.sensor is not None:
                 self.sensor.destroy()
@@ -181,18 +215,19 @@ class CameraSensor(VisualizationBase):
         :param weak_self: Weak self-reference.
         :param image: CARLA image.
         """
-        self: 'CameraSensor' = weak_self()
+        self: "CameraSensor" = weak_self()
 
         if not self:
             return
-        if self.sensors[self.index][0].startswith('sensor.camera.dvs'):
+        if self.sensors[self.index][0].startswith("sensor.camera.dvs"):
             # Example of converting the raw_data from a carla.DVSEventArray
             # sensor into a NumPy array and using it as an image
-            dvs_events = np.frombuffer(image.raw_data, dtype=np.dtype(
-                [('x', np.uint16), ('y', np.uint16), ('t', np.int64), ('pol', np.bool)]))
+            dvs_events = np.frombuffer(
+                image.raw_data, dtype=np.dtype([("x", np.uint16), ("y", np.uint16), ("t", np.int64), ("pol", np.bool)])
+            )
             dvs_img = np.zeros((image.height, image.width, 3), dtype=np.uint8)
             # Blue is positive, red is negative
-            dvs_img[dvs_events[:]['y'], dvs_events[:]['x'], dvs_events[:]['pol'] * 2] = 255
+            dvs_img[dvs_events[:]["y"], dvs_events[:]["x"], dvs_events[:]["pol"] * 2] = 255
             self.surface = pygame.surfarray.make_surface(dvs_img.swapaxes(0, 1))
         else:
             image.convert(self.sensors[self.index][1])
@@ -201,10 +236,18 @@ class CameraSensor(VisualizationBase):
             array = array[:, :, :3]
             array = array[:, :, ::-1]
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-        if self.recording:
-            image.save_to_disk(f'{self.path}/_tmp/%08d' % image.frame)
+            if self.recording:
+                # pylint: disable=protected-access
+                self._images.append(image)
+
+    # if self.recording:
+    # image.save_to_disk(f'{self.path}/_tmp/%08d' % image.frame)
 
     def destroy(self):
+        if self.recording:
+            for image in self._images:
+                image.save_to_disk(f"{self.path}/_tmp/%08d" % image.frame)
+
         super().destroy()
         self.sensor.stop()
         self.sensor.destroy()
