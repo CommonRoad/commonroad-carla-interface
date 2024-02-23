@@ -2,7 +2,6 @@ import hashlib
 import logging
 import math
 import os
-import shutil
 import signal
 import subprocess
 import time
@@ -265,29 +264,31 @@ def find_pid_by_name(process_name: str) -> List[int]:
     return processes
 
 
-def make_video(path: str, video_name: str):
+def make_video(path: Path, video_name: str):
     """
     Creates a video of the images recorded by camera sensor using ffmepg.
 
     @param path: Path to png images stored by camera sensor.
     @param video_name: Name which new video should have.
     """
-    tmp_path = os.path.join(path, "_tmp")
-    if not os.path.exists(path):
-        os.mkdir(path)
-    if not os.path.exists(tmp_path):
-        os.mkdir(tmp_path)
+    tmp_path = path / "_tmp"
+    if not path.exists():
+        path.mkdir(parents=True, exist_ok=True)
+    if not tmp_path.exists():
+        tmp_path.mkdir(parents=True, exist_ok=True)
+    video_path = path / f"{video_name}.mp4"
     try:
         logger.debug("Start creating video.")
         os.system(
             f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{tmp_path}/*.png'"
-            f" -c:v libx264 -pix_fmt yuv420p {path}/{video_name}.mp4"
+            f" -c:v libx264 -pix_fmt yuv420p {video_path}"
         )
-        shutil.rmtree(tmp_path)
-        if os.path.exists(os.path.join(path, video_name + ".mp4")):
+        tmp_path.unlink()
+
+        if video_path.exists():
             logger.debug("mp4 created!")
     except Exception as e:
-        if os.path.exists(os.path.join(path, video_name + ".mp4")):
+        if video_path.exists():
             logger.debug("mp4 created!")
         else:
             logger.error(e)
@@ -303,8 +304,7 @@ def find_carla_distribution(default_carla_paths: List[str]) -> Path:
     if default_carla_paths is None:
         default_carla_paths = BaseParam().default_carla_paths
     for default_path in default_carla_paths:
-        path = Path(default_path.replace("/~", os.path.expanduser("~")))
-        if path.exists():
+        if (path := Path(default_path).expanduser()).exists():
             return path
     raise FileNotFoundError("CARLA executable not found.")
 
@@ -486,8 +486,8 @@ def render_trajectory_video(
     :param exclude_pedestrians: Whether to exclude pedestrians from the video. Defaults to True.
 
     """
-    tmp_dir = "carla_tmp_frames"
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir = Path("carla_tmp_frames")
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     if exclude_pedestrians:
         obstacles = [obs for obs in obstacles if "Vehicle" in type(obs).__name__]
@@ -525,9 +525,9 @@ def render_trajectory_video(
     video_file = f"{output_file}.mp4"
 
     # Resize the images if needed, so ffmpeg can render them -> It requires image_size % 2 = 0
-    image_files = list(os.listdir(tmp_dir))
+    image_files = tmp_dir.glob("**/*")
     for image_file in image_files:
-        image = Image.open(os.path.join(tmp_dir, image_file))
+        image = Image.open(tmp_dir / image_file)
 
         new_width = image.width
         new_height = image.height
@@ -540,7 +540,7 @@ def render_trajectory_video(
 
         if new_width != image.width or new_height != image.height:
             image = image.resize((new_width, new_height), Image.ANTIALIAS)
-            image.save(os.path.join(tmp_dir, image_file))
+            image.save(tmp_dir / image_file)
 
     subprocess.run(
         [
@@ -559,7 +559,7 @@ def render_trajectory_video(
         check=True,
     )
 
-    shutil.rmtree(tmp_dir)
+    tmp_dir.unlink()
 
 
 def render_obs_trajectory_and_speed_comparisons(

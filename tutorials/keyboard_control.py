@@ -6,7 +6,7 @@ from commonroad.scenario.scenario import Tag
 from carlacr.carla_interface import CarlaInterface
 from carlacr.helper.config import CarlaParams, CustomVis, EgoPlanner
 
-# Keyboard control with storing of driven scenario and
+# Keyboard control with storing of driven scenario
 
 param = CarlaParams()
 param.vehicle.vehicle_ks_state = True

@@ -1,9 +1,9 @@
 import dataclasses
 import inspect
 import logging
-import pathlib
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Union
 
 import carla
@@ -85,12 +85,12 @@ class BaseParam:
     default_carla_paths: List[str] = field(
         default_factory=lambda: [
             "/opt/carla-simulator/",
-            "/~/CARLA_0.9.15_RSS/",
-            "/~/CARLA_0.9.15/",
-            "/~/CARLA_0.9.14_RSS/",
-            "/~/CARLA_0.9.14/",
-            "/~/CARLA_0.9.13_RSS/",
-            "/~/CARLA_0.9.13/",
+            "~/CARLA_0.9.15_RSS/",
+            "~/CARLA_0.9.15/",
+            "~/CARLA_0.9.14_RSS/",
+            "~/CARLA_0.9.14/",
+            "~/CARLA_0.9.13_RSS/",
+            "~/CARLA_0.9.13/",
             "/home/carla/",
         ]
     )
@@ -155,7 +155,7 @@ class BaseParam:
             raise KeyError(f"{key} is not a parameter of {self.__class__.__name__}") from e
 
     @classmethod
-    def load(cls, file_path: Union[pathlib.Path, str], validate_types: bool = True) -> "BaseParam":
+    def load(cls, file_path: Union[Path, str], validate_types: bool = True) -> "BaseParam":
         """
         Loads config file and creates parameter class.
 
@@ -163,7 +163,7 @@ class BaseParam:
         :param validate_types:  Boolean indicating whether loaded config should be validated against CARLA parameters.
         :return: Base parameter class.
         """
-        file_path = pathlib.Path(file_path)
+        file_path = Path(file_path)
         assert file_path.suffix == ".yaml", f"File type {file_path.suffix} is unsupported! Please use .yaml!"
         loaded_yaml = OmegaConf.load(file_path)
         if validate_types:
@@ -171,7 +171,7 @@ class BaseParam:
         params = _dict_to_params(OmegaConf.to_object(loaded_yaml), cls)
         return params
 
-    def save(self, file_path: Union[pathlib.Path, str]):
+    def save(self, file_path: Union[Path, str]):
         """
         Save config parameters to yaml file.
 
@@ -267,7 +267,7 @@ class EgoViewParams(ViewParams):
 
     gamma: float = 2.2
     record_video: bool = False
-    video_path: str = "./"
+    video_path: Path = Path("./")
     video_name: str = "CommonRoad"
     object_filter: str = "vehicle.*"
 
