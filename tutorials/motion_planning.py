@@ -20,7 +20,6 @@ param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.BIRD
-param.simulation.tm.osm_mode = True
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()

@@ -20,7 +20,6 @@ param.simulation.max_time_step = 240
 param.offscreen_mode = True
 param.simulation.number_vehicles = 50
 param.simulation.number_walkers = 50
-param.simulation.tm.osm_mode = True
 
 image_path = Path(__file__).parent / "scenario_generation_vis"
 if not image_path.exists():

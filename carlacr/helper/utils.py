@@ -6,6 +6,7 @@ import shutil
 import signal
 import subprocess
 import time
+from pathlib import Path
 from typing import List, Tuple, Union
 
 import carla
@@ -292,7 +293,7 @@ def make_video(path: str, video_name: str):
             logger.error(e)
 
 
-def find_carla_distribution(default_carla_paths: List[str]) -> str:
+def find_carla_distribution(default_carla_paths: List[str]) -> Path:
     """
     Finds path of CARLA executable script based on given default paths.
 
@@ -302,8 +303,8 @@ def find_carla_distribution(default_carla_paths: List[str]) -> str:
     if default_carla_paths is None:
         default_carla_paths = BaseParam().default_carla_paths
     for default_path in default_carla_paths:
-        path = default_path.replace("/~", os.path.expanduser("~"))
-        if os.path.exists(path):
+        path = Path(default_path.replace("/~", os.path.expanduser("~")))
+        if path.exists():
             return path
     raise FileNotFoundError("CARLA executable not found.")
 

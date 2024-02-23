@@ -39,7 +39,6 @@ for cr_scenario_path in Path.glob(Path(__file__).parent / "map_conversion", "*xm
     param.simulation.max_time_step = 10
     param.simulation.number_vehicles = 1
     param.simulation.number_walkers = 0
-    param.simulation.tm.osm_mode = True
     param.visualization.camera_storage_path = str(Path(__file__).parent / "map_conversion")
     param.visualization.camera_transform_bird = carla.Transform(
         carla.Location(z=z_axis, x=centroid[0], y=-centroid[1]), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0)

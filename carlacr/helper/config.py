@@ -202,9 +202,6 @@ class TrafficManagerParams(BaseParam):
     global_distance_to_leading_vehicle: float = 1.0
     # random seed for the traffic manager
     seed: int = 0
-    # allows having dead-end streets; Normally, if vehicles cannot find the next waypoint, TM crashes.
-    # If OSM mode is enabled, it will show a warning, and destroy vehicles when necessary.
-    osm_mode: bool = False
     # how many pedestrians will run [%]
     global_percentage_pedestrians_running: float = 0
     # how many pedestrians will walk through the road [%]
