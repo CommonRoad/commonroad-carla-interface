@@ -14,7 +14,6 @@ param.simulation.number_vehicles = 5
 param.simulation.number_walkers = 5
 param.simulation.tm.global_lane_offset = 80
 param.simulation.tm.ignore_vehicles_percentage = 20
-param.simulation.tm.osm_mode = True
 
 # Execute scenario generation
 ci = CarlaInterface(param)

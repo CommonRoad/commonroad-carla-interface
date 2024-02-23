@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Union
 
 import carla
 import pygame
+from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import (
     CostFunction,
     PlanningProblemSolution,
@@ -31,7 +32,10 @@ from commonroad.scenario.scenario import Environment, Scenario, TimeOfDay, Weath
 from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
-from crdesigner.map_conversion.map_conversion_interface import opendrive_to_commonroad
+from crdesigner.map_conversion.map_conversion_interface import (
+    commonroad_to_opendrive,
+    opendrive_to_commonroad,
+)
 from crpred.predictor_interface import PredictorInterface
 
 from carlacr.helper.config import CarlaParams, CustomVis, EgoPlanner, WeatherParams
@@ -179,7 +183,7 @@ class CarlaInterface:
 
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
-        path_to_carla = os.path.join(find_carla_distribution(self._config.default_carla_paths), "CarlaUE4.sh")
+        path_to_carla = find_carla_distribution(self._config.default_carla_paths) / "CarlaUE4.sh"
 
         kill_existing_servers(self._config.sleep_time)
 
@@ -189,9 +193,9 @@ class CarlaInterface:
         popen_base_params = {"stdout": subprocess.PIPE, "preexec_fn": os.setsid, "shell": False}
 
         if self._config.offscreen_mode:
-            cmd = [path_to_carla, "-RenderOffScreen", f"-carla-world-port={self._config.port}"]
+            cmd = [str(path_to_carla), "-RenderOffScreen", f"-carla-world-port={self._config.port}"]
         else:
-            cmd = [path_to_carla, f"-carla-world-port={self._config.port}"]
+            cmd = [str(path_to_carla), f"-carla-world-port={self._config.port}"]
 
         self._carla_pid = subprocess.Popen(cmd, **popen_base_params)
         self._config.logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
@@ -215,7 +219,7 @@ class CarlaInterface:
         self._tm.set_hybrid_physics_mode(self._config.simulation.tm.hybrid_physics_mode)
         self._tm.set_hybrid_physics_radius(self._config.simulation.tm.hybrid_physics_radius)
         self._tm.set_synchronous_mode(self._config.sync)
-        self._tm.set_osm_mode(self._config.simulation.tm.osm_mode)
+        self._tm.set_osm_mode(True)
         self._tm.set_random_device_seed(self._config.simulation.tm.seed)
         self._update_traffic_manager()
 
@@ -226,40 +230,54 @@ class CarlaInterface:
         if hasattr(self._tm, "global_lane_offset"):  # starting in CARLA 0.9.14
             self._tm.global_lane_offset(self._config.simulation.tm.global_lane_offset)
 
-    def _load_map(self, map_name: str):
+    def _load_map(self, map_name: Union[Path, str]):
         """
         Loads OpenDRIVE map into CARLA.
 
         :param map_name: Name of map (for CARLA default maps) or path to OpenDRIVE map.
         """
-        if map_name[0:4] == "Town":
+        if isinstance(map_name, str):
+            map_name = Path(map_name)
+        if map_name.stem[0:4] == "Town":
             self._config.logger.info("Load CARLA default map: %s", map_name)
-
-            self._client.load_world(map_name)
-            self._config.simulation.osm_mode = True
-        elif os.path.exists(map_name):
-            self._config.logger.info("Load OpenDRIVE map: %s", os.path.basename(map_name))
-            with open(map_name, encoding="utf-8") as od_file:
-                try:
-                    data = od_file.read()
-                except OSError:
-                    self._config.logger.error("Failed load OpenDRIVE map: %s", os.path.basename(map_name))
-                    sys.exit()
-            self._config.logger.info("Loaded OpenDRIVE map: %s successfully.", os.path.basename(map_name))
-
-            self._client.generate_opendrive_world(
-                data,
-                carla.OpendriveGenerationParameters(
-                    vertex_distance=self._config.map_params.vertex_distance,
-                    max_road_length=self._config.map_params.max_road_length,
-                    wall_height=self._config.map_params.wall_height,
-                    additional_width=self._config.map_params.extra_width,
-                    smooth_junctions=True,
-                    enable_mesh_visibility=True,
-                    enable_pedestrian_navigation=True,
-                ),
-            )
+            self._client.load_world(map_name.stem)
+        elif map_name.exists() and map_name.suffix == ".xodr":
+            self._config.logger.info("Load OpenDRIVE map: %s", map_name.stem)
+            self._load_and_generate_odr(map_name)
+        elif map_name.exists() and map_name.suffix in [".xml"]:
+            # convert CR map to OpenDRIVE and store map temporary
+            scenario, _ = CommonRoadFileReader(map_name).open()
+            commonroad_to_opendrive(map_name, Path("./temp.xodr"))
+            self._load_and_generate_odr(Path("./temp.xodr"))
+            Path("./temp.xodr").unlink()
+        else:
+            raise RuntimeError(f"CarlaInterface::_load_map: Unknown map {map_name}")
         time.sleep(self._config.sleep_time)
+
+    def _load_and_generate_odr(self, map_name: Path):
+        """Loads OpenDRIVE map and generates 3D world out of it.
+
+        :param map_name: Path to OpenDRIVE file.
+        """
+        with open(map_name, encoding="utf-8") as od_file:
+            try:
+                data = od_file.read()
+            except OSError:
+                self._config.logger.error("Failed load OpenDRIVE map: %s", map_name.stem)
+                sys.exit()
+        self._config.logger.info("Loaded OpenDRIVE map: %s successfully.", map_name.stem)
+        self._client.generate_opendrive_world(
+            data,
+            carla.OpendriveGenerationParameters(
+                vertex_distance=self._config.map_params.vertex_distance,
+                max_road_length=self._config.map_params.max_road_length,
+                wall_height=self._config.map_params.wall_height,
+                additional_width=self._config.map_params.extra_width,
+                smooth_junctions=True,
+                enable_mesh_visibility=True,
+                enable_pedestrian_navigation=True,
+            ),
+        )
 
     def _set_scenario(self, sc: Scenario):
         """
@@ -355,16 +373,17 @@ class CarlaInterface:
         :return: Scenario containing converted map without obstacles.
         """
         carla_map = self._world.get_map()
+        odr_path = Path("temp.xodr")
 
         # Convert the CARLA map into OpenDRIVE in a temporary file
-        with open("temp.xodr", "w", encoding="UTF-8") as file:
+        with open(odr_path, "w", encoding="UTF-8") as file:
             file.write(carla_map.to_opendrive())
 
         # Load OpenDRIVE file, parse it, and convert it to a CommonRoad scenario
-        scenario = opendrive_to_commonroad(Path("./temp.xodr"))
+        scenario = opendrive_to_commonroad(odr_path)
 
         # Delete temporary file
-        os.remove("./temp.xodr")
+        odr_path.unlink()
 
         return scenario
 

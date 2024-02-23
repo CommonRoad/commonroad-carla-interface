@@ -17,7 +17,6 @@ param = CarlaParams(log_level="INFO")
 param.vehicle.vehicle_ks_state = False
 param.simulation.max_time_step = 1500
 param.offscreen_mode = True
-param.simulation.osm_mode = True
 param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
 param.sleep_time = 120

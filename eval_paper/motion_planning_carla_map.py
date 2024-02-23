@@ -25,7 +25,6 @@ param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.EGO
 param.ego_view.record_video = True
-param.simulation.tm.osm_mode = True
 param.ego_view.video_path = str(Path(__file__).parent.parent)
 param.ego.carla_controller_type = VehicleControlType.TRANSFORM
 param.simulation.max_time_step = 120
