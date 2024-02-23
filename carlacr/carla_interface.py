@@ -32,6 +32,7 @@ from commonroad.scenario.scenario import Environment, Scenario, TimeOfDay, Weath
 from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
+from crdesigner.common.config.opendrive_config import open_drive_config
 from crdesigner.map_conversion.map_conversion_interface import (
     commonroad_to_opendrive,
     opendrive_to_commonroad,
@@ -366,7 +367,7 @@ class CarlaInterface:
         )
         return self._ego.cr_obstacle
 
-    def create_cr_map(self) -> Scenario:
+    def create_cr_map(self, initial_id: int = 1) -> Scenario:
         """
         Converts the CARLA map to a Commonroad map using CommonRoad Scenario Designer.
 
@@ -380,7 +381,9 @@ class CarlaInterface:
             file.write(carla_map.to_opendrive())
 
         # Load OpenDRIVE file, parse it, and convert it to a CommonRoad scenario
-        scenario = opendrive_to_commonroad(odr_path)
+        config = open_drive_config
+        config.initial_cr_id = initial_id
+        scenario = opendrive_to_commonroad(odr_path, odr_conf=config)
 
         # Delete temporary file
         odr_path.unlink()
@@ -541,13 +544,14 @@ class CarlaInterface:
             ego_obs = None
         self._config.logger.info("Init ego vehicle.")
 
+        sc_new = sc if sc is not None else self.create_cr_map(1)
         self._ego = VehicleInterface(
             ego_obs,
             self._world,
             self._tm,
             planner=planner,
             predictor=predictor,
-            sc=sc if sc is not None else self.create_cr_map(),
+            sc=sc_new,
             pp=pp,
             config=self._config.ego,
         )
@@ -561,7 +565,7 @@ class CarlaInterface:
                 self._world,
                 self._tm,
                 self._config.simulation,
-                Scenario(0.1).generate_object_id,
+                sc_new.generate_object_id,
                 self._config.sync,
                 carla.Location(
                     x=self._ego.cr_obstacle.initial_state.position[0],
@@ -575,7 +579,7 @@ class CarlaInterface:
                 self._world,
                 self._tm,
                 self._config.simulation,
-                Scenario(0.1).generate_object_id,
+                sc_new.generate_object_id,
                 self._config.sync,
             )
             obstacle_control = False
@@ -758,17 +762,22 @@ class CarlaInterface:
 
         return vis_world, clock, display
 
-    def create_cr_scenario(self, base_scenario: Optional[Scenario] = None):
+    def create_cr_scenario(self, base_scenario: Optional[Scenario] = None, reuse_created_map: bool = True) -> Scenario:
         """
         Creates a CommonRoad scenario based on the recorded traffic given a base scenario, e.g., empty map.
         If no map is provided, current OpenDRIVE map will be used.
 
         :param base_scenario: CommonRoad scenario containing at least a map.
+        :param reuse_created_map: Boolean indicating whether stored map should be used for scenario.
+        :return CommonRoad scenario.
         """
+        obstacles = self.cr_obstacles() + [self.cr_ego_obstacle()]
+        if reuse_created_map and self._ego.get_scenario() is not None:
+            base_scenario = self._ego.get_scenario()
         if base_scenario is None:
-            base_scenario = self.create_cr_map()
-        base_scenario.add_objects(self.cr_obstacles())
-        base_scenario.add_objects(self.cr_ego_obstacle())
+            max_id = max([obs.obstacle_id for obs in obstacles])
+            base_scenario = self.create_cr_map(max_id + 1)
+        base_scenario.add_objects(obstacles)
         return base_scenario
 
     def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):

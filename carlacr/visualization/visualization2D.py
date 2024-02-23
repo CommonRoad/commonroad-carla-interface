@@ -36,6 +36,7 @@ import hashlib
 import math
 import os
 import weakref
+from pathlib import Path
 from typing import Callable, Dict, List, Tuple, Union
 
 import carla
@@ -433,10 +434,10 @@ class MapImage:
 
         # Build path for saving or loading the cached rendered map
         filename = carla_map.name.split("/")[-1] + "_" + opendrive_hash + ".tga"
-        dirname = os.path.join("cache", "no_rendering_mode")
-        full_path = str(os.path.join(dirname, filename))
+        dirname = Path("cache") / "no_rendering_mode"
+        full_path = dirname / filename
 
-        if os.path.isfile(full_path):
+        if full_path.is_file():
             # Load Image
             self._big_map_surface = pygame.image.load(full_path)
         else:
@@ -444,13 +445,13 @@ class MapImage:
             self.draw_road_map(self._big_map_surface, carla_world, carla_map)
 
             # If folders path does not exist, create it
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
+            if not dirname.exists():
+                dirname.mkdir(parents=True, exist_ok=True)
 
             # Remove files if selected town had a previous version saved
-            list_filenames = glob.glob(os.path.join(dirname, carla_map.name) + "*")
+            list_filenames = (dirname / carla_map.name).glob("*")
             for town_filename in list_filenames:
-                os.remove(town_filename)
+                town_filename.unlink()
 
             # Save rendered map for next executions of same map
             pygame.image.save(self._big_map_surface, full_path)

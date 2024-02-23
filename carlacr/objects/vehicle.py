@@ -112,6 +112,13 @@ class VehicleInterface(ActorInterface):
             elif self._config.carla_controller_type is VehicleControlType.PATH_AGENT:
                 self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
 
+    def get_scenario(self) -> Scenario:
+        """Getter for scenario
+
+        :return CommonRoad scenario.
+        """
+        return self._sc
+
     def _spawn(self, time_step: int):
         """
         Tries to spawn the vehicle (incl. lights if supported) in the given CARLA world at provided time step.
