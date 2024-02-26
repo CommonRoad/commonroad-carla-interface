@@ -61,3 +61,5 @@ carlacr/.mypy_cache
 .pylintrc
 
 /eval_paper/generated_scenarios/
+/eval_paper/files/
+/docs/public/

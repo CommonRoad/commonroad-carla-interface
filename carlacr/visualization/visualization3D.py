@@ -19,7 +19,7 @@ from carlacr.visualization.canvas.canvas_controller import CanvasController
 from carlacr.visualization.common import get_actor_display_name, sort_vehicles_by_dist
 from carlacr.visualization.sensors.sensor_controller import SensorController
 from carlacr.visualization.visualization_base import VisualizationBase
-from carlacr.visualization.visualization_tools.visualization_tools_contoller import (
+from carlacr.visualization.visualization_tools.visualization_tools_controller import (
     VisualizationToolsController,
 )
 

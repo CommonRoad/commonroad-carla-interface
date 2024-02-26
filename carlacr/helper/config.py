@@ -208,6 +208,7 @@ class TrafficManagerParams(BaseParam):
     global_percentage_pedestrians_crossing: float = 0
     # global lane offset displacement from the center line [%]
     # Positive values imply a right offset while negative ones mean a left one.
+    # Changing this parameter often leads to wired behavior
     global_lane_offset: float = 0.0
     # collisions with walkers will be ignored for a vehicle [%]
     ignore_walkers_percentage: float = 0.0
@@ -300,8 +301,10 @@ class SimulationParams(BaseParam):
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
+    # sets SDL to use dummy NULL video driver, so it doesn't need a windowing system. (to run pygame without a display)
     ignore_video_driver: bool = False
-    spawn_point_distance_ego: float = 10  # distance spawn point must be away from ego vehicle
+    # distance spawn point must be away from ego vehicle
+    spawn_point_distance_ego: float = 10
 
 
 @dataclass
