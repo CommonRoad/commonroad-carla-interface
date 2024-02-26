@@ -1,10 +1,13 @@
 import dataclasses
 import inspect
+import logging
 from dataclasses import dataclass, field
-import pathlib
-from typing import Dict, Union, List, Any
-from omegaconf import OmegaConf
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Union
+
+import carla
+from omegaconf import OmegaConf
 
 
 class PedestrianControlType(Enum):
@@ -78,15 +81,26 @@ class BaseParam:
     port: int = 2000  # carla default port setting
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
-    default_carla_paths: List[str] = field(default_factory=lambda: [
-        "/opt/carla-simulator/", "/~/CARLA_0.9.14_RSS/", "/~/CARLA_0.9.14/",
-        "/~/CARLA_0.9.13_RSS/", "/~/CARLA_0.9.13/"])
+    kill_carla_server: bool = True
+    default_carla_paths: List[str] = field(
+        default_factory=lambda: [
+            "/opt/carla-simulator/",
+            "~/CARLA_0.9.15_RSS/",
+            "~/CARLA_0.9.15/",
+            "~/CARLA_0.9.14_RSS/",
+            "~/CARLA_0.9.14/",
+            "~/CARLA_0.9.13_RSS/",
+            "~/CARLA_0.9.13/",
+            "/home/carla/",
+        ]
+    )
     offscreen_mode: bool = True
     map: str = "Town01"
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
     vis_type: CustomVis = CustomVis.BIRD
+    log_level: str = "ERROR"
     __initialized: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
@@ -101,6 +115,7 @@ class BaseParam:
         self.port = self.port
         self.sleep_time = self.sleep_time
         self.start_carla_server = self.start_carla_server
+        self.kill_carla_server = self.kill_carla_server
         self.default_carla_paths = self.default_carla_paths
         self.offscreen_mode = self.offscreen_mode
         self.client_init_timeout = self.client_init_timeout
@@ -108,6 +123,11 @@ class BaseParam:
         self.sync = self.sync
         self.autopilot = self.autopilot
         self.vis_type = self.vis_type
+        self.log_level = self.log_level
+
+        self.logger = logging.getLogger("CommonRoad-CARLA-Interface")
+        numeric_level = getattr(logging, self.log_level.upper(), None)
+        self.logger.setLevel(numeric_level)
 
     def __getitem__(self, item: str) -> Any:
         """
@@ -135,7 +155,7 @@ class BaseParam:
             raise KeyError(f"{key} is not a parameter of {self.__class__.__name__}") from e
 
     @classmethod
-    def load(cls, file_path: Union[pathlib.Path, str], validate_types: bool = True) -> 'BaseParam':
+    def load(cls, file_path: Union[Path, str], validate_types: bool = True) -> "BaseParam":
         """
         Loads config file and creates parameter class.
 
@@ -143,7 +163,7 @@ class BaseParam:
         :param validate_types:  Boolean indicating whether loaded config should be validated against CARLA parameters.
         :return: Base parameter class.
         """
-        file_path = pathlib.Path(file_path)
+        file_path = Path(file_path)
         assert file_path.suffix == ".yaml", f"File type {file_path.suffix} is unsupported! Please use .yaml!"
         loaded_yaml = OmegaConf.load(file_path)
         if validate_types:
@@ -151,15 +171,16 @@ class BaseParam:
         params = _dict_to_params(OmegaConf.to_object(loaded_yaml), cls)
         return params
 
-    def save(self, file_path: Union[pathlib.Path, str]):
+    def save(self, file_path: Union[Path, str]):
         """
         Save config parameters to yaml file.
 
         :param file_path: Path where yaml file should be stored.
         """
         # Avoid saving private attributes
-        dict_cfg = dataclasses.asdict(self, dict_factory=lambda items: {key: val for key, val in items if
-                                                                        not key.startswith("_")})
+        dict_cfg = dataclasses.asdict(
+            self, dict_factory=lambda items: {key: val for key, val in items if not key.startswith("_")}
+        )
         OmegaConf.save(OmegaConf.create(dict_cfg), file_path, resolve=True)
 
 
@@ -181,15 +202,13 @@ class TrafficManagerParams(BaseParam):
     global_distance_to_leading_vehicle: float = 1.0
     # random seed for the traffic manager
     seed: int = 0
-    # allows having dead-end streets; Normally, if vehicles cannot find the next waypoint, TM crashes.
-    # If OSM mode is enabled, it will show a warning, and destroy vehicles when necessary.
-    osm_mode: bool = False
     # how many pedestrians will run [%]
     global_percentage_pedestrians_running: float = 0
     # how many pedestrians will walk through the road [%]
     global_percentage_pedestrians_crossing: float = 0
     # global lane offset displacement from the center line [%]
     # Positive values imply a right offset while negative ones mean a left one.
+    # Changing this parameter often leads to wired behavior
     global_lane_offset: float = 0.0
     # collisions with walkers will be ignored for a vehicle [%]
     ignore_walkers_percentage: float = 0.0
@@ -234,6 +253,13 @@ class ViewParams(BaseParam):
     width: int = 1280
     height: int = 720
     description: str = "Keyboard Control"
+    camera_storage_path: str = ""
+    camera_transform_horizontal: carla.Transform = carla.Transform(
+        carla.Location(z=5, x=-46, y=54), carla.Rotation(pitch=-5.0, yaw=270, roll=0.0)
+    )
+    camera_transform_bird: carla.Transform = carla.Transform(
+        carla.Location(z=40, x=-45, y=19), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0)
+    )
 
 
 @dataclass
@@ -242,7 +268,7 @@ class EgoViewParams(ViewParams):
 
     gamma: float = 2.2
     record_video: bool = False
-    video_path: str = "./"
+    video_path: Path = Path("./")
     video_name: str = "CommonRoad"
     object_filter: str = "vehicle.*"
 
@@ -268,11 +294,17 @@ class SimulationParams(BaseParam):
     number_walkers: int = 10
     number_vehicles: int = 30
     safe_vehicles: bool = True
+    # TODO: Add filter car https://carla.readthedocs.io/en/latest/bp_library/
+    filter_attribute_number_of_wheels: int = 4
     filter_vehicle: str = "vehicle.*"
-    filter_pedestrian: str = 'walker.pedestrian.*'
+    filter_pedestrian: str = "walker.pedestrian.*"
     seed_walker: int = 0
     pedestrian_default_shape: bool = False
     max_time_step: int = 60
+    # sets SDL to use dummy NULL video driver, so it doesn't need a windowing system. (to run pygame without a display)
+    ignore_video_driver: bool = False
+    # distance spawn point must be away from ego vehicle
+    spawn_point_distance_ego: float = 10
 
 
 @dataclass
@@ -294,6 +326,9 @@ class ControlParams(BaseParam):
     ackermann_pid_accel_ki: float = 0.0
     ackermann_pid_accel_kd: float = 0.01
 
+    # Distance to be within reference point before advancing to next time step.
+    distance_treshold: float = 2.5
+
     def pid_lat_dict(self, dt: float) -> Dict[str, float]:
         """
         Converts lateral PID parameters to dictionary.
@@ -301,10 +336,12 @@ class ControlParams(BaseParam):
         :param dt: Time step size.
         :return: Dictionary of control parameter name to value.
         """
-        return {"K_P": self.basic_control_pid_lat_kp,
-                "K_I": self.basic_control_pid_lat_ki,
-                "K_D": self.basic_control_pid_lat_kd,
-                "dt": dt}
+        return {
+            "K_P": self.basic_control_pid_lat_kp,
+            "K_I": self.basic_control_pid_lat_ki,
+            "K_D": self.basic_control_pid_lat_kd,
+            "dt": dt,
+        }
 
     def pid_lon_dict(self, dt: float) -> Dict[str, float]:
         """
@@ -313,10 +350,28 @@ class ControlParams(BaseParam):
         :param dt: Time step size.
         :return: Dictionary of control parameter name to value.
         """
-        return {"K_P": self.basic_control_pid_lon_kp,
-                "K_I": self.basic_control_pid_lon_ki,
-                "K_D": self.basic_control_pid_lon_kd,
-                "dt": dt}
+        return {
+            "K_P": self.basic_control_pid_lon_kp,
+            "K_I": self.basic_control_pid_lon_ki,
+            "K_D": self.basic_control_pid_lon_kd,
+            "dt": dt,
+        }
+
+    def ackermann_pid_dic(self) -> Dict[str, float]:
+        """
+        Converts lateral PID parameters to dictionary.
+
+        :return: Dictionary of control parameter name to value.
+
+        """
+        return {
+            "speed_kp": self.ackermann_pid_speed_kp,
+            "speed_ki": self.ackermann_pid_speed_ki,
+            "speed_kd": self.ackermann_pid_speed_kd,
+            "accel_kp": self.ackermann_pid_accel_kp,
+            "accel_ki": self.ackermann_pid_accel_ki,
+            "accel_kd": self.ackermann_pid_accel_kd,
+        }
 
 
 @dataclass
@@ -340,13 +395,14 @@ class EgoVehicleParams(VehicleParams):
     ego_planner: EgoPlanner = EgoPlanner.KEYBOARD
 
 
+@dataclass
 class PedestrianParams(BaseParam):
     """Parameters related to walkers/pedestrians"""
 
     # size the blueprint should be selected
     physics: bool = True  # if physics should be enabled for the vehicle
     simulation: SimulationParams = field(default_factory=SimulationParams)
-    controller_type: PedestrianControlType = PedestrianControlType.TRANSFORM
+    carla_controller_type: PedestrianControlType = PedestrianControlType.TRANSFORM
 
 
 @dataclass

@@ -1,9 +1,9 @@
 import logging
-from typing import Optional
-from abc import ABC
 import math
-import carla
+from abc import ABC
+from typing import Optional
 
+import carla
 from commonroad.scenario.state import TraceState
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,10 @@ def create_carla_transform(state: TraceState, z_position: float = 0.5) -> carla.
     :param z_position: z-position which transform object should have.
     :return: CARLA transform.
     """
-    transform = carla.Transform(carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
-                                carla.Rotation(yaw=(-(180 * state.orientation) / math.pi)))
+    transform = carla.Transform(
+        carla.Location(x=state.position[0], y=-state.position[1], z=z_position),
+        carla.Rotation(yaw=(-(180 * state.orientation) / math.pi)),
+    )
     return transform
 
 
@@ -54,3 +56,7 @@ class TransformControl(CarlaController):
         """
         transform = create_carla_transform(state, self._actor.get_location().z)
         self._actor.set_transform(transform)
+        yaw = transform.rotation.yaw * (math.pi / 180)
+        vx = state.velocity * math.cos(yaw)
+        vy = state.velocity * math.sin(yaw)
+        self._actor.set_target_velocity(carla.Vector3D(vx, vy, 0))

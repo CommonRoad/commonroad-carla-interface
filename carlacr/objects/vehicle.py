@@ -1,26 +1,44 @@
 import logging
-from typing import Optional, List, Union
-import carla
 import math
 import random
+from typing import List, Optional, Union
 
-from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType, ObstacleRole
-from commonroad.scenario.obstacle import SignalState
+import carla
+from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.scenario.obstacle import (
+    DynamicObstacle,
+    ObstacleRole,
+    ObstacleType,
+    SignalState,
+)
 from commonroad.scenario.scenario import Scenario
 from crpred.predictor_interface import PredictorInterface
 
-from carlacr.helper.vehicle_dict import (similar_by_area, similar_by_length, similar_by_width)
-from carlacr.helper.config import VehicleParams, ApproximationType, VehicleControlType, EgoVehicleParams, EgoPlanner
-from carlacr.objects.actor import ActorInterface
-from carlacr.controller.controller import create_carla_transform, TransformControl
-from carlacr.controller.vehicle_controller import PIDController, AckermannController, WheelController, \
-    VehicleTMPathFollowingControl, VehicleBehaviorAgentPathFollowingControl
 from carlacr.controller.commonroad_planner import CommonRoadPlannerController
+from carlacr.controller.controller import TransformControl, create_carla_transform
 from carlacr.controller.keyboard_controller import KeyboardVehicleController
+from carlacr.controller.steering_wheel import SteeringWheelController
+from carlacr.controller.vehicle_controller import (
+    AckermannController,
+    PIDController,
+    VehicleBehaviorAgentPathFollowingControl,
+    VehicleTMPathFollowingControl,
+)
+from carlacr.helper.config import (
+    ApproximationType,
+    EgoPlanner,
+    EgoVehicleParams,
+    VehicleControlType,
+    VehicleParams,
+)
 from carlacr.helper.utils import create_cr_vehicle_from_actor
-from carlacr.helper.planner import TrajectoryPlannerInterface
-
+from carlacr.helper.vehicle_dict import (
+    similar_by_area,
+    similar_by_length,
+    similar_by_width,
+)
+from carlacr.objects.actor import ActorInterface
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -29,11 +47,18 @@ logger.setLevel(logging.DEBUG)
 class VehicleInterface(ActorInterface):
     """Interface between CARLA vehicle and CommonRoad pedestrian."""
 
-    def __init__(self, cr_obstacle: DynamicObstacle, world: carla.World, tm: Optional[carla.TrafficManager],
-                 config: Union[VehicleParams, EgoVehicleParams] = VehicleParams(),
-                 actor: Optional[carla.Vehicle] = None, planner: Optional[TrajectoryPlannerInterface] = None,
-                 predictor: Optional[PredictorInterface] = None,
-                 sc: Optional[Scenario] = None, pp: Optional[PlanningProblem] = None):
+    def __init__(
+        self,
+        cr_obstacle: DynamicObstacle,
+        world: carla.World,
+        tm: Optional[carla.TrafficManager],
+        config: Union[VehicleParams, EgoVehicleParams] = VehicleParams(),
+        actor: Optional[carla.Vehicle] = None,
+        planner: Optional[TrajectoryPlannerInterface] = None,
+        predictor: Optional[PredictorInterface] = None,
+        sc: Optional[Scenario] = None,
+        pp: Optional[PlanningProblem] = None,
+    ):
         """
         Initializer of vehicle interface.
 
@@ -57,27 +82,42 @@ class VehicleInterface(ActorInterface):
         """Initializes CARLA vehicle controller."""
         if hasattr(self._config, "ego_planner"):
             if self._config.ego_planner is EgoPlanner.STEERING_WHEEL:
-                self._controller = WheelController(self._actor)
+                self._controller = SteeringWheelController(self._actor)
             elif self._config.ego_planner is EgoPlanner.KEYBOARD:
                 self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
             elif self._config.ego_planner is EgoPlanner.PLANNER:
-                self._controller = CommonRoadPlannerController(self._actor, self._planner, self._predictor,
-                                                               self._pp, self._sc,
-                                                               self._config.carla_controller_type,
-                                                               self._config.simulation.time_step,
-                                                               self._config.control)
+                self._controller = CommonRoadPlannerController(
+                    self._actor,
+                    self._planner,
+                    self._predictor,
+                    self._pp,
+                    self._sc,
+                    self._config.carla_controller_type,
+                    self._config.simulation.time_step,
+                    self._config.control,
+                )
         else:
             if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
                 self._controller = TransformControl(self._actor)
             elif self._config.carla_controller_type is VehicleControlType.PID:
-                self._controller = PIDController(actor=self._actor, config=self._config.control,
-                                                 dt=self._config.simulation.time_step)
+                self._controller = PIDController(
+                    actor=self._actor, config=self._config.control, dt=self._config.simulation.time_step
+                )
             elif self._config.carla_controller_type is VehicleControlType.ACKERMANN:
-                self._controller = AckermannController(self._actor, config=self._config.control)
+                self._controller = AckermannController(
+                    self._actor, config=self._config.control, dt=self._config.simulation.time_step
+                )
             elif self._config.carla_controller_type is VehicleControlType.PATH_TM:
                 self._controller = VehicleTMPathFollowingControl(self._actor)
             elif self._config.carla_controller_type is VehicleControlType.PATH_AGENT:
                 self._controller = VehicleBehaviorAgentPathFollowingControl(self._actor)
+
+    def get_scenario(self) -> Scenario:
+        """Getter for scenario
+
+        :return CommonRoad scenario.
+        """
+        return self._sc
 
     def _spawn(self, time_step: int):
         """
@@ -90,21 +130,31 @@ class VehicleInterface(ActorInterface):
         if time_step != self._cr_obstacle.initial_state.time_step or self.spawned:
             return
 
-        if self._cr_obstacle.obstacle_type in \
-                [ObstacleType.CAR, ObstacleType.TRUCK, ObstacleType.BUS, ObstacleType.PRIORITY_VEHICLE,
-                 ObstacleType.PARKED_VEHICLE, ObstacleType.MOTORCYCLE, ObstacleType.TAXI]:
+        if self._cr_obstacle.obstacle_type in [
+            ObstacleType.CAR,
+            ObstacleType.TRUCK,
+            ObstacleType.BUS,
+            ObstacleType.PRIORITY_VEHICLE,
+            ObstacleType.PARKED_VEHICLE,
+            ObstacleType.MOTORCYCLE,
+            ObstacleType.TAXI,
+        ]:
             self._actor = self._create_cr_actor()
         else:
             raise RuntimeError("Unknown obstacle type")
 
-        # init traffic manager if vehicle will be controlled by it
-        self._init_tm_actor_path()
+        if not self._actor:
+            logger.warning("VehicleInterface::_spawn: After _spawn got called self._actor is still None!")
 
-    def _init_tm_actor_path(self):
+        # init traffic manager if vehicle will be controlled by it
+        self._init_tm__agent_actor_path()
+
+    def _init_tm__agent_actor_path(self):
         """Initializes traffic manager for path if corresponding control type is used"""
         if self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC:
             if self._config.carla_controller_type == VehicleControlType.PATH_TM:
                 self._tm.set_path(self._actor, self._get_path())
+
             elif self._config.carla_controller_type == VehicleControlType.PATH_AGENT:
                 self._controller.set_path(self._get_path())
 
@@ -116,7 +166,7 @@ class VehicleInterface(ActorInterface):
         if not actor:
             logger.error("Error while spawning CR obstacle: %s", self.cr_obstacle.obstacle_id)
             spawn_points = self._world.get_map().get_spawn_points()
-            closest = None
+            closest = transform
             best_dist = math.inf
             for point in spawn_points:
                 dist = point.location.distance(transform.location)
@@ -142,10 +192,20 @@ class VehicleInterface(ActorInterface):
     def _create_random_actor(self):
         """Creates a random actor"""
         # TODO check whether this can be combined with function in traffic manager.
-        blueprint = random.choice(self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle))
-        if blueprint.has_attribute('color'):
-            color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
+
+        # randomly select a blueprint and check, if the config settings are matching with the bp.
+        lib = self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle)
+        while True:
+            blueprint = random.choice(lib)
+            filter_num_wheel = self._config.simulation.filter_attribute_number_of_wheels
+            if filter_num_wheel is not None and blueprint.has_attribute("number_of_wheels"):
+                if blueprint.get_attribute("number_of_wheels").as_int() == filter_num_wheel:
+                    break  # vehicle passed through filter
+                logger.debug("skip bike")
+
+        if blueprint.has_attribute("color"):
+            color = random.choice(blueprint.get_attribute("color").recommended_values)
+            blueprint.set_attribute("color", color)
 
         ego_actor = None
         while ego_actor is None:
@@ -153,21 +213,24 @@ class VehicleInterface(ActorInterface):
             spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             ego_actor = self._world.try_spawn_actor(blueprint, spawn_point)
 
-        self._cr_obstacle = create_cr_vehicle_from_actor(ego_actor, 0)
+        self._cr_obstacle = create_cr_vehicle_from_actor(ego_actor, 0, initial_time_step=0)
         self._actor = ego_actor
 
     def _match_blueprint(self):
         """Matches actor dimensions to available CARLA actor blueprint based on length, with, or area."""
         nearest_vehicle_type = None
         if self._config.approximation_type == ApproximationType.LENGTH:
-            nearest_vehicle_type = similar_by_length(self._cr_obstacle.obstacle_shape.length,
-                                                     self._cr_obstacle.obstacle_shape.width, 0)
+            nearest_vehicle_type = similar_by_length(
+                self._cr_obstacle.obstacle_shape.length, self._cr_obstacle.obstacle_shape.width, 0
+            )
         if self._config.approximation_type == ApproximationType.WIDTH:
-            nearest_vehicle_type = similar_by_width(self._cr_obstacle.obstacle_shape.length,
-                                                    self._cr_obstacle.obstacle_shape.width, 0)
+            nearest_vehicle_type = similar_by_width(
+                self._cr_obstacle.obstacle_shape.length, self._cr_obstacle.obstacle_shape.width, 0
+            )
         if self._config.approximation_type == ApproximationType.AREA:
-            nearest_vehicle_type = similar_by_area(self._cr_obstacle.obstacle_shape.length,
-                                                   self._cr_obstacle.obstacle_shape.width, 0)
+            nearest_vehicle_type = similar_by_area(
+                self._cr_obstacle.obstacle_shape.length, self._cr_obstacle.obstacle_shape.width, 0
+            )
         obstacle_blueprint = self._world.get_blueprint_library().filter(nearest_vehicle_type[0])[0]
         return obstacle_blueprint
 
@@ -197,13 +260,15 @@ class VehicleInterface(ActorInterface):
         :return: List of CARLA locations.
         """
         if self._cr_obstacle.obstacle_role is not ObstacleRole.DYNAMIC:
-            return [carla.Location(x=self._cr_obstacle.initial_state.position[0],
-                                   y=-self._cr_obstacle.initial_state.position[1],
-                                   z=0.5)]
+            return [
+                carla.Location(
+                    x=self._cr_obstacle.initial_state.position[0], y=-self._cr_obstacle.initial_state.position[1], z=0.5
+                )
+            ]
         path = []
         for time_step in range(0, len(self._cr_obstacle.prediction.trajectory.state_list), self._config.path_sampling):
             state = self._cr_obstacle.prediction.trajectory.state_list[time_step]
-            path.append(carla.Location(x=state.position[0],  y=-state.position[1], z=0.5))
+            path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))
         if len(self._cr_obstacle.prediction.trajectory.state_list) % self._config.path_sampling != 0:
             state = self._cr_obstacle.prediction.trajectory.state_list[-1]
             path.append(carla.Location(x=state.position[0], y=-state.position[1], z=0.5))

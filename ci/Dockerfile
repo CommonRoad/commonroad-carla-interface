@@ -1,54 +1,43 @@
-FROM carlasim/carla:latest
-# Install miniconda3
-## Copied from https://hub.docker.cocomm/r/continuumio/miniconda3/dockerfile
+FROM carlasim/carla:0.9.14
+
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
+
 USER root
+
+# Install apt dependencies from apt_dependencies.txt
+COPY apt_dependencies.txt .
 RUN apt-get update --fix-missing && \
-    apt-get install -y wget bzip2 ca-certificates curl git && \
+    xargs -a apt_dependencies.txt apt-get install -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh && \
-    /opt/conda/bin/conda clean -tipsy && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    conda update -n base -c defaults conda
-
-CMD [ "/bin/bash" ]
 
 ## the following two lines are required to make tzdata configuration non-interactive
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-# Run all commands as cruser
-RUN apt-get update && apt-get install -y sudo
-RUN useradd --create-home --shell /bin/bash cruser \
-    && usermod -aG sudo cruser \
-    && echo "cruser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-USER cruser
-ENV HOME="/home/cruser"
-ARG PROFILE="$HOME/.profile"
-ARG BASHRC="$HOME/.bashrc"
-ENV PYENV_ROOT="$HOME/pyenv"
+
+# Update alternatives to use Python 3.8 as the default version
+RUN sudo apt-get clean && \
+    sudo apt-get update && \
+    sudo add-apt-repository ppa:deadsnakes/ppa
+
+RUN sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 && \
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2 && \
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 3
+
+# Run all commands as carla
+RUN usermod -aG sudo carla \
+    && echo "carla ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER carla
+
+ENV HOME="/home/carla"
+ENV PATH="$HOME/.local/bin:$PATH"
 WORKDIR $HOME
 
-RUN sudo apt-get update \
-	&& sudo apt-get -y upgrade \
-	&& sudo apt-get -y install git gcc g++ cmake make xdg-utils
+# Install pip dependencies from pip_dependencies.txt
+COPY pip_dependencies.txt .
+RUN python3 -m pip install --upgrade pip setuptools && \
+    xargs -a pip_dependencies.txt python3 -m pip install
 
-SHELL ["/bin/bash", "-c"]
-
-# Install pip
-RUN sudo apt-get -y install python3-pip
-
-# activate conda environment
-RUN conda create --name cr37 python=3.7
-RUN source activate cr37 \
-    && echo "Successfully installed Python version:" \
-    && python --version \
-
-
-# update path to include packages installed by conda
-ENV PATH $HOME/.local/bin:$PATH
+CMD ["/bin/bash"]
