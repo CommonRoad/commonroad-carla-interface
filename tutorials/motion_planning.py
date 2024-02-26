@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
@@ -9,13 +7,11 @@ from carlacr.controller.reactive_planner import ReactivePlannerInterface
 from carlacr.helper.config import CarlaParams, CustomVis
 
 # specify map an scenario
-or_map = str(Path(__file__).parent.parent / "maps/DEU_Test-1_1_T-2.xodr")
-cr_map = str(Path(__file__).parent.parent / "scenarios/DEU_Test-1_1_T-2.xml")
-scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
+scenario, planning_problem_set = CommonRoadFileReader("scenarios/DEU_Test-1_1_T-2.xml").open()
 
-# configure the carla-interface
+# configure carla-interface
 param = CarlaParams()
-param.map = or_map
+param.map = "maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
@@ -34,7 +30,6 @@ rp_config.sampling.d_min = -3
 rp_config.sampling.d_max = 3
 rp_config.planning.time_steps_computation = 60
 rp_config.sampling.num_sampling_levels = 4
-rp_config.general.path_output = str(Path(__file__).parent.parent)
 ci = CarlaInterface(param)
 
 # get planning problem and remove ego vehicle from scenario

@@ -2,12 +2,12 @@ from commonroad.common.file_writer import CommonRoadFileWriter
 from commonroad.common.writer.file_writer_interface import OverwriteExistingFile
 from commonroad.planning.planning_problem import PlanningProblemSet
 from commonroad.scenario.scenario import Tag
-
 from carlacr.carla_interface import CarlaInterface
 from carlacr.helper.config import CarlaParams, CustomVis, EgoPlanner
 
 # Keyboard control with storing of driven scenario
 
+# Configure simulation and scenario settings
 param = CarlaParams()
 param.vehicle.vehicle_ks_state = True
 param.offscreen_mode = True  # set to false if your system is powerful enough
