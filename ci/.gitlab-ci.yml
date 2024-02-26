@@ -1,17 +1,16 @@
-image: python:3.8
-
 stages:
   - style_check
   - test
-  - build
+  - deploy
 
-before_script:
-  - pip install poetry
-  - poetry config installer.modern-installation false -vvv # this should be removed in the future, required because of invalid third-party wheels (https://github.com/python-poetry/poetry/issues/7686)
-  - poetry config virtualenvs.in-project true
-  - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
-  - poetry install --with tests,docs
-  - source .venv/bin/activate
+default:
+  image: python:3.10
+  before_script:
+    - pip install poetry
+    - poetry config virtualenvs.in-project true
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
+    - poetry install --with dev,docs
+    - source .venv/bin/activate
 
 .install-and-run: &install-and-run
   - pip install tox coverage
@@ -47,27 +46,54 @@ lint_flake8:
 #    - python3 -m unittest tests/main.py
 #    - pkill -f Carla || true
 
+pages:
+  stage: deploy
+  when: manual
+  only :
+    - master
+  script:
+    - mkdocs build
+  artifacts:
+    paths:
+      - site
+  environment:
+    name: Gitlab Pages
+    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-prediction/
 
-#build_test_python_3_8:
-#  image: "python:3.8"
-#  stage: test
-#  script:
-#    - *install-and-run
+build_pages:
+  stage: deploy
+  script:
+    - mkdocs build
+  artifacts:
+    paths:
+      - site
+  needs: []
 
-# build
-#build_package_py_38:
-#    stage: build
-#    image: "python:3.8"
-#    script:
-#        - poetry build
+push_to_internal_pipy_registry:
+  stage: deploy
+  when: manual
+  only:
+    - develop
+  script:
+    - poetry config repositories.gitlab ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
+    - poetry build
+    - poetry publish --repository gitlab -u gitlab-ci-token -p ${CI_JOB_TOKEN}
 
+push_to_external_pipy_test_registry:
+  stage: deploy
+  when: manual
+  only:
+    - master
+  script:
+    - poetry config repositories.test https://test.pypi.org/legacy/
+    - poetry build
+    - poetry publish --repository test -u __token__ -p ${CR_PYPI_TEST_API_TOKEN}
 
-#build_doc:
-#  stage: build
-#  image: python:3.8
-#  script:
-#    - cd docs && make html SPHINXOPTS="-W"
-#  artifacts:
-#    paths:
-#      - ./docs/build/
-#    expose_as: 'Documentation'
+push_to_external_pipy_release_registry:
+  stage: deploy
+  when: manual
+  only:
+    - master
+  script:
+    - poetry build
+    - poetry publish -u __token__ -p ${CR_PYPI_RELEASE_API_TOKEN}
