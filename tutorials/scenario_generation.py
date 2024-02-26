@@ -12,7 +12,6 @@ param.simulation.max_time_step = 120
 param.offscreen_mode = True
 param.simulation.number_vehicles = 5
 param.simulation.number_walkers = 5
-param.simulation.tm.global_lane_offset = 80
 param.simulation.tm.ignore_vehicles_percentage = 20
 
 # Execute scenario generation

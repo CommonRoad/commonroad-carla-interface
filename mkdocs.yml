@@ -1,0 +1,23 @@
+site_name: CommonRoad-CARLA Interface
+theme:
+  name: material
+  logo: assets/commonroad_white150.png
+  favicon: assets/commonroad_white150.png
+  features :
+    - search.suggest
+    - search.highlight
+plugins:
+  - mkdocstrings
+  - search
+
+nav:
+  - Introduction: index.md
+  - Example Usage: example.md
+  - API Reference:
+      - "CARLA Interface": carla_interface_api.md
+      - "Configuration": config_api.md
+      - "Objects": objects_api.md
+      - "Controller": controller_api.md
+      - "Visualization": visualization_api.md
+      - "Helper Functionalities": helper_api.md
+  - Troubleshooting: tips.md
