@@ -45,7 +45,7 @@ You can use these tutorial scripts as the starting point.
 The code for converting a map from CommonRoad to OpenDRIVE is located in 
 the [CommonRoad Scenario Designer](https://commonroad.in.tum.de/tools/scenario-designer).
 
-### Supported Features:
+### Supported Features
 We support five ways of interacting with CARLA:  
 
 - **CommonRoad scenario replay**: 2D/3D visualization of CommonRoad scenarios together with solutions.  
