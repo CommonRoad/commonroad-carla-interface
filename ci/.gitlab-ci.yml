@@ -49,6 +49,7 @@ lint_flake8:
 pages:
   stage: deploy
   when: manual
+  publish: site
   only :
     - main
   script:
@@ -58,7 +59,7 @@ pages:
       - site
   environment:
     name: Gitlab Pages
-    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-prediction/
+    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/
 
 build_pages:
   stage: deploy
