@@ -8,14 +8,12 @@ Use ARROWS or WASD keys for control.
     A/D          : steer left/right
     Q            : toggle reverse
     Space        : hand-brake
-    P            : toggle autopilot
+    P            : toggle autopilot (not implemented yet)
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
     Z/X          : toggle right/left blinker
     I            : toggle interior light
-
-    TAB          : change sensor position
 
     O            : open/close all doors of vehicle
     T            : toggle vehicle's telemetry
