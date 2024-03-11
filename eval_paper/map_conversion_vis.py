@@ -11,8 +11,8 @@ from crdesigner.ui.gui.controller.animated_viewer.animated_viewer_controller imp
 )
 from matplotlib import pyplot as plt
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

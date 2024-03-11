@@ -23,7 +23,7 @@ formatting_check:
   before_script: [ ]
   script:
     - pip install black isort
-    - black --check carlacr eval_paper tutorials tests docs
+    - black --check crcarla eval_paper tutorials tests docs
     - isort --check-only .
 
 lint_flake8:

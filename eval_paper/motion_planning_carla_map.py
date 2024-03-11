@@ -11,9 +11,9 @@ from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.state import InitialState, PMState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.controller.reactive_planner import ReactivePlannerInterface
-from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType
+from crcarla.carla_interface import CarlaInterface
+from crcarla.controller.reactive_planner import ReactivePlannerInterface
+from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)

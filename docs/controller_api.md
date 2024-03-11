@@ -1,14 +1,14 @@
 
-::: carlacr.controller.controller
+::: crcarla.controller.controller
 
-::: carlacr.controller.vehicle_controller
+::: crcarla.controller.vehicle_controller
 
-::: carlacr.controller.pedestrian_controller
+::: crcarla.controller.pedestrian_controller
 
-::: carlacr.controller.commonroad_planner
+::: crcarla.controller.commonroad_planner
 
-::: carlacr.controller.reactive_planner
+::: crcarla.controller.reactive_planner
 
-::: carlacr.controller.keyboard_controller
+::: crcarla.controller.keyboard_controller
 
-::: carlacr.controller.steering_wheel
+::: crcarla.controller.steering_wheel

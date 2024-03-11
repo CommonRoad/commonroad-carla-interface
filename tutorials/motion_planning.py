@@ -2,9 +2,9 @@ from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.controller.reactive_planner import ReactivePlannerInterface
-from carlacr.helper.config import CarlaParams, CustomVis
+from crcarla.carla_interface import CarlaInterface
+from crcarla.controller.reactive_planner import ReactivePlannerInterface
+from crcarla.helper.config import CarlaParams, CustomVis
 
 # specify map an scenario
 scenario, planning_problem_set = CommonRoadFileReader("scenarios/DEU_Test-1_1_T-2.xml").open()

@@ -7,10 +7,10 @@ from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistin
 from commonroad.common.util import FileFormat
 from commonroad.scenario.scenario import Tag
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis, SimulationParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis, SimulationParams
 
-# from carlacr.helper.utils import kill_existing_servers
+# from crcarla.helper.utils import kill_existing_servers
 
 
 param = CarlaParams(log_level="INFO")

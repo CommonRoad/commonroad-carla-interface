@@ -1,5 +1,5 @@
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis, EgoPlanner
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis, EgoPlanner
 
 # Example for using steering wheel in CARLA Town10
 

@@ -55,7 +55,7 @@ We support five ways of interacting with CARLA:
 - **Wheel control**: Controlling an ego vehicle via steering wheel and pedals in a 2D/3D visualization.
 
 
-The default configuration can be found under `carlacr.helper.config` and in our documentation.    
+The default configuration can be found under `crcarla.helper.config` and in our documentation.    
 The CARLA interface can take care of starting the CARLA server.  
 The path to CARLA can either be provided manually via the config parameters or the CARLA release folder path corresponds 
 to one of our default locations: /opt/carla-simulator/, /~/CARLA_0.9.14_RSS/, /~/CARLA_0.9.15/ (default paths work only 

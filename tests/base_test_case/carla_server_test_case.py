@@ -1,7 +1,7 @@
 import os
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams
 from tests.base_test_case.my_test_case import StandardTestCase
 
 """

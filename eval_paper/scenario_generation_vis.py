@@ -6,8 +6,8 @@ from commonroad.scenario.scenario import Tag
 from commonroad.visualization.mp_renderer import MPRenderer
 from matplotlib import pyplot as plt
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)

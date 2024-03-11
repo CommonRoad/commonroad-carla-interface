@@ -4,7 +4,7 @@
 /maps/converted/*
 
 # ignore cache files
-/carlacr/mode/cache
+/crcarla/mode/cache
 /tutorials/cache
 
 # Editors
@@ -56,10 +56,10 @@ venv.bak/
 commonroad_carla_interface.egg-info
 tutorials/.mypy_cache
 tutorials/.ipynb_checkpoints
-carlacr/helper/.mypy_cache
-carlacr/.mypy_cache
+crcarla/helper/.mypy_cache
+crcarla/.mypy_cache
 .pylintrc
 
 /eval_paper/generated_scenarios/
 /eval_paper/files/
-/docs/public/
+sites/

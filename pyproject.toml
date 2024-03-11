@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "CommonRoad-Carla-Interface"
-version = "0.0.1"
+version = "0.1.0"
 description = "Interface between CommonRoad and the traffic simulator CARLA."
 authors = ["Cyber-Physical Systems Group, Technical University of Munich <commonroad@lists.lrz.de>"]
 license = "TODO"
@@ -8,13 +8,11 @@ readme = "README.md"
 homepage = "https://commonroad.in.tum.de"
 keywords= ["autonomous", "automated", "vehicles", "driving", "motion", "planning", "simulation"]
 classifiers = [
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: POSIX :: Linux",
 ]
-packages = [{include = "carlacr"}]
+packages = [{include = "crcarla"}]
 
 #[tool.poetry.urls]
 #Documentation = "https://commonroad.in.tum.de/static/docs/commonroad-io/index.html"

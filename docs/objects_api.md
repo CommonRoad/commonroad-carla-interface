@@ -1,8 +1,8 @@
 
-::: carlacr.objects.actor
+::: crcarla.objects.actor
 
-::: carlacr.objects.vehicle
+::: crcarla.objects.vehicle
 
-::: carlacr.objects.pedestrian
+::: crcarla.objects.pedestrian
 
-::: carlacr.objects.traffic_light
+::: crcarla.objects.traffic_light

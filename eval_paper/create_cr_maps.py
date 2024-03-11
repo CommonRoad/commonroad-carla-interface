@@ -11,8 +11,8 @@ from crdesigner.verification_repairing.map_verification_repairing import (
 )
 from crdesigner.verification_repairing.verification.formula_ids import LaneletFormulaID
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)

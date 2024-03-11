@@ -7,7 +7,11 @@ theme:
     - search.suggest
     - search.highlight
 plugins:
-  - mkdocstrings
+  - mkdocstrings :
+      handlers :
+        python :
+          options :
+            docstring_style : sphinx
   - search
 
 nav:
