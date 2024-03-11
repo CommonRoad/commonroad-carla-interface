@@ -3,8 +3,8 @@ from commonroad.common.writer.file_writer_interface import OverwriteExistingFile
 from commonroad.planning.planning_problem import PlanningProblemSet
 from commonroad.scenario.scenario import Tag
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis, EgoPlanner
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis, EgoPlanner
 
 # Keyboard control with storing of driven scenario
 

@@ -1,8 +1,8 @@
 
-::: carlacr.helper.config
+::: crcarla.helper.config
 
-::: carlacr.helper.traffic_generation
+::: crcarla.helper.traffic_generation
 
-::: carlacr.helper.vehicle_dict
+::: crcarla.helper.vehicle_dict
 
-::: carlacr.helper.utils
+::: crcarla.helper.utils

@@ -3,8 +3,8 @@ import os
 from commonroad.common.file_reader import CommonRoadFileReader
 from utils import make_output_dir
 
-from carlacr.helper.config import PedestrianControlType, VehicleControlType
-from carlacr.helper.utils import (
+from crcarla.helper.config import PedestrianControlType, VehicleControlType
+from crcarla.helper.utils import (
     render_obs_trajectory_and_speed_comparisons,
     render_trajectory_video,
 )

@@ -6,8 +6,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
-from carlacr.helper.config import BaseParam
-from carlacr.helper.utils import find_carla_distribution, kill_existing_servers
+from crcarla.helper.config import BaseParam
+from crcarla.helper.utils import find_carla_distribution, kill_existing_servers
 
 TEST_CASE_PORT = 2001
 

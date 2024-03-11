@@ -1,7 +1,7 @@
 from commonroad.common.file_reader import CommonRoadFileReader
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis
 
 # Specify CommonRoad scenario
 scenario, pps = CommonRoadFileReader(cr_scenario_path := "scenarios/DEU_Test-1_1_T-2.xml").open()

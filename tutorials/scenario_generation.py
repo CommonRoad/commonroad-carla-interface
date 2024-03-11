@@ -1,8 +1,8 @@
 from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
 from commonroad.scenario.scenario import Tag
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams
 
 # Configure simulation and scenario settings
 param = CarlaParams()
