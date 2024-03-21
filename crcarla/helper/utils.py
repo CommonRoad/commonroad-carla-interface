@@ -2,6 +2,7 @@ import hashlib
 import logging
 import math
 import os
+import shutil
 import signal
 import subprocess
 import time
@@ -283,7 +284,7 @@ def make_video(path: Path, video_name: str):
             f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{tmp_path}/*.png'"
             f" -c:v libx264 -pix_fmt yuv420p {video_path}"
         )
-        tmp_path.unlink()
+        shutil.rmtree(tmp_path)
 
         if video_path.exists():
             logger.debug("mp4 created!")
@@ -292,6 +293,8 @@ def make_video(path: Path, video_name: str):
             logger.debug("mp4 created!")
         else:
             logger.error(e)
+        if tmp_path.exists():
+            shutil.rmtree(tmp_path)
 
 
 def find_carla_distribution(default_carla_paths: List[str]) -> Path:
