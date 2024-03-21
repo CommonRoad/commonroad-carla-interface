@@ -1,3 +1,4 @@
+import shutil
 import weakref
 from typing import TYPE_CHECKING
 
@@ -38,6 +39,8 @@ class CameraSensor(VisualizationBase):
         # Recording status and path for video storage
         self.recording = config.record_video
         self.path = config.video_path
+        if (tmp_path := self.path / "_tmp").exists():
+            shutil.rmtree(tmp_path)
 
         self._camera_transforms = self._create_camera_transforms()
         self.sensors = self._create_sensors()
