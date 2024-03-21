@@ -649,8 +649,10 @@ class CarlaInterface:
         for obs in self._cr_obstacles:
 
             # TODO Investigate the reason why certain actors are being destroyed prior to the completion of the loop.
-            if not obs.actor.is_alive:
-                self._config.logger.warning("Actor was destroyed before loop finished!: %s", str(obs.actor))
+            if obs.actor is None or not obs.actor.is_alive:
+                self._config.logger.warning(
+                    "Actor was destroyed before loop finished!: cr-id %s", str(obs.cr_obstacle.obstacle_id)
+                )
                 continue
 
             time_step = (
@@ -822,8 +824,14 @@ class CarlaInterface:
             if self._ego is not None:
                 self._ego.tick(time_step)
             if obstacle_control:
+                obstacle_errors = []
                 for obs in self._cr_obstacles:
-                    obs.tick(time_step)
+                    try:
+                        obs.tick(time_step)
+                    except Exception:
+                        obstacle_errors.append(obs)
+                for obs in obstacle_errors:  # remove obstacle when an error occurs
+                    self._cr_obstacles.remove(obs)
                 for tl in self.traffic_lights:
                     tl.tick(time_step)
 
