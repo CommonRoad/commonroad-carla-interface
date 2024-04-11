@@ -18,7 +18,7 @@ param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
 
 percentages = [25]
-num_actors = [(75, 20)]
+num_actors = [(100, 25)]
 distances_leading = [1]
 
 
