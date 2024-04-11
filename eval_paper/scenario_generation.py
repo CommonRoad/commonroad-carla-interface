@@ -12,7 +12,7 @@ from crcarla.helper.config import CarlaParams, CustomVis, SimulationParams
 
 param = CarlaParams(log_level="INFO")
 param.vehicle.vehicle_ks_state = False
-param.simulation.max_time_step = 1500
+param.simulation.max_time_step = 3000
 param.offscreen_mode = True
 param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
