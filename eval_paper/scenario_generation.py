@@ -10,19 +10,18 @@ from commonroad.scenario.scenario import Tag
 from crcarla.carla_interface import CarlaInterface
 from crcarla.helper.config import CarlaParams, CustomVis, SimulationParams
 
-# from crcarla.helper.utils import kill_existing_servers
-
-
 param = CarlaParams(log_level="INFO")
 param.vehicle.vehicle_ks_state = False
 param.simulation.max_time_step = 1500
 param.offscreen_mode = True
 param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
-param.sleep_time = 120
 
 prediction_idx = 1
 counter = 0
+percentages = [25]
+num_actors = [(75, 20)]
+distances_leading = [1]
 
 
 def generate_params() -> List[List[SimulationParams]]:
@@ -32,7 +31,7 @@ def generate_params() -> List[List[SimulationParams]]:
     tmp_param = copy.deepcopy(param.simulation)
 
     def param_iteration(parameter_name: str):
-        for value in [0, 75]:
+        for value in percentages:
             tmp_param2 = copy.deepcopy(tmp_param)
             tmp_param2.tm.__setattr__(parameter_name, value)
             param_iteration.seed_counter += 1
@@ -47,7 +46,7 @@ def generate_params() -> List[List[SimulationParams]]:
     for idx in ["01", "02", "04", "07", "10HD"]:
         new_map = []
         tmp_param.map = f"Town{idx}"
-        for num_vehicles, number_walkers in [(50, 10), (100, 30)]:
+        for num_vehicles, number_walkers in num_actors:
             tmp_param.number_vehicles = num_vehicles
             tmp_param.number_walkers = number_walkers
             tmp_param2 = copy.deepcopy(tmp_param)
@@ -63,8 +62,6 @@ def generate_params() -> List[List[SimulationParams]]:
             param_iteration("ignore_signs_percentage")
             param_iteration("ignore_lights_percentage")
             param_iteration("keep_right_rule_percentage")
-            param_iteration("ignore_walkers_percentage")
-            param_iteration("ignore_vehicles_percentage")
 
         list_param.append(new_map)
 
@@ -112,7 +109,7 @@ for map_list in param_sets:
         scenario_path = Path(__file__).parent / "generated_scenarios"
         if not scenario_path.exists():
             scenario_path.mkdir(parents=True, exist_ok=True)
-        # Store generated scenario
+
         CommonRoadFileWriter(
             sc,
             pps,
@@ -122,6 +119,3 @@ for map_list in param_sets:
             tags={Tag.URBAN},
             file_format=FileFormat.PROTOBUF,
         ).write_to_file(str(scenario_path / (str(sc.scenario_id) + ".pb")), OverwriteExistingFile.ALWAYS)
-
-    # ci = None
-    # kill_existing_servers(60)
