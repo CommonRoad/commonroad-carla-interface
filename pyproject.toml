@@ -3,7 +3,7 @@ name = "CommonRoad-Carla-Interface"
 version = "0.1.0"
 description = "Interface between CommonRoad and the traffic simulator CARLA."
 authors = ["Cyber-Physical Systems Group, Technical University of Munich <commonroad@lists.lrz.de>"]
-license = "TODO"
+license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://commonroad.in.tum.de"
 keywords= ["autonomous", "automated", "vehicles", "driving", "motion", "planning", "simulation"]
@@ -14,10 +14,10 @@ classifiers = [
 ]
 packages = [{include = "crcarla"}]
 
-#[tool.poetry.urls]
-#Documentation = "https://commonroad.in.tum.de/static/docs/commonroad-io/index.html"
-#Forum = "https://commonroad.in.tum.de/forum/c/commonroad-io"
-#Source = "https://gitlab.lrz.de/tum-cps/commonroad_io"
+[tool.poetry.urls]
+Documentation = "https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/"
+Forum = "https://github.com/CommonRoad/commonroad-carla-interface/discussions"
+Source = "https://github.com/CommonRoad/commonroad-carla-interface"
 
 
 [tool.poetry.dependencies]

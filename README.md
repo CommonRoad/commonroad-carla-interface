@@ -25,6 +25,12 @@ We provide an PyPI package which can be installed with the following command
 pip install commonroad-carla-interface
 ```
 
+#### License
+The CommonRoad-CARLA-Interface is published under GNU3 license (since this is the most restrictive license of a Python package we import).
+We base some parts of our code on CARLA's example scripts.
+We have integrated a script
+from the CARLA example files 
+
 #### Development
 It is recommended to use [poetry](https://python-poetry.org/) as an environment manager.
 Clone the repository and install it with poetry.
