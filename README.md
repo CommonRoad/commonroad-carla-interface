@@ -80,7 +80,7 @@ mkdocs serve
 ## Authors
 Responsible: Sebastian Maierhofer  
 Contributors (in alphabetic order by last name): Linge Ai, Yassine El Alami, Rupert Bauernfeind, Vy Hong, 
-Miguel Marcano, Fen Shi, Dávid Tokár Zhihao Yang
+Miguel Marcano, Valentin Merle, Fen Shi, Dávid Tokár Zhihao Yang
 
 ## Citation
 **If you use our code for research, please consider to cite our papers:**
@@ -88,19 +88,17 @@ Miguel Marcano, Fen Shi, Dávid Tokár Zhihao Yang
 @inproceedings{Maierhofer2024a,
 	author = {Maierhofer, Sebastian and  Althoff, Matthias},
 	title = {CommonRoad-CARLA Interface: Bridging the Gap between Motion Planning and 3D Simulation},
-	booktitle = {tbd},
+	booktitle = {2024 IEEE Intelligent Vehicles Symposium (IV)},
 	year = {2024},
 	pages = {tbd},
-	abstract = {Motion planning algorithms should be tested on a large, diverse, and realistic set of scenarios 
-	            before deploying them in real vehicles. However, existing 3D simulators usually focus on perception 
-	            and end-to-end learning, lacking specific interfaces for motion planning. We introduce the first 
-	            interface for the CARLA simulator focusing on motion planning to, e.g., create configurable test 
-	            scenarios and execute motion planners in interactive environments. Additionally, we introduce 
-	            a converter from lanelet-based maps to OpenDRIVE, making it possible to use CommonRoad and Lanelet2 
-	            maps in CARLA. Our evaluation shows that our interface is easy to use, creates new scenarios 
-	            efficiently, and can successfully integrate motion planners to solve CommonRoad scenarios. We created
-	            CommonRoad scenarios covering more than 300h of simulated traffic. Our tool is published as an 
-	            open-source toolbox at commonroad.in.tum.de/tools/commonroad-carla-interface.},
+	abstract = {Motion planning algorithms should be tested on a large, diverse, and realistic set of scenarios before 
+	            deploying them in real vehicles. However, existing 3D simulators usually focus on perception and 
+	            end-to-end learning, lacking specific interfaces for motion planning. We present an interface for the 
+	            CARLA simulator focusing on motion planning, e.g., to create configurable test scenarios and execute 
+	            motion planners in interactive environments. Additionally, we introduce a converter from lanelet-based maps 
+	            to OpenDRIVE, making it possible to use CommonRoad and Lanelet2 maps in CARLA. Our evaluation shows that 
+	            our interface is easy to use, creates new scenarios efficiently, and can successfully integrate motion 
+	            planners to solve CommonRoad scenarios. Our tool is published as an open-source toolbox at commonroad.in.tum.de.},
 }
 ```
 ```
