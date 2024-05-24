@@ -7,6 +7,9 @@ from commonroad.scenario.state import TraceState
 
 from crcarla.controller.controller import CarlaController
 
+# based on CARLA's steering wheel example
+# script: https://github.com/carla-simulator/carla/blob/dev/PythonAPI/examples/manual_control_steeringwheel.py
+
 
 class SteeringWheelController(CarlaController):
     """Controller which uses steering wheel as input."""

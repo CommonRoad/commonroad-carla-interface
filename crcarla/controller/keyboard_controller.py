@@ -1,30 +1,3 @@
-"""
-Welcome to CARLA manual control.
-
-Use ARROWS or WASD keys for control.
-
-    W            : throttle
-    S            : brake
-    A/D          : steer left/right
-    Q            : toggle reverse
-    Space        : hand-brake
-    P            : toggle autopilot (not implemented yet)
-
-    L            : toggle next light type
-    SHIFT + L    : toggle high beam
-    Z/X          : toggle right/left blinker
-    I            : toggle interior light
-
-    O            : open/close all doors of vehicle
-    T            : toggle vehicle's telemetry
-
-    V            : toogle visualization tools
-
-    F1           : toggle HUD
-    H/?          : toggle help
-    ESC          : quit
-"""
-
 from typing import Optional
 
 import carla
@@ -34,6 +7,9 @@ from commonroad.scenario.state import TraceState
 
 from crcarla.controller.controller import CarlaController
 from crcarla.visualization.visualization_base import VisualizationBase
+
+# based on CARLA's keyboard example
+# script: https://github.com/carla-simulator/carla/blob/dev/PythonAPI/examples/manual_control.py
 
 
 class KeyboardVehicleController(CarlaController):

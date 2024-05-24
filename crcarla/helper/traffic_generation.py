@@ -17,6 +17,9 @@ SetAutopilot = carla.command.SetAutopilot
 FutureActor = carla.command.FutureActor
 SpawnActor = carla.command.SpawnActor
 
+# based on CARLA's traffic generation example
+# script: https://github.com/carla-simulator/carla/blob/dev/PythonAPI/examples/generate_traffic.py
+
 
 def create_actors(
     client: carla.Client,
