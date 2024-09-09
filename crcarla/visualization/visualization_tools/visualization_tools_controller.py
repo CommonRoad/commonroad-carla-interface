@@ -6,12 +6,8 @@ import pygame
 
 from crcarla.visualization.sensors.sensor_types.camera_sensor import CameraSensor
 from crcarla.visualization.visualization_base import VisualizationBase
-from crcarla.visualization.visualization_tools.tools.bounding_box_tool import (
-    BoundingBoxTool,
-)
-from crcarla.visualization.visualization_tools.tools.line_to_vehicle import (
-    LineToVehicle,
-)
+from crcarla.visualization.visualization_tools.tools.bounding_box_tool import BoundingBoxTool
+from crcarla.visualization.visualization_tools.tools.line_to_vehicle import LineToVehicle
 from crcarla.visualization.visualization_tools.tools.polygon_tool import PolygonTool
 from crcarla.visualization.visualization_tools.tools.text import Text
 
@@ -84,7 +80,10 @@ class VisualizationToolsController(VisualizationBase):
 
         self._bb_tool.show_vehicles(200, show_as_3d=True)
         self._bb_tool.show_city_object_label(
-            label=carla.CityObjectLabel.Pedestrians, max_dist=200, color=(0, 0, 255), show_as_3d=True
+            label=carla.CityObjectLabel.Pedestrians,
+            max_dist=200,
+            color=(0, 0, 255),
+            show_as_3d=True,
         )
         self._bb_tool.show_city_object_label(label=carla.CityObjectLabel.TrafficSigns, max_dist=200, show_as_3d=False)
 

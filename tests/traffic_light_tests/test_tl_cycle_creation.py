@@ -17,7 +17,12 @@ RANDOM_TEST_CASE_COUNT = 1000
 MAX_TLC_LENGTH = 5
 MAX_DURATION = 100
 
-colors = [TrafficLightState.GREEN, TrafficLightState.RED, TrafficLightState.YELLOW, TrafficLightState.INACTIVE]
+colors = [
+    TrafficLightState.GREEN,
+    TrafficLightState.RED,
+    TrafficLightState.YELLOW,
+    TrafficLightState.INACTIVE,
+]
 
 
 class TrafficLightCycleCreationTestCases(CarlaServerTestCase):
@@ -49,7 +54,10 @@ class TrafficLightCycleCreationTestCases(CarlaServerTestCase):
         ]
 
         edge_input = [[], [TrafficLightState.RED]]
-        edge_expected = [None, [TrafficLightCycle([TrafficLightCycleElement(TrafficLightState.RED, 1)])]]
+        edge_expected = [
+            None,
+            [TrafficLightCycle([TrafficLightCycleElement(TrafficLightState.RED, 1)])],
+        ]
 
         cls.basic_cases = []
         cls.edge_cases = []

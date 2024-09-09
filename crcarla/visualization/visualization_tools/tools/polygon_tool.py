@@ -32,7 +32,13 @@ class PolygonTool(VisualizationBase):
         self._id_counter = 1
         self._min_distance = 1.2
 
-    def set_arrow(self, vehicle: carla.Vehicle, max_dist=200, size=40, color: Tuple[int, int, int] = (255, 0, 0)):
+    def set_arrow(
+        self,
+        vehicle: carla.Vehicle,
+        max_dist=200,
+        size=40,
+        color: Tuple[int, int, int] = (255, 0, 0),
+    ):
         """
         Enables the display of vehicles as arrows.
 
@@ -51,7 +57,11 @@ class PolygonTool(VisualizationBase):
         self.set_polygon(vehicle, poly, max_dist, color)
 
     def set_polygon(
-        self, vehicle: carla.Vehicle, polygon: shapely.Polygon, max_dist=200, color: Tuple[int, int, int] = (255, 0, 0)
+        self,
+        vehicle: carla.Vehicle,
+        polygon: shapely.Polygon,
+        max_dist=200,
+        color: Tuple[int, int, int] = (255, 0, 0),
     ) -> int:
         """
         Enables the display of vehicles as polygons.
@@ -172,7 +182,6 @@ class PolygonTool(VisualizationBase):
         if not VisualizationBase.is_visible:
             return
         for _, target in self._polygons.items():
-
             if target["render"] is True:
                 color = target["color_scaled"]
                 pygame_polygon = target["pygame_polygon"]

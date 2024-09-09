@@ -4,9 +4,7 @@ from pathlib import Path
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
-from crpred.basic_models.constant_velocity_predictor import (
-    ConstantVelocityLinearPredictor,
-)
+from crpred.basic_models.constant_velocity_predictor import ConstantVelocityLinearPredictor
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface

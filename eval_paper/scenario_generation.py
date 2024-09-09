@@ -23,7 +23,6 @@ distances_leading = [1]
 
 
 def generate_params() -> List[List[SimulationParams]]:
-
     param.logger.info("Generate param set.")
     list_param = []
     tmp_param = copy.deepcopy(param.simulation)

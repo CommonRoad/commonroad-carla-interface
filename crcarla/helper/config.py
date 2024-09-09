@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import carla
 from omegaconf import OmegaConf
@@ -179,7 +179,8 @@ class BaseParam:
         """
         # Avoid saving private attributes
         dict_cfg = dataclasses.asdict(
-            self, dict_factory=lambda items: {key: val for key, val in items if not key.startswith("_")}
+            self,
+            dict_factory=lambda items: {key: val for key, val in items if not key.startswith("_")},
         )
         OmegaConf.save(OmegaConf.create(dict_cfg), file_path, resolve=True)
 
@@ -294,12 +295,12 @@ class SimulationParams(BaseParam):
     number_walkers: int = 10
     number_vehicles: int = 30
     safe_vehicles: bool = True
-    # TODO: Add filter car https://carla.readthedocs.io/en/latest/bp_library/
     filter_attribute_number_of_wheels: int = 4
     filter_vehicle: str = "vehicle.*"
     filter_pedestrian: str = "walker.pedestrian.*"
     seed_walker: int = 0
-    pedestrian_default_shape: bool = False
+    pedestrian_default_shape: Optional[float] = 0.4  # radius [m] of default pedestrian shape;
+    # if None, radius will be computed based on "sensor" information
     max_time_step: int = 60
     # sets SDL to use dummy NULL video driver, so it doesn't need a windowing system. (to run pygame without a display)
     ignore_video_driver: bool = False
@@ -308,8 +309,23 @@ class SimulationParams(BaseParam):
 
 
 @dataclass
+class SteeringWheelParams(BaseParam):
+    """Default parameters for mapping steering wheel inputs to actions.
+    The provided values are tested for a Logitech G923."""
+
+    steer_idx = 0
+    throttle_idx = 2
+    brake_idx = 3
+    reverse_idx = 6  # R2 on wheel
+    handbrake_idx = 7  # L2 on wheel
+    reverse_activated = False
+
+
+@dataclass
 class ControlParams(BaseParam):
     """Parameters for control interfaces."""
+
+    steering_wheel_params: SteeringWheelParams = field(default_factory=SteeringWheelParams)
 
     basic_control_pid_lat_kp: float = 1.95
     basic_control_pid_lat_ki: float = 0.05

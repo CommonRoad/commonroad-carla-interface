@@ -16,7 +16,12 @@ if TYPE_CHECKING:
 class CameraSensor(VisualizationBase):
     """Manages camera sensor attached to ego vehicle."""
 
-    def __init__(self, parent_actor: carla.Vehicle, config: EgoViewParams, canvas_controller: "CanvasController"):
+    def __init__(
+        self,
+        parent_actor: carla.Vehicle,
+        config: EgoViewParams,
+        canvas_controller: "CanvasController",
+    ):
         """
         Initialization of camera manager.
 
@@ -68,7 +73,8 @@ class CameraSensor(VisualizationBase):
             return [
                 (
                     carla.Transform(
-                        carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z), carla.Rotation(pitch=8.0)
+                        carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
+                        carla.Rotation(pitch=8.0),
                     ),
                     carla.AttachmentType.SpringArm,
                 ),
@@ -82,7 +88,8 @@ class CameraSensor(VisualizationBase):
                 ),
                 (
                     carla.Transform(
-                        carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z), carla.Rotation(pitch=6.0)
+                        carla.Location(x=-2.8 * bound_x, y=+0.0 * bound_y, z=4.6 * bound_z),
+                        carla.Rotation(pitch=6.0),
                     ),
                     carla.AttachmentType.SpringArm,
                 ),
@@ -103,7 +110,10 @@ class CameraSensor(VisualizationBase):
                 carla.Transform(carla.Location(x=2.5, y=0.5, z=0.0), carla.Rotation(pitch=-8.0)),
                 carla.AttachmentType.SpringArm,
             ),
-            (carla.Transform(carla.Location(x=-4.0, z=2.0), carla.Rotation(pitch=6.0)), carla.AttachmentType.SpringArm),
+            (
+                carla.Transform(carla.Location(x=-4.0, z=2.0), carla.Rotation(pitch=6.0)),
+                carla.AttachmentType.SpringArm,
+            ),
             (
                 carla.Transform(carla.Location(x=0, y=-2.5, z=-0.0), carla.Rotation(yaw=90.0)),
                 carla.AttachmentType.Rigid,
@@ -226,7 +236,8 @@ class CameraSensor(VisualizationBase):
             # Example of converting the raw_data from a carla.DVSEventArray
             # sensor into a NumPy array and using it as an image
             dvs_events = np.frombuffer(
-                image.raw_data, dtype=np.dtype([("x", np.uint16), ("y", np.uint16), ("t", np.int64), ("pol", np.bool)])
+                image.raw_data,
+                dtype=np.dtype([("x", np.uint16), ("y", np.uint16), ("t", np.int64), ("pol", np.bool)]),
             )
             dvs_img = np.zeros((image.height, image.width, 3), dtype=np.uint8)
             # Blue is positive, red is negative

@@ -4,9 +4,7 @@ import os
 import sys
 import unittest
 
-from tests.traffic_light_tests.test_tl_cycle_creation import (
-    TrafficLightCycleCreationTestCases,
-)
+from tests.traffic_light_tests.test_tl_cycle_creation import TrafficLightCycleCreationTestCases
 
 # from tests.traffic_light_tests.test_tl_cycle_extraction import TrafficLightCycleExtractionTestCases
 

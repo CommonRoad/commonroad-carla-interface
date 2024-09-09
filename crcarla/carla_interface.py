@@ -22,12 +22,7 @@ from commonroad.geometry.shape import Rectangle
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.prediction.prediction import TrajectoryPrediction
-from commonroad.scenario.obstacle import (
-    DynamicObstacle,
-    ObstacleRole,
-    ObstacleType,
-    StaticObstacle,
-)
+from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType, StaticObstacle
 from commonroad.scenario.scenario import Environment, Scenario, TimeOfDay, Weather
 from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.feasibility.solution_checker import solution_feasible
@@ -150,7 +145,8 @@ class CarlaInterface:
                 self._carla_pid.wait()
                 if self._carla_pid.poll() is None:
                     self._config.logger.warning(
-                        "CARLA server with PID %s did not terminate. Sending SIGKILL.", self._carla_pid.pid
+                        "CARLA server with PID %s did not terminate. Sending SIGKILL.",
+                        self._carla_pid.pid,
                     )
                     os.killpg(os.getpgid(self._carla_pid.pid), signal.SIGKILL)
                 self._config.logger.info("CARLA server with PID %s terminated.", self._carla_pid.pid)
@@ -463,7 +459,12 @@ class CarlaInterface:
 
         self._config.logger.info("Scenario generation: Create actors.")
         self._cr_obstacles = create_actors(
-            self._client, self._world, self._tm, self._config.simulation, sc.generate_object_id, self._config.sync
+            self._client,
+            self._world,
+            self._tm,
+            self._config.simulation,
+            sc.generate_object_id,
+            self._config.sync,
         )
         self._config.logger.info("Scenario generation: Start Simulation.")
 
@@ -490,7 +491,13 @@ class CarlaInterface:
         self._config.logger.info("Scenario generation finished.")
 
         return sc, PlanningProblemSet(
-            [PlanningProblem(sc.generate_object_id(), self._cr_obstacles[0].cr_obstacle.initial_state, goal_region)]
+            [
+                PlanningProblem(
+                    sc.generate_object_id(),
+                    self._cr_obstacles[0].cr_obstacle.initial_state,
+                    goal_region,
+                )
+            ]
         )
 
     def external_control(
@@ -647,11 +654,11 @@ class CarlaInterface:
             self._ego.trajectory.append(state)
 
         for obs in self._cr_obstacles:
-
             # TODO Investigate the reason why certain actors are being destroyed prior to the completion of the loop.
             if obs.actor is None or not obs.actor.is_alive:
                 self._config.logger.warning(
-                    "Actor was destroyed before loop finished!: cr-id %s", str(obs.cr_obstacle.obstacle_id)
+                    "Actor was destroyed before loop finished!: cr-id %s",
+                    str(obs.cr_obstacle.obstacle_id),
                 )
                 continue
 
@@ -873,7 +880,8 @@ class CarlaInterface:
         pygame.init()
         pygame.font.init()
         display = pygame.display.set_mode(
-            (self._config.visualization.width, self._config.visualization.height), pygame.HWSURFACE | pygame.DOUBLEBUF
+            (self._config.visualization.width, self._config.visualization.height),
+            pygame.HWSURFACE | pygame.DOUBLEBUF,
         )
         pygame.display.set_caption(self._config.visualization.description)  # Place a title to game window
         # Show loading screen

@@ -29,10 +29,7 @@ from crcarla.controller.vehicle_controller import (
     VehicleTMPathFollowingControl,
 )
 from crcarla.helper.config import ControlParams, VehicleControlType
-from crcarla.helper.utils import (
-    create_cr_initial_state_from_actor,
-    create_cr_vehicle_from_actor,
-)
+from crcarla.helper.utils import create_cr_initial_state_from_actor, create_cr_vehicle_from_actor
 
 
 @dataclass
@@ -169,7 +166,9 @@ class CommonRoadPlannerController(CarlaController):
         self._current_time_step = 0
         self._logger = control_config.logger
 
-    def _create_controller(self, control_type: VehicleControlType, dt: float, control_config: ControlParams) -> Union[
+    def _create_controller(
+        self, control_type: VehicleControlType, dt: float, control_config: ControlParams
+    ) -> Union[
         TransformControl,
         PIDController,
         AckermannController,
