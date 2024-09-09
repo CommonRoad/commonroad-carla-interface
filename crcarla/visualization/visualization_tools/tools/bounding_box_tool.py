@@ -44,7 +44,11 @@ class BoundingBoxTool(VisualizationBase):
         self._active_city_object_label: Dict[carla.CityObjectLabel, dict] = {}
 
     def show_vehicles(
-        self, max_dist, color: Tuple[int, int, int] = (255, 0, 0), print_distance=True, show_as_3d: bool = False
+        self,
+        max_dist,
+        color: Tuple[int, int, int] = (255, 0, 0),
+        print_distance=True,
+        show_as_3d: bool = False,
     ):
         """
         Enables the display of vehicles.
@@ -71,7 +75,11 @@ class BoundingBoxTool(VisualizationBase):
         self._show_vehicles = False
 
     def show_city_object_label(
-        self, label: carla.CityObjectLabel, max_dist: float, color: Tuple[int, int, int] = (0, 255, 0), show_as_3d=False
+        self,
+        label: carla.CityObjectLabel,
+        max_dist: float,
+        color: Tuple[int, int, int] = (0, 255, 0),
+        show_as_3d=False,
     ):
         """
         Activates a label to display the respective bounding boxes.
@@ -194,7 +202,6 @@ class BoundingBoxTool(VisualizationBase):
 
         # get the render information for the vehicle bounding boxes
         for vehicle, dist in vehicles:
-
             color2 = [0, 0, 0]
             color2[0] = int(color[0] - color[0] * dist / max_dist)
             color2[1] = int(color[1] - color[1] * dist / max_dist)
@@ -231,7 +238,20 @@ class BoundingBoxTool(VisualizationBase):
         the lines to draw (lines), and the color information (color).
         """
         lines = []
-        edges = [[0, 1], [1, 3], [3, 2], [2, 0], [0, 4], [4, 5], [5, 1], [5, 7], [7, 6], [6, 4], [6, 2], [7, 3]]
+        edges = [
+            [0, 1],
+            [1, 3],
+            [3, 2],
+            [2, 0],
+            [0, 4],
+            [4, 5],
+            [5, 1],
+            [5, 7],
+            [7, 6],
+            [6, 4],
+            [6, 2],
+            [7, 3],
+        ]
 
         x_max = -10000
         x_min = 10000
@@ -261,7 +281,6 @@ class BoundingBoxTool(VisualizationBase):
                 p2 = self._vis3D.vis_tool_controller.get_image_point(verts[edge[1]])
                 lines.append([(int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1]))])
         else:
-
             # Draw a bounding box around the object
             lines.append([(int(x_min), int(y_min)), (int(x_max), int(y_min))])
             lines.append([(int(x_min), int(y_max)), (int(x_max), int(y_max))])

@@ -6,10 +6,7 @@ import carla
 from numpy import random
 
 from crcarla.helper.config import SimulationParams
-from crcarla.helper.utils import (
-    create_cr_pedestrian_from_walker,
-    create_cr_vehicle_from_actor,
-)
+from crcarla.helper.utils import create_cr_pedestrian_from_walker, create_cr_vehicle_from_actor
 from crcarla.objects.pedestrian import PedestrianInterface
 from crcarla.objects.vehicle import VehicleInterface
 
@@ -206,7 +203,10 @@ def init_walker_controller_traffic_generation(
 
 
 def spawn_walker_controller(
-    walkers_list: List[Dict[str, int]], client: carla.Client, world: carla.World, logger: logging.Logger
+    walkers_list: List[Dict[str, int]],
+    client: carla.Client,
+    world: carla.World,
+    logger: logging.Logger,
 ) -> Tuple[List[carla.Actor], List[int]]:
     """
     Spawns walker AI controller.

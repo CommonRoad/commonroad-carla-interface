@@ -56,7 +56,11 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._cc = self._planner.collision_checker
 
     def plan(
-        self, sc: Scenario, pp: PlanningProblem, ref_path: Optional[np.ndarray] = None, steering_angle: float = 0.0
+        self,
+        sc: Scenario,
+        pp: PlanningProblem,
+        ref_path: Optional[np.ndarray] = None,
+        steering_angle: float = 0.0,
     ) -> Trajectory:
         """
         Performs trajectory planning of reactive planner.
@@ -145,6 +149,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
             # if no optimal trajectory can be computed use last computed trajectory
             self._error_counter += 1
             traj = Trajectory(
-                self._optimal.initial_time_step + self._error_counter, self._optimal.state_list[self._error_counter : :]
+                self._optimal.initial_time_step + self._error_counter,
+                self._optimal.state_list[self._error_counter : :],
             )
             return traj

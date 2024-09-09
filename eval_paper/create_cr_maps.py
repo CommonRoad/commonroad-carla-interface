@@ -6,9 +6,7 @@ from commonroad.common.writer.file_writer_interface import OverwriteExistingFile
 from commonroad.planning.planning_problem import PlanningProblemSet
 from commonroad.scenario.scenario import Tag
 from crdesigner.verification_repairing.config import MapVerParams
-from crdesigner.verification_repairing.map_verification_repairing import (
-    verify_and_repair_map,
-)
+from crdesigner.verification_repairing.map_verification_repairing import verify_and_repair_map
 from crdesigner.verification_repairing.verification.formula_ids import LaneletFormulaID
 
 from crcarla.carla_interface import CarlaInterface

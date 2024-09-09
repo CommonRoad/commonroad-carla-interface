@@ -12,7 +12,9 @@ from commonroad.scenario.traffic_light import (
 )
 
 
-def _match_carla_traffic_light_state_to_cr(carla_state: carla.TrafficLightState) -> TrafficLightState:
+def _match_carla_traffic_light_state_to_cr(
+    carla_state: carla.TrafficLightState,
+) -> TrafficLightState:
     """
     Match CARLA traffic light state to CommonRoad traffic light state
 
@@ -53,7 +55,12 @@ def _match_cr_traffic_light_state_to_carla(cr_state: TrafficLightState) -> carla
 class CarlaTrafficLight:
     """Interface between CARLA traffic light and CommonRoad traffic light"""
 
-    def __init__(self, actor: carla.TrafficLight, logger: logging.Logger, cr_tl: Optional[TrafficLight] = None):
+    def __init__(
+        self,
+        actor: carla.TrafficLight,
+        logger: logging.Logger,
+        cr_tl: Optional[TrafficLight] = None,
+    ):
         """
         Initializer carla traffic light interface.
 
@@ -359,7 +366,13 @@ def extract_cycle_from_history(tls: List[TrafficLight], logger: logging.Logger) 
             TrafficLightCycleElement(
                 tls[i].state,
                 get_cycle_duration(
-                    tls, cycle, first_full_red, first_full_green, yellow_after_red, yellow_after_green, tls[i].state
+                    tls,
+                    cycle,
+                    first_full_red,
+                    first_full_green,
+                    yellow_after_red,
+                    yellow_after_green,
+                    tls[i].state,
                 ),
             )
         )
@@ -372,7 +385,13 @@ def extract_cycle_from_history(tls: List[TrafficLight], logger: logging.Logger) 
                 TrafficLightCycleElement(
                     tls[i].state,
                     get_cycle_duration(
-                        tls, cycle, first_full_red, first_full_green, yellow_after_red, yellow_after_green, tls[i].state
+                        tls,
+                        cycle,
+                        first_full_red,
+                        first_full_green,
+                        yellow_after_red,
+                        yellow_after_green,
+                        tls[i].state,
                     ),
                 )
             )

@@ -6,12 +6,7 @@ from typing import List, Optional, Union
 import carla
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.obstacle import (
-    DynamicObstacle,
-    ObstacleRole,
-    ObstacleType,
-    SignalState,
-)
+from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType, SignalState
 from commonroad.scenario.scenario import Scenario
 from crpred.predictor_interface import PredictorInterface
 
@@ -33,11 +28,7 @@ from crcarla.helper.config import (
     VehicleParams,
 )
 from crcarla.helper.utils import create_cr_vehicle_from_actor
-from crcarla.helper.vehicle_dict import (
-    similar_by_area,
-    similar_by_length,
-    similar_by_width,
-)
+from crcarla.helper.vehicle_dict import similar_by_area, similar_by_length, similar_by_width
 from crcarla.objects.actor import ActorInterface
 
 logger = logging.getLogger(__name__)
@@ -82,7 +73,7 @@ class VehicleInterface(ActorInterface):
         """Initializes CARLA vehicle controller."""
         if hasattr(self._config, "ego_planner"):
             if self._config.ego_planner is EgoPlanner.STEERING_WHEEL:
-                self._controller = SteeringWheelController(self._actor)
+                self._controller = SteeringWheelController(self._actor, self._config.control.steering_wheel_params)
             elif self._config.ego_planner is EgoPlanner.KEYBOARD:
                 self._controller = KeyboardVehicleController(self._actor, self._config.simulation.time_step)
             elif self._config.ego_planner is EgoPlanner.PLANNER:
@@ -101,7 +92,9 @@ class VehicleInterface(ActorInterface):
                 self._controller = TransformControl(self._actor)
             elif self._config.carla_controller_type is VehicleControlType.PID:
                 self._controller = PIDController(
-                    actor=self._actor, config=self._config.control, dt=self._config.simulation.time_step
+                    actor=self._actor,
+                    config=self._config.control,
+                    dt=self._config.simulation.time_step,
                 )
             elif self._config.carla_controller_type is VehicleControlType.ACKERMANN:
                 self._controller = AckermannController(
@@ -126,7 +119,7 @@ class VehicleInterface(ActorInterface):
         :param time_step: Current time step.
         """
         if self._cr_obstacle is None:
-            self._create_random_actor()
+            self._create_random_actor(self._sc.generate_object_id())
         if time_step != self._cr_obstacle.initial_state.time_step or self.spawned:
             return
 
@@ -141,7 +134,7 @@ class VehicleInterface(ActorInterface):
         ]:
             self._actor = self._create_cr_actor()
         else:
-            raise RuntimeError("Unknown obstacle type")
+            raise RuntimeError("VehicleInterface::_spawn: Unknown obstacle type.")
 
         if not self._actor:
             logger.warning("VehicleInterface::_spawn: After _spawn got called self._actor is still None!")
@@ -174,7 +167,11 @@ class VehicleInterface(ActorInterface):
                     best_dist = dist
                     closest = point
             actor = self._world.try_spawn_actor(obstacle_blueprint, closest)
-            logger.info("Obstacle %s spawned %s m away from original position", self.cr_obstacle.obstacle_id, best_dist)
+            logger.info(
+                "Obstacle %s spawned %s m away from original position",
+                self.cr_obstacle.obstacle_id,
+                best_dist,
+            )
         actor.set_simulate_physics(self._config.physics)
         logger.debug("Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id)
         # Set up the lights to initial states:
@@ -189,19 +186,22 @@ class VehicleInterface(ActorInterface):
         actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
         return actor
 
-    def _create_random_actor(self):
+    def _create_random_actor(self, obs_id: int):
         """Creates a random actor"""
-        # TODO check whether this can be combined with function in traffic manager.
+        # similar function exists for traffic generation but cannot be combined
 
         # randomly select a blueprint and check, if the config settings are matching with the bp.
         lib = self._world.get_blueprint_library().filter(self._config.simulation.filter_vehicle)
         while True:
             blueprint = random.choice(lib)
-            filter_num_wheel = self._config.simulation.filter_attribute_number_of_wheels
-            if filter_num_wheel is not None and blueprint.has_attribute("number_of_wheels"):
-                if blueprint.get_attribute("number_of_wheels").as_int() == filter_num_wheel:
-                    break  # vehicle passed through filter
-                logger.debug("skip bike")
+            # skip bikes
+            if (
+                self._config.simulation.filter_attribute_number_of_wheels is not None
+                and blueprint.has_attribute("number_of_wheels")
+                and blueprint.get_attribute("number_of_wheels").as_int()
+                == self._config.simulation.filter_attribute_number_of_wheels
+            ):
+                break  # vehicle passed through filter
 
         if blueprint.has_attribute("color"):
             color = random.choice(blueprint.get_attribute("color").recommended_values)
@@ -213,7 +213,7 @@ class VehicleInterface(ActorInterface):
             spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             ego_actor = self._world.try_spawn_actor(blueprint, spawn_point)
 
-        self._cr_obstacle = create_cr_vehicle_from_actor(ego_actor, 0, initial_time_step=0)
+        self._cr_obstacle = create_cr_vehicle_from_actor(ego_actor, obs_id, initial_time_step=0)
         self._actor = ego_actor
 
     def _match_blueprint(self):
@@ -262,7 +262,9 @@ class VehicleInterface(ActorInterface):
         if self._cr_obstacle.obstacle_role is not ObstacleRole.DYNAMIC:
             return [
                 carla.Location(
-                    x=self._cr_obstacle.initial_state.position[0], y=-self._cr_obstacle.initial_state.position[1], z=0.5
+                    x=self._cr_obstacle.initial_state.position[0],
+                    y=-self._cr_obstacle.initial_state.position[1],
+                    z=0.5,
                 )
             ]
         path = []

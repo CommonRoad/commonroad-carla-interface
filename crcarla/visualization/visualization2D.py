@@ -31,7 +31,6 @@ Welcome to CARLA No-Rendering Mode Visualizer
 """
 
 import datetime
-import glob
 import hashlib
 import math
 import os
@@ -46,11 +45,7 @@ import pygame.locals as keys
 from crcarla.helper.config import BirdsEyeParams
 from crcarla.visualization.canvas.ui_elements.fading_text import FadingText
 from crcarla.visualization.canvas.ui_elements.help_text import HelpText
-from crcarla.visualization.common import (
-    exit_game,
-    get_actor_display_name,
-    is_quit_shortcut,
-)
+from crcarla.visualization.common import exit_game, get_actor_display_name, is_quit_shortcut
 
 # Colors
 
@@ -108,7 +103,8 @@ class Util:
 
     @staticmethod
     def blits(
-        destination_surface: pygame.Surface, source_surfaces: Tuple[pygame.Surface, pygame.Surface, pygame.Surface]
+        destination_surface: pygame.Surface,
+        source_surfaces: Tuple[pygame.Surface, pygame.Surface, pygame.Surface],
     ):
         """
         Function that renders all source surfaces in a destination source
@@ -178,7 +174,9 @@ class HUD2D:
         self._header_font = pygame.font.SysFont("Arial", 14, True)
         self.help = HelpText(pygame.font.Font(mono, 24), *self.dim)
         self._notifications = FadingText(
-            pygame.font.Font(pygame.font.get_default_font(), 20), (self.dim[0], 40), (0, self.dim[1] - 40)
+            pygame.font.Font(pygame.font.get_default_font(), 20),
+            (self.dim[0], 40),
+            (0, self.dim[1] - 40),
         )
 
     def _init_data_params(self):
@@ -330,12 +328,23 @@ class TrafficLightSurfaces:
                 green = COLOR_CHAMELEON_0
 
                 # Draws the corresponding color if is on, otherwise it will be gray if it is off
-                pygame.draw.circle(surface, red if tl == carla.TrafficLightState.Red else off, (hw, hw), int(0.4 * w))
                 pygame.draw.circle(
-                    surface, yellow if tl == carla.TrafficLightState.Yellow else off, (hw, w + hw), int(0.4 * w)
+                    surface,
+                    red if tl == carla.TrafficLightState.Red else off,
+                    (hw, hw),
+                    int(0.4 * w),
                 )
                 pygame.draw.circle(
-                    surface, green if tl == carla.TrafficLightState.Green else off, (hw, 2 * w + hw), int(0.4 * w)
+                    surface,
+                    yellow if tl == carla.TrafficLightState.Yellow else off,
+                    (hw, w + hw),
+                    int(0.4 * w),
+                )
+                pygame.draw.circle(
+                    surface,
+                    green if tl == carla.TrafficLightState.Green else off,
+                    (hw, 2 * w + hw),
+                    int(0.4 * w),
                 )
 
             return pygame.transform.smoothscale(surface, (15, 45) if tl != "h" else (19, 49))
@@ -621,7 +630,10 @@ class MapImage:
                 if current_lane_marking != marking_type:
                     # Get the list of lane markings to draw
                     markings = get_lane_markings(
-                        previous_marking_type, lane_marking_color_to_tango(previous_marking_color), temp_waypoints, sign
+                        previous_marking_type,
+                        lane_marking_color_to_tango(previous_marking_color),
+                        temp_waypoints,
+                        sign,
                     )
                     current_lane_marking = marking_type
 
@@ -638,7 +650,10 @@ class MapImage:
 
             # Add last marking
             last_markings = get_lane_markings(
-                previous_marking_type, lane_marking_color_to_tango(previous_marking_color), temp_waypoints, sign
+                previous_marking_type,
+                lane_marking_color_to_tango(previous_marking_color),
+                temp_waypoints,
+                sign,
             )
             for marking in last_markings:
                 markings_list.append(marking)
@@ -650,7 +665,11 @@ class MapImage:
                 elif markings[0] == carla.LaneMarkingType.Broken:
                     draw_broken_line(surface, markings[1], False, markings[2], 2)
 
-        def draw_arrow(surface: pygame.Surface, transform: carla.Transform, color: pygame.Color = COLOR_ALUMINIUM_2):
+        def draw_arrow(
+            surface: pygame.Surface,
+            transform: carla.Transform,
+            color: pygame.Color = COLOR_ALUMINIUM_2,
+        ):
             """Draws an arrow with a specified color given a transform"""
             transform.rotation.yaw += 180
             forward = transform.get_forward_vector()
@@ -770,7 +789,6 @@ class MapImage:
                     # Classify lane types until there are no waypoints by going left
                     lane_left = wayp.get_left_lane()
                     while lane_left and lane_left.lane_type != carla.LaneType.Driving:
-
                         if lane_left.lane_type == carla.LaneType.Shoulder:
                             shoulder[0].append(lane_left)
 
@@ -785,7 +803,6 @@ class MapImage:
                     # Classify lane types until there are no waypoints by going right
                     lane_right = wayp.get_right_lane()
                     while lane_right and lane_right.lane_type != carla.LaneType.Driving:
-
                         if lane_right.lane_type == carla.LaneType.Shoulder:
                             shoulder[1].append(lane_right)
 
@@ -864,7 +881,8 @@ class MapImage:
 
         yield_font_surface = font.render("YIELD", False, COLOR_ALUMINIUM_2)
         yield_font_surface = pygame.transform.scale(
-            yield_font_surface, (yield_font_surface.get_width(), yield_font_surface.get_height() * 2)
+            yield_font_surface,
+            (yield_font_surface.get_width(), yield_font_surface.get_height() * 2),
         )
 
         for ts_stop in stops:
@@ -912,7 +930,12 @@ class World2D:
     """
 
     def __init__(
-        self, name: str, world: carla.World, hud: HUD2D, ego: carla.Vehicle, config: BirdsEyeParams = BirdsEyeParams()
+        self,
+        name: str,
+        world: carla.World,
+        hud: HUD2D,
+        ego: carla.Vehicle,
+        config: BirdsEyeParams = BirdsEyeParams(),
     ):
         """
         Initialization of 2D world.
@@ -1229,7 +1252,6 @@ class World2D:
         font = pygame.font.SysFont("Arial", font_size)
 
         for sl in list_sl:
-
             x, y = self.map_image.world_to_pixel(sl.get_location())
 
             # Render speed limit concentric circles
@@ -1398,7 +1420,11 @@ class World2D:
 
         # Render Ids
         self._hud.render_vehicles_ids(
-            self.vehicle_id_surface, vehicles, self.map_image.world_to_pixel, self.hero_actor, self.hero_transform
+            self.vehicle_id_surface,
+            vehicles,
+            self.map_image.world_to_pixel,
+            self.hero_actor,
+            self.hero_transform,
         )
         # Show nearby actors from hero mode
         self._show_nearby_vehicles(vehicles)
@@ -1457,12 +1483,18 @@ class World2D:
 
             # Apply clipping rect
             clipping_rect = pygame.Rect(
-                -translation_offset[0] - center_offset[0], -translation_offset[1], self._hud.dim[0], self._hud.dim[1]
+                -translation_offset[0] - center_offset[0],
+                -translation_offset[1],
+                self._hud.dim[0],
+                self._hud.dim[1],
             )
             self.clip_surfaces(clipping_rect)
             Util.blits(self.result_surface, surfaces)
 
-            display.blit(self.result_surface, (translation_offset[0] + center_offset[0], translation_offset[1]))
+            display.blit(
+                self.result_surface,
+                (translation_offset[0] + center_offset[0], translation_offset[1]),
+            )
 
         if self._config.vis_hud:
             self._hud.render(display)

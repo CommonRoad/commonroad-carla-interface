@@ -74,7 +74,9 @@ class VehicleBehaviorAgentPathFollowingControl(CarlaController):
         :param path: List of CARLA locations.
         """
         self._agent.set_global_plan(
-            [(CarlaCRWaypoint(elem), None) for elem in path], stop_waypoint_creation=True, clean_queue=True
+            [(CarlaCRWaypoint(elem), None) for elem in path],
+            stop_waypoint_creation=True,
+            clean_queue=True,
         )
 
 

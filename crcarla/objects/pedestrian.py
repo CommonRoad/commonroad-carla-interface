@@ -4,10 +4,7 @@ import carla
 from commonroad.scenario.obstacle import DynamicObstacle
 
 from crcarla.controller.controller import TransformControl, create_carla_transform
-from crcarla.controller.pedestrian_controller import (
-    AIWalkerControl,
-    ManualWalkerControl,
-)
+from crcarla.controller.pedestrian_controller import AIWalkerControl, ManualWalkerControl
 from crcarla.helper.config import PedestrianControlType, PedestrianParams
 from crcarla.objects.actor import ActorInterface
 
@@ -63,7 +60,9 @@ class PedestrianInterface(ActorInterface):
             if actor:
                 actor.set_simulate_physics(self._config.physics)
                 self._config.logger.debug(
-                    "Spawn successful: CR-ID %s CARLA-ID %s", self._cr_obstacle.obstacle_id, actor.id
+                    "Spawn successful: CR-ID %s CARLA-ID %s",
+                    self._cr_obstacle.obstacle_id,
+                    actor.id,
                 )
         except Exception as e:
             self._config.logger.error("Error while spawning PEDESTRIAN: %s", e)

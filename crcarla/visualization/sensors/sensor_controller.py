@@ -4,9 +4,7 @@ from crcarla.visualization.sensors.sensor_types.camera_sensor import CameraSenso
 from crcarla.visualization.sensors.sensor_types.collision_sensor import CollisionSensor
 from crcarla.visualization.sensors.sensor_types.gnss_sensor import GnssSensor
 from crcarla.visualization.sensors.sensor_types.imu_sensor import IMUSensor
-from crcarla.visualization.sensors.sensor_types.lane_invasion_sensor import (
-    LaneInvasionSensor,
-)
+from crcarla.visualization.sensors.sensor_types.lane_invasion_sensor import LaneInvasionSensor
 from crcarla.visualization.visualization_base import VisualizationBase
 
 if TYPE_CHECKING:

@@ -41,9 +41,7 @@ class StandardTestCase(unittest.TestCase):
                     # {}
                     # Actual response:
                     # {}
-                    """.format(
-                    test_name, expected_response, actual_response
-                )
+                    """.format(test_name, expected_response, actual_response)
                 log_file.write(message)
 
             raise
@@ -63,7 +61,10 @@ class StandardTestCase(unittest.TestCase):
 
         for edge_case in self.edge_cases:
             self.assertWithLogging(
-                self.assertEqual, [edge_case.expected, edge_case.output], edge_case.expected, edge_case.output
+                self.assertEqual,
+                [edge_case.expected, edge_case.output],
+                edge_case.expected,
+                edge_case.output,
             )
 
     def test_basic_cases(self):

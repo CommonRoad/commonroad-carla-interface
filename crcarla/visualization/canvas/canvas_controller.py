@@ -27,7 +27,9 @@ class CanvasController(VisualizationBase):
 
         # Create font for all text elements
         self._notification_text = FadingText(
-            FadingText.font_mono(), (self._vis3d.config.width, 40), (0, self._vis3d.config.height - 40)
+            FadingText.font_mono(),
+            (self._vis3d.config.width, 40),
+            (0, self._vis3d.config.height - 40),
         )
         # self._help = HelpText(Text.font_mono_16(), self._config.width, self._config.height)
 

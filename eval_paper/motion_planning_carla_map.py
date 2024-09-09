@@ -58,5 +58,9 @@ planning_problem = PlanningProblem(
     goal_region=GoalRegion([PMState(time_step=Interval(0, 120), position=Rectangle(10, 3, np.array([400, -145.5])))]),
 )
 ci.plan(
-    ReactivePlannerInterface(scenario, planning_problem, rp_config), None, None, planning_problem, VehicleType.BMW_320i
+    ReactivePlannerInterface(scenario, planning_problem, rp_config),
+    None,
+    None,
+    planning_problem,
+    VehicleType.BMW_320i,
 )

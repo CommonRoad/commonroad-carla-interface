@@ -9,7 +9,7 @@ param = CarlaParams()
 param.map = "Town10HD"
 param.vehicle.vehicle_ks_state = False
 param.simulation.max_time_step = 120
-param.offscreen_mode = True
+param.offscreen_mode = False
 param.simulation.number_vehicles = 5
 param.simulation.number_walkers = 5
 param.simulation.tm.ignore_vehicles_percentage = 20
@@ -20,5 +20,10 @@ sc, pps = ci.scenario_generation(ci.create_cr_map())  # generate scenario and co
 
 # Store generated scenario
 CommonRoadFileWriter(
-    sc, pps, author="TUM-CPS", affiliation="Technical University of Munich", source="CARLA", tags={Tag.URBAN}
+    sc,
+    pps,
+    author="TUM-CPS",
+    affiliation="Technical University of Munich",
+    source="CARLA",
+    tags={Tag.URBAN},
 ).write_to_file(None, OverwriteExistingFile.ALWAYS)

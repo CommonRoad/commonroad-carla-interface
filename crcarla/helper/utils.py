@@ -7,7 +7,7 @@ import signal
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import carla
 import matplotlib
@@ -19,13 +19,7 @@ from commonroad.geometry.shape import Circle, Rectangle
 from commonroad.planning.goal import AngleInterval, GoalRegion, Interval
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.state import (
-    CustomState,
-    ExtendedPMState,
-    InitialState,
-    KSState,
-    PMState,
-)
+from commonroad.scenario.state import CustomState, ExtendedPMState, InitialState, KSState, PMState
 from commonroad.visualization.mp_renderer import MPRenderer
 from PIL import Image
 
@@ -198,7 +192,9 @@ def create_cr_initial_state_from_actor(actor: carla.Vehicle, time_step: int) -> 
 #   'vehicle.jeep.wrangler_rubicon', 'vehicle.audi.etron', 'vehicle.ford.crown', 'vehicle.mini.cooper_s'}
 
 
-def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_shape: bool = False) -> DynamicObstacle:
+def create_cr_pedestrian_from_walker(
+    actor: carla.Walker, cr_id: int, default_shape: Optional[float]
+) -> DynamicObstacle:
     """
     Creates CommonRoad dynamic obstacle of type pedestrian given a CARLA walker.
 
@@ -215,9 +211,9 @@ def create_cr_pedestrian_from_walker(actor: carla.Walker, cr_id: int, default_sh
     length = actor.bounding_box.extent.x * 2
     width = actor.bounding_box.extent.y * 2
     if default_shape:
-        shape = Circle(0.4)  # TODO default shape size as config parameter
+        shape = Circle(default_shape)
     elif abs(length) == math.inf or abs(width) == math.inf:
-        shape = Circle(0.4)
+        shape = Circle(default_shape)
     elif length == width:
         shape = Circle(length / 2)
     else:
@@ -471,7 +467,12 @@ def render_from_trajectory(
 
 
 def render_trajectory_video(
-    scenario: Scenario, fps: int, obstacles: List[any], output_file: str, title: str, exclude_pedestrians: bool = True
+    scenario: Scenario,
+    fps: int,
+    obstacles: List[any],
+    output_file: str,
+    title: str,
+    exclude_pedestrians: bool = True,
 ):
     """
     Renders a video of actual and predicted trajectories for a given scenario.
