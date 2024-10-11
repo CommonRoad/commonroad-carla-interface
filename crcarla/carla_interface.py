@@ -23,7 +23,7 @@ from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType, StaticObstacle
-from commonroad.scenario.scenario import Environment, Scenario, TimeOfDay, Weather
+from commonroad.scenario.scenario import Environment, Scenario, Weather, TimeOfDay
 from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.feasibility.solution_checker import solution_feasible
 from commonroad_dc.feasibility.vehicle_dynamics import VehicleParameterMapping
@@ -379,6 +379,7 @@ class CarlaInterface:
         # Load OpenDRIVE file, parse it, and convert it to a CommonRoad scenario
         config = open_drive_config
         config.initial_cr_id = initial_id
+        config.proj_string_odr = None
         scenario = opendrive_to_commonroad(odr_path, odr_conf=config)
 
         # Delete temporary file
@@ -530,7 +531,7 @@ class CarlaInterface:
         pp: Optional[PlanningProblem],
         sc: Optional[Scenario],
         vehicle_type: Optional[VehicleType],
-    ):
+    ) -> bool:
         """
         Initializes and start simulation.
         Ego vehicle is controlled by external input, e.g., steering wheel, keyboard, CommonRoad planner.
@@ -594,7 +595,7 @@ class CarlaInterface:
         self._config.logger.info("Spawn ego.")
         self._ego.tick(0)
 
-        self._run_simulation(obstacle_control=obstacle_control)
+        return self._run_simulation(obstacle_control=obstacle_control)
 
     def plan(
         self,
@@ -603,7 +604,7 @@ class CarlaInterface:
         sc: Optional[Scenario] = None,
         pp: Optional[PlanningProblem] = None,
         vehicle_type: VehicleType = VehicleType.BMW_320i,
-    ):
+    ) -> bool:
         """
         Initializes and start simulation using CommonRoad-compatible planner.
         If no scenario or solution is provided, a CARLA map with randomly-generated traffic is used.
@@ -619,7 +620,7 @@ class CarlaInterface:
         if self._config.ego.ego_planner is not EgoPlanner.PLANNER:
             self._config.ego.ego_planner = EgoPlanner.PLANNER
             self._config.logger.info("CommonRoad Planner control type not set for ego! Will be set.")
-        self._init_external_control_mode(planner, predictor, pp, sc, vehicle_type)
+        return self._init_external_control_mode(planner, predictor, pp, sc, vehicle_type)
 
     def _update_cr_state(self):
         """
@@ -789,7 +790,7 @@ class CarlaInterface:
         base_scenario.add_objects(obstacles)
         return base_scenario
 
-    def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False):
+    def _run_simulation(self, obstacle_control: bool = False, obstacle_only: bool = False) -> bool:
         """
         Performs simulation by iteratively calling tick and render functions.
         Initializes visualization worlds and head-up display.
@@ -819,10 +820,10 @@ class CarlaInterface:
         vis_world, clock, display = self._init_visualization(obstacle_only)
 
         time_step = 0
+        goal_reached = False
 
         self._config.logger.info("Start simulation.")
         while time_step <= self._config.simulation.max_time_step:
-            self._config.logger.debug("Time step: %s", time_step)
             if self._config.sync:
                 self._world.tick()
             else:
@@ -852,10 +853,15 @@ class CarlaInterface:
             self._update_cr_state()
 
             if self._pp is not None and self._pp.goal.is_reached(self._ego.trajectory[-1]):
-                self._config.logger.info("CommonRoad goal reached!")
+                print("CommonRoad goal reached!")
+                goal_reached = True
                 break
 
-        self._config.logger.info("Simulation finished.")
+            if time_step > self._config.simulation.max_time_step:
+                print("Simulation time limit reached!")
+                break
+
+        print("Simulation finished.")
 
         if vis_world is not None:
             vis_world.destroy()
@@ -870,6 +876,8 @@ class CarlaInterface:
         for actor in self._world.get_actors():
             if "walker" in actor.type_id or "vehicle" in actor.type_id:
                 actor.destroy()
+
+        return goal_reached
 
     def _init_display(self) -> pygame.display:
         """

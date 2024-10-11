@@ -290,6 +290,7 @@ class SimulationParams(BaseParam):
     tm: TrafficManagerParams = field(default_factory=TrafficManagerParams)
     weather: WeatherParams = field(default_factory=WeatherParams)
     time_step: float = 0.1
+    time_horizon_seconds: float = 6.0
     max_substep_delta_time: float = 0.01
     max_substeps: int = 10
     number_walkers: int = 10
