@@ -11,7 +11,8 @@ from commonroad.planning.goal import GoalRegion, Interval
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.state import CustomState, TraceState
+from commonroad.scenario.state import CustomState, InitialState, TraceState
+from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.geometry.geometry import (
     compute_orientation_from_polyline,
     compute_pathlength_from_polyline,
@@ -72,6 +73,8 @@ def get_planning_problem_from_world(
     dt: float,
     global_route: RouteData,
     current_time_step: int,
+    traj: Trajectory,
+    for_transform_controller: bool,
 ) -> PlanningProblem:
     """
     Creates planning problem from global route.
@@ -84,7 +87,21 @@ def get_planning_problem_from_world(
     :param current_time_step: Current time step.
     :return: CommonRoad planning problem.
     """
-    initial_state = create_cr_initial_state_from_actor(actor, current_time_step)
+
+    # if transform controller used, set initial state for next planning iteration to 1st traj state of planning result
+    if for_transform_controller:
+        cur = traj.state_list[1]
+        initial_state = InitialState()
+        initial_state.time_step = cur.time_step
+        initial_state.position = cur.position
+        initial_state.orientation = cur.orientation
+        initial_state.velocity = cur.velocity
+        initial_state.acceleration = cur.acceleration
+        initial_state.yaw_rate = cur.yaw_rate
+        initial_state.slip_angle = 0
+    else:
+        initial_state = create_cr_initial_state_from_actor(actor, current_time_step)
+
     min_dist = (initial_state.velocity**2) / (2 * vehicle_params.a_max)
     max_dist = initial_state.velocity * t_h + 0.5 * vehicle_params.a_max * 6**2
 
@@ -122,7 +139,7 @@ def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
     :param pp: Planning problem.
     :return: Route.
     """
-    return RoutePlanner(sc, pp).plan_routes().retrieve_first_route().reference_path
+    return RoutePlanner(sc.lanelet_network, pp).plan_routes().retrieve_first_route().reference_path
 
 
 class CommonRoadPlannerController(CarlaController):
@@ -137,6 +154,7 @@ class CommonRoadPlannerController(CarlaController):
         sc: Scenario,
         control_type: VehicleControlType,
         dt: float,
+        t_h: float,
         control_config: ControlParams,
         vehicle_params: VehicleConfiguration = VehicleConfiguration(),
     ):
@@ -150,6 +168,7 @@ class CommonRoadPlannerController(CarlaController):
         :param sc: Base scenario containing road network and static obstacles.
         :param control_type: CARLA control type used for CommonRoad planner.
         :param dt: Time step size.
+        :param t_h: Intermediate goal time horizon [s].
         :param control_config: CARLA controller params.
         :param vehicle_params: Vehicle parameters.
         """
@@ -162,6 +181,8 @@ class CommonRoadPlannerController(CarlaController):
         self._global_route = RouteData(compute_global_route(self._base_sc, pp))
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
+        self._dt = dt
+        self._time_horizon_sec = t_h
         self._vehicle_params = vehicle_params
         self._current_time_step = 0
         self._logger = control_config.logger
@@ -212,9 +233,20 @@ class CommonRoadPlannerController(CarlaController):
         sc = create_scenario_from_world(world, self._base_sc, self._actor.id, self._current_time_step)
         if self._predictor is not None:
             sc = self._predictor.predict(sc, self._current_time_step)
-        pp = get_planning_problem_from_world(
-            self._actor, self._vehicle_params, 6, 0.1, self._global_route, self._current_time_step
-        )
+        # as the last planning result is needed if transform control is used, use initial state for first iteration
+        if self._current_trajectory is None:
+            pp = self._base_pp
+        else:
+            pp = get_planning_problem_from_world(
+                self._actor,
+                self._vehicle_params,
+                self._time_horizon_sec,
+                self._dt,
+                self._global_route,
+                self._current_time_step,
+                self._current_trajectory,
+                isinstance(self._controller, TransformControl),
+            )
         pp.goal = self._base_pp.goal
 
         # from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
@@ -223,11 +255,18 @@ class CommonRoadPlannerController(CarlaController):
         # CommonRoadFileWriter(sc, PlanningProblemSet([pp])).write_to_file(f"test{self._current_time_step}.xml",
         #                                                                  OverwriteExistingFile.ALWAYS)
 
-        try:
-            steer = self._actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
-        except RuntimeError:
-            steer = 0
-        steering_angle = make_valid_orientation(steer * (math.pi / 180))
-        self._current_trajectory = self._planner.plan(sc, pp, steering_angle)
+        # if transform control, steering needs to be set manual because actual steering angle is always zero
+        if isinstance(self._controller, TransformControl):
+            if self._current_trajectory is None:
+                steering_angle = 0
+            else:
+                steering_angle = self._current_trajectory.state_list[1].steering_angle
+        else:
+            try:
+                steer = self._actor.get_wheel_steer_angle(carla.VehicleWheelLocation.FL_Wheel)
+            except RuntimeError:
+                steer = 0
+            steering_angle = make_valid_orientation(steer * (math.pi / 180))
+        self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
         self._controller.control(self._current_trajectory.state_list[1])
         self._current_time_step += 1

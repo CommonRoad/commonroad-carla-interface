@@ -15,7 +15,8 @@ param.map = "maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.vis_type = CustomVis.BIRD
+param.vis_type = CustomVis.EGO
+param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
@@ -23,13 +24,19 @@ rp_config.debug.draw_traj_set = False
 rp_config.debug.draw_icons = True
 rp_config.debug.save_plots = True
 rp_config.debug.plots_file_format = "svg"
+
+# sampling params
 rp_config.sampling.v_max = 10
 rp_config.sampling.v_min = -10
-rp_config.planning.replanning_frequency = 1
 rp_config.sampling.d_min = -3
 rp_config.sampling.d_max = 3
+
+# planning params
+rp_config.planning.replanning_frequency = 1
 rp_config.planning.time_steps_computation = 60
 rp_config.sampling.num_sampling_levels = 4
+
+# init carla interface
 ci = CarlaInterface(param)
 
 # get planning problem and remove ego vehicle from scenario

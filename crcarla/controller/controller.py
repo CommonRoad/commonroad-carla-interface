@@ -56,7 +56,3 @@ class TransformControl(CarlaController):
         """
         transform = create_carla_transform(state, self._actor.get_location().z)
         self._actor.set_transform(transform)
-        yaw = transform.rotation.yaw * (math.pi / 180)
-        vx = state.velocity * math.cos(yaw)
-        vy = state.velocity * math.sin(yaw)
-        self._actor.set_target_velocity(carla.Vector3D(vx, vy, 0))

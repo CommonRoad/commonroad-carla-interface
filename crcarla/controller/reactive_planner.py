@@ -40,11 +40,12 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config = config
         self._config.scenario = sc
         self._config.planning_problem = pp
-        route_planner = RoutePlanner(config.scenario, config.planning_problem)
+        route_planner = RoutePlanner(config.scenario.lanelet_network, config.planning_problem)
         route = route_planner.plan_routes().retrieve_first_route()
         self._config.planning.route = route
         self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)
+        self._planner.set_reference_path(route.reference_path)
         self._optimal = None
         self._error_counter = 0
         self._store_failing_scenarios = store_failing_scenarios
@@ -54,6 +55,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
             tmp_sc.remove_obstacle(obs)
         self._planner.set_collision_checker(sc)
         self._cc = self._planner.collision_checker
+        self._wb_rear_axle = self._planner.config.vehicle.wb_rear_axle
 
     def plan(
         self,
@@ -88,11 +90,21 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
             cc_scenario.add_collision_object(tvo)
         self._planner.set_collision_checker(None, cc_scenario)
 
-        x0_planner_cart = ReactivePlannerState()
-        x0_planner_cart = pp.initial_state.convert_state_to_state(x0_planner_cart)
-        x0_planner_cart.steering_angle = steering_angle
+        orientation = pp.initial_state.orientation
+        initial_state_shifted = pp.initial_state.translate_rotate(
+            np.array([-self._wb_rear_axle * np.cos(orientation), -self._wb_rear_axle * np.sin(orientation)]), 0.0
+        )
+
+        # convert to ReactivePlannerState
+        x0_planner = ReactivePlannerState()
+        x0_planner = initial_state_shifted.convert_state_to_state(x0_planner)
+
+        # add steering angle
+        x0_planner.steering_angle = steering_angle
+
+        self._planner.x_0 = None
         self._planner.reset(
-            initial_state_cart=x0_planner_cart,
+            initial_state_cart=x0_planner,
             initial_state_curv=None,
             collision_checker=self._planner.collision_checker,
             coordinate_system=self._planner.coordinate_system,
@@ -100,24 +112,22 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
 
         try:
             # call plan function and generate trajectory
-            optimal_traj = self._planner.plan()
+            self._optimal = self._planner.plan()
 
             # check if valid trajectory is found
-            if optimal_traj:
+            if self._optimal:
                 # add to planned trajectory
-                self._cr_state_list = optimal_traj[0].state_list
+                self._cr_state_list = self._optimal[0].state_list
 
                 # record planned state and input TODO check this
-                self._planner.record_state_and_input(optimal_traj[0].state_list[1])
+                self._planner.record_state_and_input(self._optimal[0].state_list[1])
             else:
                 # TODO: sample emergency brake trajectory if no trajectory is found
                 self._cr_state_list = None
 
-            self._optimal = self._planner.plan()[0]
-            self._error_counter = 0
             # visualize the current time step of the simulation
-            if self._config.debug.save_plots:
-                ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal.state_list)
+            if self._config.debug.save_plots or self._config.debug.show_plots:
+                self._ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal[0].state_list)
                 sampled_trajectory_bundle = None
                 if self._config.debug.draw_traj_set:
                     sampled_trajectory_bundle = copy.deepcopy(self._planner.stored_trajectories)
@@ -125,14 +135,15 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 visualize_planner_at_timestep(
                     scenario=self._config.scenario,
                     planning_problem=self._config.planning_problem,
-                    ego=ego_vehicle,
+                    ego=self._ego_vehicle,
                     traj_set=sampled_trajectory_bundle,
                     ref_path=self._planner.reference_path,
-                    timestep=pp.initial_state.time_step,
+                    timestep=self._planner.x_0.time_step,
                     config=self._config,
-                )  # , plot_limits=[250.0, 460, -160, -130])
+                )
 
-            return self._optimal
+            return self.convert_from_rear_to_middle(self._optimal[0])
+
         except (AssertionError, TypeError):
             if self._store_failing_scenarios:
                 logger.error(
@@ -152,4 +163,19 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 self._optimal.initial_time_step + self._error_counter,
                 self._optimal.state_list[self._error_counter : :],
             )
+            traj = Trajectory(
+                self._optimal.initial_time_step + self._error_counter,
+                self._optimal.state_list[self._error_counter : :],
+            )
             return traj
+
+    def convert_from_rear_to_middle(self, traj: Trajectory) -> Trajectory:
+        """
+        Converts a trajectories rear positions of a car to the middle positions of the car, based on its orientation.
+
+        :param Trajectory traj: Trajectory to be converted.
+        """
+        shifted_traj = []
+        for state in traj.state_list:
+            shifted_traj.append(state.shift_positions_to_center(self._wb_rear_axle))
+        return Trajectory(traj.initial_time_step, shifted_traj)

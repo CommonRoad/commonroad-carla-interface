@@ -85,6 +85,7 @@ class VehicleInterface(ActorInterface):
                     self._sc,
                     self._config.carla_controller_type,
                     self._config.simulation.time_step,
+                    self._config.simulation.time_horizon_seconds,
                     self._config.control,
                 )
         else:
@@ -180,10 +181,13 @@ class VehicleInterface(ActorInterface):
             if vehicle:
                 sig = self._cr_obstacle.initial_signal_state
                 self._set_light(sig=sig)
-        yaw = transform.rotation.yaw * (math.pi / 180)
-        vx = self._cr_obstacle.initial_state.velocity * math.cos(yaw)
-        vy = self._cr_obstacle.initial_state.velocity * math.sin(yaw)
-        actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
+        if isinstance(self._controller, TransformControl):
+            actor.set_target_velocity(carla.Vector3D(0, 0, 0))
+        else:
+            yaw = transform.rotation.yaw * (math.pi / 180)
+            vx = self._cr_obstacle.initial_state.velocity * math.cos(yaw)
+            vy = self._cr_obstacle.initial_state.velocity * math.sin(yaw)
+            actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
         return actor
 
     def _create_random_actor(self, obs_id: int):
@@ -285,6 +289,6 @@ class VehicleInterface(ActorInterface):
         if not self.spawned:
             self._spawn(time_step)
             self._init_controller()
-        elif self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC and time_step > 0:
+        elif self._cr_obstacle.obstacle_role is ObstacleRole.DYNAMIC:
             self._controller.control(self.cr_obstacle.state_at_time(time_step))
             self._set_light(self.cr_obstacle.signal_state_at_time_step(time_step))
