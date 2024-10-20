@@ -28,8 +28,8 @@ class CanvasController(VisualizationBase):
         # Create font for all text elements
         self._notification_text = FadingText(
             FadingText.font_mono(),
-            (self._vis3d.config.width, 40),
-            (0, self._vis3d.config.height - 40),
+            (self._vis3d.config.ego_view.width, 40),
+            (0, self._vis3d.config.ego_view.height - 40),
         )
         # self._help = HelpText(Text.font_mono_16(), self._config.width, self._config.height)
 
@@ -144,14 +144,14 @@ class CanvasController(VisualizationBase):
 
     def _render_info_text(self, display: pygame.surface.Surface):
         if self._show_info:
-            info_surface = pygame.Surface((220, self._vis3d.config.height))
+            info_surface = pygame.Surface((220, self._vis3d.config.ego_view.height))
             info_surface.set_alpha(100)
             display.blit(info_surface, (0, 0))
             v_offset = 4
             bar_h_offset = 100
             bar_width = 106
             for item in self._info_text:
-                if v_offset + 18 > self._vis3d.config.height:
+                if v_offset + 18 > self._vis3d.config.ego_view.height:
                     break
                 if isinstance(item, list):
                     if len(item) > 1:

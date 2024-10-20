@@ -6,7 +6,7 @@ import carla
 import numpy as np
 import pygame
 
-from crcarla.helper.config import EgoViewParams
+from crcarla.helper.config import CustomVis, CarlaParams
 from crcarla.visualization.visualization_base import VisualizationBase
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ class CameraSensor(VisualizationBase):
     def __init__(
         self,
         parent_actor: carla.Vehicle,
-        config: EgoViewParams,
+        config: CarlaParams,
         canvas_controller: "CanvasController",
     ):
         """
@@ -42,8 +42,8 @@ class CameraSensor(VisualizationBase):
         self._canvas_controller = canvas_controller
 
         # Recording status and path for video storage
-        self.recording = config.record_video
-        self.path = config.video_path
+        self.recording = config.ego_view.record_video
+        self.path = config.ego_view.video_path
         if (tmp_path := self.path / "_tmp").exists():
             shutil.rmtree(tmp_path)
 
@@ -71,12 +71,22 @@ class CameraSensor(VisualizationBase):
         if not self._parent.type_id.startswith("walker.pedestrian"):
             # Camera transforms for non-pedestrian actors
             return [
+                # 3rd person view
                 (
                     carla.Transform(
                         carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
                         carla.Rotation(pitch=8.0),
                     ),
                     carla.AttachmentType.SpringArm,
+                )
+                if self._config.vis_type == CustomVis.THIRD_PERSON
+                # driver view
+                else (
+                    carla.Transform(
+                        carla.Location(x=-0.01 * bound_x, y=-0.3 * bound_y, z=1.0 * bound_z),
+                        carla.Rotation(pitch=0.0),
+                    ),
+                    carla.AttachmentType.Rigid,
                 ),
                 (
                     carla.Transform(carla.Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)),
@@ -148,10 +158,10 @@ class CameraSensor(VisualizationBase):
         for item in sensors:
             bp = bp_library.find(item[0])
             if item[0].startswith("sensor.camera"):
-                bp.set_attribute("image_size_x", str(self._config.width))
-                bp.set_attribute("image_size_y", str(self._config.height))
+                bp.set_attribute("image_size_x", str(self._config.ego_view.width))
+                bp.set_attribute("image_size_y", str(self._config.ego_view.height))
                 if bp.has_attribute("gamma"):
-                    bp.set_attribute("gamma", str(self._config.gamma))
+                    bp.set_attribute("gamma", str(self._config.ego_view.gamma))
                 for attr_name, attr_value in item[3].items():
                     bp.set_attribute(attr_name, attr_value)
                 image_w = bp.get_attribute("image_size_x").as_int()
