@@ -14,7 +14,7 @@ from typing import List, Tuple
 import carla
 import pygame
 
-from crcarla.helper.config import EgoViewParams
+from crcarla.helper.config import CarlaParams
 from crcarla.visualization.canvas.canvas_controller import CanvasController
 from crcarla.visualization.common import get_actor_display_name, sort_vehicles_by_dist
 from crcarla.visualization.sensors.sensor_controller import SensorController
@@ -32,7 +32,7 @@ class Visualization3D(VisualizationBase):
     This class also controls all VisualizationBase instances.
     """
 
-    def __init__(self, carla_world: carla.World, config: EgoViewParams, ego_vehicle: carla.Vehicle):
+    def __init__(self, carla_world: carla.World, config: CarlaParams, ego_vehicle: carla.Vehicle):
         """
         Initialization of 3D world visualization.
 
@@ -175,4 +175,4 @@ class Visualization3D(VisualizationBase):
         self.simulation_time = timestamp.elapsed_seconds
 
     def __get_vehicles(self) -> carla.ActorList:
-        return self.carla_world.get_actors().filter(self.config.object_filter)
+        return self.carla_world.get_actors().filter(self.config.ego_view.object_filter)

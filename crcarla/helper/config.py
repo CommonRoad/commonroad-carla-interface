@@ -40,8 +40,9 @@ class CustomVis(Enum):
     """Available visualization types."""
 
     BIRD = 0
-    EGO = 1
-    NONE = 2
+    THIRD_PERSON = 1
+    DRIVER = 2
+    NONE = 3
 
 
 class ApproximationType(Enum):

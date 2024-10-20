@@ -766,9 +766,11 @@ class CarlaInterface:
             self._config.logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.visualization.width, self._config.visualization.height)
             vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.birds_eye_view)
-        elif self._config.vis_type is CustomVis.EGO and not obstacle_only:
+        elif (
+            self._config.vis_type is CustomVis.THIRD_PERSON or self._config.vis_type is CustomVis.DRIVER
+        ) and not obstacle_only:
             self._config.logger.info("Init 3D.")
-            vis_world = Visualization3D(self._world, self._config.ego_view, self._ego.actor)
+            vis_world = Visualization3D(self._world, self._config, self._ego.actor)
 
         return vis_world, clock, display
 
