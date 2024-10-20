@@ -12,7 +12,8 @@ from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import (
     create_collision_object,
 )
-from commonroad_route_planner.route_planner import RoutePlanner
+import commonroad_route_planner.fast_api.fast_api as rfapi
+from commonroad_route_planner.reference_path import ReferencePath
 from commonroad_rp.reactive_planner import ReactivePlanner
 from commonroad_rp.state import ReactivePlannerState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
@@ -40,8 +41,9 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config = config
         self._config.scenario = sc
         self._config.planning_problem = pp
-        route_planner = RoutePlanner(config.scenario.lanelet_network, config.planning_problem)
-        route = route_planner.plan_routes().retrieve_first_route()
+        route: ReferencePath = rfapi.generate_reference_path_from_lanelet_network_and_planning_problem(
+            lanelet_network=config.scenario.lanelet_network, planning_problem=config.planning_problem
+        )
         self._config.planning.route = route
         self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)

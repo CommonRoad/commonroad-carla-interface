@@ -17,7 +17,7 @@ from commonroad_dc.geometry.geometry import (
     compute_orientation_from_polyline,
     compute_pathlength_from_polyline,
 )
-from commonroad_route_planner.route_planner import RoutePlanner
+import commonroad_route_planner.fast_api.fast_api as rfapi
 from commonroad_rp.utility.config import VehicleConfiguration
 from crpred.predictor_interface import PredictorInterface
 from scipy import spatial
@@ -85,6 +85,8 @@ def get_planning_problem_from_world(
     :param dt: Time step size [s].
     :param global_route: Global route.
     :param current_time_step: Current time step.
+    :param traj: Trajectory
+    :param for_transform_controller: bool whether pp is for transform controller
     :return: CommonRoad planning problem.
     """
 
@@ -139,7 +141,9 @@ def compute_global_route(sc: Scenario, pp: PlanningProblem) -> np.ndarray:
     :param pp: Planning problem.
     :return: Route.
     """
-    return RoutePlanner(sc.lanelet_network, pp).plan_routes().retrieve_first_route().reference_path
+    return rfapi.generate_reference_path_from_lanelet_network_and_planning_problem(
+        lanelet_network=sc.lanelet_network, planning_problem=pp
+    ).reference_path
 
 
 class CommonRoadPlannerController(CarlaController):
