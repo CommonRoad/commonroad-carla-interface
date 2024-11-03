@@ -165,10 +165,6 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 self._optimal.initial_time_step + self._error_counter,
                 self._optimal.state_list[self._error_counter : :],
             )
-            traj = Trajectory(
-                self._optimal.initial_time_step + self._error_counter,
-                self._optimal.state_list[self._error_counter : :],
-            )
             return traj
 
     def convert_from_rear_to_middle(self, traj: Trajectory) -> Trajectory:

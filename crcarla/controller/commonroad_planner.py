@@ -98,8 +98,8 @@ def get_planning_problem_from_world(
         initial_state.position = cur.position
         initial_state.orientation = cur.orientation
         initial_state.velocity = cur.velocity
-        initial_state.acceleration = cur.acceleration
-        initial_state.yaw_rate = cur.yaw_rate
+        initial_state.acceleration = cur.acceleration if hasattr(cur, "acceleration") else 0.0
+        initial_state.yaw_rate = cur.yaw_rate if hasattr(cur, "yaw_rate") else 0.0
         initial_state.slip_angle = 0
     else:
         initial_state = create_cr_initial_state_from_actor(actor, current_time_step)

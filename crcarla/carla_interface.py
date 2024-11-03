@@ -424,6 +424,10 @@ class CarlaInterface:
             # To spawn the carla actor.
             self._ego.tick(0)
 
+        self._config.logger.info("Spawn other vehicles.")
+        for obs in self._cr_obstacles:
+            obs.tick(0)
+
         self._set_scenario(sc)
 
         self._run_simulation(obstacle_control=True, obstacle_only=obstacle_only)
@@ -594,6 +598,10 @@ class CarlaInterface:
 
         self._config.logger.info("Spawn ego.")
         self._ego.tick(0)
+        if obstacle_control:
+            self._config.logger.info("Spawn other vehicles.")
+            for obs in self._cr_obstacles:
+                obs.tick(0)
 
         return self._run_simulation(obstacle_control=obstacle_control)
 
@@ -826,13 +834,17 @@ class CarlaInterface:
 
         self._config.logger.info("Start simulation.")
         while time_step <= self._config.simulation.max_time_step:
+            position = self._ego.actor.get_location()
+            vel = self._ego.actor.get_velocity()
             if self._config.sync:
                 self._world.tick()
             else:
                 self._world.wait_for_tick()
 
             if self._ego is not None:
+                position2 = self._ego.actor.get_location()
                 self._ego.tick(time_step)
+                position3 = self._ego.actor.get_location()
             if obstacle_control:
                 obstacle_errors = []
                 for obs in self._cr_obstacles:

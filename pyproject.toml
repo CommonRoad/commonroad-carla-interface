@@ -50,6 +50,9 @@ scipy = [
 #optional = true
 #
 #[tool.poetry.group.tests.dependencies]
+mat4py = "^0.6.0"
+casadi = "^3.6.7"
+pypoman = "^1.1.0"
 
 [tool.poetry.group.docs]
 optional = true
