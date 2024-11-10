@@ -1,5 +1,7 @@
+import pickle
 from copy import deepcopy
 from enum import Enum
+from pathlib import Path
 from typing import Optional, List
 
 import numpy as np
@@ -11,7 +13,7 @@ from commonroad.scenario.trajectory import Trajectory
 
 from crcarla.controller.automaton_planner.auxiliary.overlappingLanelets import overlappingLanelets
 from crcarla.controller.automaton_planner.auxiliary.prediction import prediction
-from crcarla.controller.automaton_planner.maneuverAutomaton.createManeuverAutomaton import create_ma
+from crcarla.controller.automaton_planner.maneuverAutomaton.loadAROCautomaton import loadAROCautomaton
 from crcarla.controller.automaton_planner.src.highLevelPlanner import highLevelPlanner
 from crcarla.controller.automaton_planner.src.lowLevelPlannerManeuverAutomaton import lowLevelPlannerManeuverAutomaton
 from crcarla.controller.automaton_planner.src.lowLevelPlannerOptimization import lowLevelPlannerOptimization
@@ -27,6 +29,7 @@ class AutomatonPlannerInterface(TrajectoryPlannerInterface):
         self._type = type
         self._real_dynamics = real_dynamics
         self._horizon = int(np.round(params['horizon']/scenario.dt))
+        self.MA = loadAROCautomaton()
 
 
     def plan(self,
@@ -40,18 +43,20 @@ class AutomatonPlannerInterface(TrajectoryPlannerInterface):
         overlaps = overlappingLanelets(sc)
         scenario_: Scenario = prediction(scenario_, self._horizon, x0, overlapping_lanelets=overlaps)
 
+
+
         if self._type == PlannerType.AUTOMATON:
             plan, space, ref_traj = highLevelPlanner(scenario_, pp, self._params, compute_free_space=True,
                                                      minimum_safe_distance=0.5, improve_velocity_profile=True)
-            x, u, controller = lowLevelPlannerManeuverAutomaton(scenario_, pp, self._params, space, ref_traj,
-                                                                create_ma(self._params))
+            x, u, controller = lowLevelPlannerManeuverAutomaton(scenario_, pp, self._params, space, ref_traj, self.MA)
         else:
             plan, space, ref_traj = highLevelPlanner(scenario_, pp, self._params, compute_free_space=False,
-                                                     minimum_safe_distance=0.5, improve_velocity_profile=True)
-            x, u, controller = lowLevelPlannerOptimization(scenario_, pp, self._params, space, ref_traj, feedback_control=True,
-                                                           R_diff=np.diag([0, 0.1]))
+                                                 minimum_safe_distance=0.5, improve_velocity_profile=True)
+            x, u, controller = lowLevelPlannerOptimization(scenario_, pp, self._params, space, ref_traj,
+                                                           feedback_control=True, R_diff=np.diag([0, 0.1]))
 
         state_list: List[KSState] = self.create_state_list(x, u, pp.initial_state.time_step)
+        #state_list: List[KSState] = self.create_state_list(ref_traj, pp.initial_state.time_step)
 
         traj = Trajectory(pp.initial_state.time_step, state_list)
 
@@ -67,3 +72,4 @@ class AutomatonPlannerInterface(TrajectoryPlannerInterface):
             state = KSState(i + init_ts, pos, steering_angle, velocity, orientation)
             state_list.append(state)
         return state_list
+

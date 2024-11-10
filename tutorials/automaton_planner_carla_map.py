@@ -7,7 +7,7 @@ from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.automaton_planner.automatonPlannerInterface import AutomatonPlannerInterface, PlannerType
 from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType
 
-cr_scenario_path = Path(__file__).parents[1] / "scenarios/ZAM_Zip-1_19_T-1.xml"
+cr_scenario_path = Path(__file__).parents[1] / "scenarios/DEU_Test-1_1_T-2.xml" # "scenarios/ZAM_Zip-1.xml"
 
 scenario, pps = CommonRoadFileReader(cr_scenario_path).open()
 
@@ -39,7 +39,7 @@ carla_interface = CarlaInterface(param)
 
 # start planning
 carla_interface.plan(
-    AutomatonPlannerInterface(scenario, params, PlannerType.OPTIMIZATION),
+    AutomatonPlannerInterface(scenario, params, PlannerType.AUTOMATON),
     None,
     scenario,
     list(pps.planning_problem_dict.values())[0],

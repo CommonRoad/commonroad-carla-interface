@@ -91,6 +91,7 @@ class VehicleInterface(ActorInterface):
         else:
             if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
                 self._controller = TransformControl(self._actor)
+                self.actor.set_target_velocity(carla.Vector3D(0, 0, 0))
             elif self._config.carla_controller_type is VehicleControlType.PID:
                 self._controller = PIDController(
                     actor=self._actor,
@@ -181,13 +182,6 @@ class VehicleInterface(ActorInterface):
             if vehicle:
                 sig = self._cr_obstacle.initial_signal_state
                 self._set_light(sig=sig)
-        if isinstance(self._controller, TransformControl):
-            actor.set_target_velocity(carla.Vector3D(0, 0, 0))
-        else:
-            yaw = transform.rotation.yaw * (math.pi / 180)
-            vx = self._cr_obstacle.initial_state.velocity * math.cos(yaw)
-            vy = self._cr_obstacle.initial_state.velocity * math.sin(yaw)
-            actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
         return actor
 
     def _create_random_actor(self, obs_id: int):

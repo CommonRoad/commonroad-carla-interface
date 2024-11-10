@@ -5,11 +5,9 @@ from shapely.geometry import Polygon
 import shutil
 import time as timer
 import pickle
-import sys
-sys.path.append('./')
 
-from maneuverAutomaton.ManeuverAutomaton import MotionPrimitive
-from maneuverAutomaton.ManeuverAutomaton import ManeuverAutomaton
+from crcarla.controller.automaton_planner.maneuverAutomaton.ManeuverAutomaton import MotionPrimitive
+from crcarla.controller.automaton_planner.maneuverAutomaton.ManeuverAutomaton import ManeuverAutomaton
 
 def loadAROCautomaton():
     """load a maneuver automaton create with the AROC toolbox"""

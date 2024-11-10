@@ -1,16 +1,19 @@
 import copy
 import math
+import os
 from dataclasses import dataclass
 from typing import Optional, Union
 
 import carla
 import numpy as np
-from commonroad.common.util import make_valid_orientation
+from commonroad.common.file_writer import CommonRoadFileWriter
+from commonroad.common.util import make_valid_orientation, FileFormat
+from commonroad.common.writer.file_writer_interface import OverwriteExistingFile
 from commonroad.geometry.shape import Rectangle
 from commonroad.planning.goal import GoalRegion, Interval
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
-from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.scenario import Scenario
+from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
+from commonroad.scenario.scenario import Scenario, Tag
 from commonroad.scenario.state import CustomState, InitialState, TraceState
 from commonroad.scenario.trajectory import Trajectory
 from commonroad_dc.geometry.geometry import (
@@ -271,6 +274,36 @@ class CommonRoadPlannerController(CarlaController):
             except RuntimeError:
                 steer = 0
             steering_angle = make_valid_orientation(steer * (math.pi / 180))
-        self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
+        try:
+            self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
+        except:
+            self.save_scenario(sc, pp)
         self._controller.control(self._current_trajectory.state_list[1])
         self._current_time_step += 1
+
+    def save_scenario(self, sc, pp, index: int = 0): # + self.config.scenario.
+        scenario = copy.deepcopy(sc)
+
+        scenario.author = 'Valentin Merle'
+        scenario.affiliation = 'Technical University of Munich, Germany'
+        scenario.source = ''
+        scenario.tags = {Tag.INTERSECTION}
+
+        # Call the CommonRoadFileWriter function
+        fw_pb = CommonRoadFileWriter(scenario, PlanningProblemSet([pp]), file_format=FileFormat.XML)
+
+        #  Declare the names of the map, dynamic and scenario protobuf files,
+        #  which will be written inside the respective folder with the sanem network_id name
+        network_id = str(scenario.scenario_id.country_id) + '_' + str(scenario.scenario_id.map_name) + '-' + str(
+                scenario.scenario_id.map_id)
+
+        scenario_path = os.getcwd() + "/saved/" + str(index) + "/" + network_id
+
+        if not os.path.exists(scenario_path):
+            os.makedirs(scenario_path)
+
+        filename = scenario_path + "/" + network_id + ".xml"
+
+        #  Create and write the map, dynamic and scenario files
+        fw_pb.write_to_file(filename, overwrite_existing_file=OverwriteExistingFile.ALWAYS)
+        raise Exception('Could\'t find plan!' )
