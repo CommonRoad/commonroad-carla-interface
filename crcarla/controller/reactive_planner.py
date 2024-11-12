@@ -72,6 +72,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         :param sc: CommonRoad scenario.
         :param pp: CommonRoad planning problem.
         :param ref_path: Reference path which the trajectory planner should follow.
+        :param steering_angle: Steering angle in rad.
         :return: CommonRoad trajectory.
         """
         self._config.scenario = sc
@@ -161,10 +162,6 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 sc.scenario_id.configuration_id = configuration_id_tmp
             # if no optimal trajectory can be computed use last computed trajectory
             self._error_counter += 1
-            traj = Trajectory(
-                self._optimal.initial_time_step + self._error_counter,
-                self._optimal.state_list[self._error_counter : :],
-            )
             traj = Trajectory(
                 self._optimal.initial_time_step + self._error_counter,
                 self._optimal.state_list[self._error_counter : :],

@@ -422,7 +422,7 @@ class CarlaInterface:
         if ego_id is not None:
             self._ego = VehicleInterface(ego_obs, self._world, self._tm, config=self._config.vehicle)
             # To spawn the carla actor.
-            self._ego.tick(0)
+            self._ego.tick(ego_obs.initial_state.time_step)
 
         self._set_scenario(sc)
 
@@ -593,7 +593,7 @@ class CarlaInterface:
             obstacle_control = False
 
         self._config.logger.info("Spawn ego.")
-        self._ego.tick(0)
+        self._ego.tick(pp.initial_state.time_step)
 
         return self._run_simulation(obstacle_control=obstacle_control)
 

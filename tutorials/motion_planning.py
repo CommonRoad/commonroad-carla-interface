@@ -15,7 +15,7 @@ param.map = "maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.vis_type = CustomVis.EGO
+param.vis_type = CustomVis.THIRD_PERSON
 param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner
