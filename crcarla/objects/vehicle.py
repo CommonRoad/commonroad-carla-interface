@@ -181,7 +181,7 @@ class VehicleInterface(ActorInterface):
             if vehicle:
                 sig = self._cr_obstacle.initial_signal_state
                 self._set_light(sig=sig)
-        if isinstance(self._controller, TransformControl):
+        if self._config.carla_controller_type is VehicleControlType.TRANSFORM:
             actor.set_target_velocity(carla.Vector3D(0, 0, 0))
         else:
             yaw = transform.rotation.yaw * (math.pi / 180)

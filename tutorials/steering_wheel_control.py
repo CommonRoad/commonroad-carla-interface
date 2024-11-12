@@ -5,7 +5,7 @@ from crcarla.helper.config import CarlaParams, CustomVis, EgoPlanner
 
 # set parameters
 param = CarlaParams()
-param.vis_type = CustomVis.EGO
+param.vis_type = CustomVis.THIRD_PERSON
 
 # Initialize CARLA-Interface and start keyboard control
 ci = CarlaInterface(param)
