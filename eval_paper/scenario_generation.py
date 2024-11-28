@@ -23,10 +23,12 @@ param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
 
 percentages = [0, 25, 50, 100]
-num_actors = [(10, 5)]
+num_actors = [(50, 5)]
 distances_leading = [0.5, 1, 5, 19, 25]
 
-param_to_manipulate = "ignore_lights_percentage"  # , "ignore_signs_percentage", "global_percentage_speed_difference", "ignore_lights_percentage"
+param_to_manipulate = [
+    "random_right_lane_change_percentage"
+]  # ["ignore_lights_percentage", "ignore_signs_percentage", "global_percentage_speed_difference", "global_percentage_pedestrians_crossing", "keep_right_rule_percentage", "ignore_walkers_percentage", "ignore_vehicles_percentage", "random_left_lane_change_percentage", "random_right_lane_change_percentage"]
 
 
 def generate_params() -> List[List[SimulationParams]]:
@@ -47,14 +49,15 @@ def generate_params() -> List[List[SimulationParams]]:
     param_iteration.seed_counter = 0
     param_iteration.seed_walker_counter = 0
 
-    for idx in ["10HD"]:
+    for idx in ["07"]:
         new_map = []
         tmp_param.map = f"Town{idx}"
 
         tmp_param.number_vehicles = num_actors[0][0]
         tmp_param.number_walkers = num_actors[0][1]
 
-        param_iteration(param_to_manipulate)
+        for carla_param in param_to_manipulate:
+            param_iteration(carla_param)
         list_param.append(new_map)
 
     return list_param
