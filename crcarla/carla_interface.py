@@ -593,7 +593,10 @@ class CarlaInterface:
             obstacle_control = False
 
         self._config.logger.info("Spawn ego.")
-        self._ego.tick(pp.initial_state.time_step)
+        if pp is not None:
+            self._ego.tick(pp.initial_state.time_step)
+        else:
+            self._ego.tick(0)
 
         return self._run_simulation(obstacle_control=obstacle_control)
 
