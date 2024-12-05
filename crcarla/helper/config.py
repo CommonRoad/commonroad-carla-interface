@@ -1,6 +1,8 @@
 import dataclasses
 import inspect
 import logging
+import math
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -256,12 +258,18 @@ class ViewParams(BaseParam):
     height: int = 720
     description: str = "Keyboard Control"
     camera_storage_path: str = ""
-    camera_transform_horizontal: carla.Transform = carla.Transform(
-        carla.Location(z=5, x=-46, y=54), carla.Rotation(pitch=-5.0, yaw=270, roll=0.0)
-    )
-    camera_transform_bird: carla.Transform = carla.Transform(
-        carla.Location(z=40, x=-45, y=19), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0)
-    )
+
+    @property
+    def camera_transform_bird_values(self) -> carla.Transform:
+        return carla.Transform(carla.Location(z=40, x=-45, y=19), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0))
+
+    @property
+    def camera_transform_horizontal(self) -> carla.Transform:
+        return carla.Transform(carla.Location(z=5, x=-46, y=54), carla.Rotation(pitch=-5.0, yaw=270, roll=0.0))
+
+    @property
+    def camera_transform_vertical(self) -> carla.Transform:
+        return carla.Transform(carla.Location(z=5, x=-46, y=54), carla.Rotation(pitch=-5.0, yaw=270, roll=0.0))
 
 
 @dataclass
@@ -308,6 +316,13 @@ class SimulationParams(BaseParam):
     ignore_video_driver: bool = False
     # distance spawn point must be away from ego vehicle
     spawn_point_distance_ego: float = 10
+
+    def __setattr__(self, prop, val):
+        if prop == "max_time_step":
+            if val == -1 or val is None or val == math.inf:
+                self.max_time_step = sys.maxsize
+                val = sys.maxsize
+        super().__setattr__(prop, val)
 
 
 @dataclass

@@ -1,0 +1,7 @@
+offscreen_mode: true
+vis_type: NONE
+log_level: INFO
+simulation:
+  max_time_step: 300
+vehicle:
+  vehicle_ks_state: false
