@@ -653,9 +653,10 @@ class CarlaInterface:
             )
             if self._config.vehicle.vehicle_ks_state and self._ego.actor.is_alive:
                 state = create_cr_ks_state_from_actor(self._ego.actor, time_step)
+                self._ego.trajectory.append(state)
             elif self._ego.actor.is_alive:
                 state = create_cr_pm_state_from_actor(self._ego.actor, time_step)
-            self._ego.trajectory.append(state)
+                self._ego.trajectory.append(state)
 
         for obs in self._cr_obstacles:
             # TODO Investigate the reason why certain actors are being destroyed prior to the completion of the loop.
@@ -689,7 +690,6 @@ class CarlaInterface:
 
         :param env: CommonRoad environment storing time of day, underground and weather.
         """
-        # TODO consider underground conditions
         if env is None:
             return
         if env.time_of_day is not TimeOfDay.NIGHT:
@@ -698,7 +698,11 @@ class CarlaInterface:
             elif env.weather is Weather.LIGHT_RAIN:
                 self._world.set_weather(carla.WeatherParameters.SoftRainNoon)
             elif env.weather is Weather.FOG:
-                pass  # TODO set weather since fog in general supported by CARLA
+                weather = carla.WeatherParameters.CloudyNoon
+                weather.fog_density = 90.0
+                weather.fog_falloff = 90.0
+                weather.fog_distance = 0.0
+                self._world.set_weather(weather)
             elif env.weather is Weather.HAIL:
                 self._config.logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:
@@ -714,7 +718,11 @@ class CarlaInterface:
             elif env.weather is Weather.LIGHT_RAIN:
                 self._world.set_weather(carla.WeatherParameters.SoftRainNight)
             elif env.weather is Weather.FOG:
-                pass  # TODO set weather since fog in general supported by CARLA
+                weather = carla.WeatherParameters.CloudyNight
+                weather.fog_density = 90.0
+                weather.fog_falloff = 90.0
+                weather.fog_distance = 0.0
+                self._world.set_weather(weather)
             elif env.weather is Weather.HAIL:
                 self._config.logger.info("CarlaInterface::set_cr_weather: Hail not supported by CARLA.")
             elif env.weather is Weather.SNOW:

@@ -51,7 +51,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._optimal = None
         self._error_counter = 0
         self._store_failing_scenarios = store_failing_scenarios
-        self._reference_velocity = 15  # 15  # TODO
+        self._reference_velocity = 15  # TODO use velocity-planner
         tmp_sc = copy.deepcopy(sc)
         for obs in tmp_sc.obstacles:
             tmp_sc.remove_obstacle(obs)
@@ -122,7 +122,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 # add to planned trajectory
                 self._cr_state_list = self._optimal[0].state_list
 
-                # record planned state and input TODO check this
+                # record planned state and input
                 self._planner.record_state_and_input(self._optimal[0].state_list[1])
             else:
                 # TODO: sample emergency brake trajectory if no trajectory is found
