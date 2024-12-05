@@ -6,29 +6,20 @@ from typing import List
 from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistingFile
 from commonroad.common.util import FileFormat
 from commonroad.scenario.scenario import Tag
-from commonroad.visualization.mp_renderer import MPRenderer
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.helper.config import CarlaParams, CustomVis, SimulationParams
 
-import matplotlib
-
-matplotlib.use("TkAgg")
-
 param = CarlaParams(log_level="INFO")
 param.vehicle.vehicle_ks_state = False
-param.simulation.max_time_step = 300
+param.simulation.max_time_step = 3000
 param.offscreen_mode = True
 param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
 
-percentages = [0, 25, 50, 100]
-num_actors = [(50, 5)]
-distances_leading = [0.5, 1, 5, 19, 25]
-
-param_to_manipulate = [
-    "random_right_lane_change_percentage"
-]  # ["ignore_lights_percentage", "ignore_signs_percentage", "global_percentage_speed_difference", "global_percentage_pedestrians_crossing", "keep_right_rule_percentage", "ignore_walkers_percentage", "ignore_vehicles_percentage", "random_left_lane_change_percentage", "random_right_lane_change_percentage"]
+percentages = [25]
+num_actors = [(100, 25)]
+distances_leading = [1]
 
 
 def generate_params() -> List[List[SimulationParams]]:
@@ -36,28 +27,21 @@ def generate_params() -> List[List[SimulationParams]]:
     list_param = []
     tmp_param = copy.deepcopy(param.simulation)
 
-    def param_iteration(parameter_name: str):
-        for value in percentages:
-            tmp_param2 = copy.deepcopy(tmp_param)
-            tmp_param2.tm.__setattr__(parameter_name, value)
-            param_iteration.seed_counter += 1
-            param_iteration.seed_walker_counter += 1
-            tmp_param2.tm.seed = param_iteration.seed_counter
-            tmp_param2.seed_walker = param_iteration.seed_walker_counter
-            new_map.append(copy.deepcopy(tmp_param2))
-
-    param_iteration.seed_counter = 0
-    param_iteration.seed_walker_counter = 0
-
-    for idx in ["07"]:
+    for idx in ["01", "02", "04", "07", "10HD"]:
         new_map = []
         tmp_param.map = f"Town{idx}"
+        for num_vehicles, number_walkers in num_actors:
+            tmp_param.number_vehicles = num_vehicles
+            tmp_param.number_walkers = number_walkers
+            tmp_param2 = copy.deepcopy(tmp_param)
 
-        tmp_param.number_vehicles = num_actors[0][0]
-        tmp_param.number_walkers = num_actors[0][1]
+            tmp_param2.tm.global_distance_to_leading_vehicle = distances_leading[0]
+            tmp_param2.tm.global_percentage_speed_difference = percentages[0]
+            tmp_param2.tm.ignore_signs_percentage = percentages[0]
+            tmp_param2.tm.ignore_lights_percentage = percentages[0]
+            tmp_param2.tm.keep_right_rule_percentage = percentages[0]
+            new_map.append(copy.deepcopy(tmp_param2))
 
-        for carla_param in param_to_manipulate:
-            param_iteration(carla_param)
         list_param.append(new_map)
 
     return list_param
@@ -114,7 +98,4 @@ for map_list in param_sets:
             source="CARLA",
             tags={Tag.URBAN},
             file_format=FileFormat.PROTOBUF,
-        ).write_to_file(str(scenario_path / (str(sc.scenario_id) + ".xml")), OverwriteExistingFile.ALWAYS)
-
-        rnd = MPRenderer()
-        rnd.create_video([sc], str(scenario_path / str(sc.scenario_id)) + ".mp4")
+        ).write_to_file(str(scenario_path / (str(sc.scenario_id) + ".pb")), OverwriteExistingFile.ALWAYS)
