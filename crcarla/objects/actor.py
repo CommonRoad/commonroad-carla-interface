@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 import carla
 from commonroad.scenario.obstacle import DynamicObstacle
-from commonroad.scenario.state import KSState, PMState
+from commonroad.scenario.state import KSState, PMState, ExtendedPMState
 
 from crcarla.helper.config import PedestrianParams, VehicleParams
 
@@ -58,7 +58,7 @@ class ActorInterface(ABC):
         return self._actor is not None
 
     @property
-    def trajectory(self) -> List[Union[PMState, KSState]]:
+    def trajectory(self) -> List[Union[PMState, KSState, ExtendedPMState]]:
         """
         Getter for trajectory.
 

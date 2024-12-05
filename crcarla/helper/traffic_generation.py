@@ -221,10 +221,10 @@ def spawn_walker_controller(
     all_id = []
     walker_controller_bp = world.get_blueprint_library().find("controller.ai.walker")
     for walker in walkers_list:
-        if world.get_actor(walker["id"]) is not None:  # TODO solve root cause
+        if world.get_actor(walker["id"]) is not None:
             batch.append(SpawnActor(walker_controller_bp, carla.Transform(), walker["id"]))
     try:
-        results = client.apply_batch_sync(batch, True)  # TODO
+        results = client.apply_batch_sync(batch, True)
     except RuntimeError:
         return [], []
 
@@ -278,7 +278,7 @@ def spawn_walkers(
             walker_speed.append(0.0)
         batch.append(SpawnActor(walker_bp, spawn_point))
     try:
-        results = client.apply_batch_sync(batch, True)  # TODO
+        results = client.apply_batch_sync(batch, True)
     except RuntimeError:
         results = []
 

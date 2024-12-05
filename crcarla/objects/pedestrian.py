@@ -55,7 +55,6 @@ class PedestrianInterface(ActorInterface):
         transform = create_carla_transform(self._cr_obstacle.initial_state)
         obstacle_blueprint_walker = self._world.get_blueprint_library().find("walker.pedestrian.0002")
         try:
-            # TODO investigate why this fails sometimes
             actor = self._world.try_spawn_actor(obstacle_blueprint_walker, transform)  # parent_walker
             if actor:
                 actor.set_simulate_physics(self._config.physics)

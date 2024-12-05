@@ -16,8 +16,8 @@ import matplotlib
 
 matplotlib.use("TkAgg")
 
-config_carla = CarlaParams.load("carla_config.yaml")
-config_sim = OmegaConf.load("scenario_gen_config.yaml")
+config_carla = CarlaParams.load(Path(__file__).parent / "carla_config.yaml")
+config_sim = OmegaConf.load(Path(__file__).parent / "scenario_gen_config.yaml")
 
 settings = list(config_sim.keys())
 settings.remove("default_params_simulation")
