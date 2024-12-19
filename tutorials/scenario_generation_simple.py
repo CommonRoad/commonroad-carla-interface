@@ -24,6 +24,6 @@ CommonRoadFileWriter(
     pps,
     author="TUM-CPS",
     affiliation="Technical University of Munich",
-    source="CARLA",
+    source="CommonRoad-CARLA-Interface",
     tags={Tag.URBAN},
 ).write_to_file(None, OverwriteExistingFile.ALWAYS)
