@@ -31,7 +31,11 @@ def generate_params() -> Dict[str, List[Tuple[str, SimulationParams]]]:
 
     def param_iteration(parameter_name: str, parameter_configs: Dict) -> List[Tuple[str, SimulationParams]]:
         new_params = []
-        for value in parameter_configs["percentages"]:
+        if parameter_name != "distances_leading":
+            values_to_iterate = parameter_configs["percentages"]
+        else:
+            values_to_iterate = parameter_configs["distances_leading"]
+        for value in values_to_iterate:
             tmp_param2 = copy.deepcopy(tmp_param)
             tmp_param2.tm.__setattr__(parameter_name, value)
             if parameter_configs["update_seed"]:
@@ -68,6 +72,7 @@ failing_maps = []
 
 config_carla.logger.info("Generate scenarios.")
 ci = None
+scenario_mapping = ""
 for map_name, map_list_with_key in param_sets.items():
     prediction_idx = 1
     config_carla.map = map_name
@@ -99,9 +104,16 @@ for map_name, map_list_with_key in param_sets.items():
         prediction_idx += 1
 
         try:
-            print(param_name, f"percentage: {tmp_param.tm[param_name]}", str(new_scenario.scenario_id))
             sc, pps = ci.scenario_generation(new_scenario)
+            scenario_mapping += (
+                f"success - {param_name} - percentage: {tmp_param.tm[param_name]} - "
+                f"{str(new_scenario.scenario_id)}\n"
+            )
         except (RuntimeError, AttributeError):
+            scenario_mapping += (
+                f"failed - {param_name} - percentage: {tmp_param.tm[param_name]} - "
+                f"{str(new_scenario.scenario_id)}\n"
+            )
             config_carla.logger.error(
                 "Skip scenario generation for config. Traceback: {}".format(traceback.format_exc())
             )
@@ -109,7 +121,7 @@ for map_name, map_list_with_key in param_sets.items():
             continue
         sc.tags = {Tag.URBAN}
 
-        scenario_path = Path(__file__).parent / "generated_scenarios"
+        scenario_path = Path(__file__).parent / "generated_scenarios" / param_name
         if not scenario_path.exists():
             scenario_path.mkdir(parents=True, exist_ok=True)
 
@@ -118,7 +130,7 @@ for map_name, map_list_with_key in param_sets.items():
             pps,
             author="Sebastian Maierhofer",
             affiliation="Technical University of Munich",
-            source="CARLA",
+            source="CommonRoad-CARLA-Interface",
             tags={Tag.URBAN},
             file_format=FileFormat.PROTOBUF,
         ).write_to_file(str(scenario_path / (str(sc.scenario_id) + ".xml")), OverwriteExistingFile.ALWAYS)
@@ -126,3 +138,6 @@ for map_name, map_list_with_key in param_sets.items():
         rnd = MPRenderer()
         rnd.create_video([sc], str(scenario_path / str(sc.scenario_id)) + ".mp4")
     config_carla.start_carla_server = False
+
+with open(f'{Path(__file__).parent / "generated_scenarios/scenario_mapping.txt"}', "w") as f:
+    f.write(scenario_mapping)
