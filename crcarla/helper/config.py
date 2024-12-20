@@ -258,6 +258,9 @@ class ViewParams(BaseParam):
     height: int = 720
     description: str = "Keyboard Control"
     camera_storage_path: str = ""
+    third_person_dist_m: float = 5.0
+    third_person_z_axis_m: float = 4.0
+    third_person_angle_deg: float = -20.0
 
     @property
     def camera_transform_bird_values(self) -> carla.Transform:

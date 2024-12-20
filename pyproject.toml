@@ -74,7 +74,7 @@ line-length = 120
 indent-width = 4
 format.quote-style = "double"
 target-version = "py311"
-ignore = ["E203"]
+lint.ignore = ["E203", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
