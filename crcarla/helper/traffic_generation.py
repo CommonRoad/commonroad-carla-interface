@@ -43,7 +43,7 @@ def create_actors(
     blueprints_vehicles, blueprints_walkers = extract_blueprints(config, world)
 
     # Spawn vehicles
-    spawn_vehicle(config, blueprints_vehicles, world, tm, ego_location)
+    spawn_vehicles(config, blueprints_vehicles, world, tm, ego_location)
 
     # Spawn Walkers
     all_walker_actors = spawn_walker_with_control(config, blueprints_walkers, client, world, generate_object_id)
@@ -293,7 +293,7 @@ def spawn_walkers(
     return walker_speed, walkers_list
 
 
-def spawn_vehicle(
+def spawn_vehicles(
     config: SimulationParams,
     blueprints: List[carla.ActorBlueprint],
     world: carla.World,

@@ -1,5 +1,6 @@
 import copy
 import logging
+import math
 import os
 import signal
 import subprocess
@@ -203,7 +204,7 @@ class CarlaInterface:
         """Configures CARLA world."""
         self._config.logger.info("Init CARLA world.")
         settings = self._world.get_settings()
-        settings.synchronous_mode = self._config.simulation.sync
+        settings.synchronous_mode = self._config.sync
         settings.fixed_delta_seconds = self._config.simulation.time_step
         settings.max_substep_delta_time = self._config.simulation.max_substep_delta_time
         settings.max_substeps = self._config.simulation.max_substeps
@@ -832,6 +833,20 @@ class CarlaInterface:
 
         vis_world, clock, display = self._init_visualization(obstacle_only)
 
+        if not self._config.offscreen_mode and not self._config.sync:
+            spectator = self._world.get_spectator()
+            world_snapshot = self._world.wait_for_tick()
+            vis_id = self._world.on_tick(
+                lambda world_snapshot: self.update_spectator(
+                    world_snapshot,
+                    spectator,
+                    self._ego.actor,
+                    self._config.visualization.third_person_dist_m,
+                    self._config.visualization.third_person_z_axis_m,
+                    self._config.visualization.third_person_angle_deg,
+                )
+            )
+
         time_step = 0
         goal_reached = False
 
@@ -857,7 +872,10 @@ class CarlaInterface:
                     tl.tick(time_step)
 
             if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
-                clock.tick_busy_loop(1 / self._config.simulation.time_step)
+                if self._config.simulation.time_step != 0:
+                    clock.tick_busy_loop(1 / self._config.simulation.time_step)
+                else:
+                    clock.tick_busy_loop()
                 vis_world.tick(clock)
                 vis_world.render(display)
                 pygame.display.flip()
@@ -876,6 +894,9 @@ class CarlaInterface:
 
         print("Simulation finished.")
 
+        if not self._config.offscreen_mode:
+            self._world.remove_on_tick(vis_id)
+
         if vis_world is not None:
             vis_world.destroy()
 
@@ -891,6 +912,21 @@ class CarlaInterface:
                 actor.destroy()
 
         return goal_reached
+
+    def update_spectator(self, world_snapshot, spectator, vehicle, dist: float, z_axis: float, pitch: float):
+        vehicle_transform = vehicle.get_transform()
+
+        angle = vehicle_transform.rotation.yaw
+
+        angle_radians = math.radians(angle)
+        x = dist * math.cos(angle_radians)
+        y = dist * math.sin(angle_radians)
+
+        spectator_pos = carla.Transform(
+            vehicle_transform.location + carla.Location(x=-x, y=-y, z=z_axis),
+            carla.Rotation(yaw=vehicle_transform.rotation.yaw, pitch=pitch),
+        )
+        spectator.set_transform(spectator_pos)
 
     def _init_display(self) -> pygame.display:
         """

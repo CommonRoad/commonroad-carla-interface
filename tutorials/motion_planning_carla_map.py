@@ -20,20 +20,26 @@ param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.THIRD_PERSON
-param.ego_view.record_video = True
+param.ego_view.record_video = False
 param.ego_view.video_path = Path(__file__).parent.parent
 param.ego.carla_controller_type = VehicleControlType.TRANSFORM
 param.simulation.max_time_step = 200
+param.sync = False
+param.offscreen_mode = False
+param.simulation.time_step = 0.0
+param.simulation.number_walkers = 30
+param.simulation.number_vehicles = 30
 
 # configure CommonRoad reactive planner
 # debug params
 rp_config = ReactivePlannerConfiguration()
-rp_config.debug.draw_icons = True
-rp_config.debug.save_plots = True
-rp_config.debug.draw_ref_path = True
-rp_config.debug.show_plots = True
-rp_config.debug.draw_traj_set = True
+rp_config.debug.draw_icons = False
+rp_config.debug.save_plots = False
+rp_config.debug.draw_ref_path = False
+rp_config.debug.show_plots = False
+rp_config.debug.draw_traj_set = False
 rp_config.debug.num_workers = 6
+rp_config.debug.multiproc = False
 rp_config.debug.plots_file_format = "svg"
 rp_config.general.path_output = str(Path(__file__).parent.parent)
 
@@ -78,7 +84,7 @@ planning_problem = PlanningProblem(
 carla_interface.plan(
     ReactivePlannerInterface(scenario, planning_problem, rp_config),
     None,
-    scenario,
+    None,
     planning_problem,
     VehicleType.BMW_320i,
 )
