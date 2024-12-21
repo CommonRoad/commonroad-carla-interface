@@ -1,17 +1,17 @@
 # CommonRoad-CARLA Interface
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/commonroad-carla-interface.svg)](https://pypi.python.org/pypi/commonroad-carla-interface/)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
-[![PyPI version fury.io](https://badge.fury.io/py/commonroad-carla-interface.svg)](https://pypi.python.org/pypi/commonroad-carla-interface/)
+[![PyPI version fury.io](https://badge.fury.io/py/commonroad-carla-interface.svg)](https://pypi.python.org/pypi/commonroad-carla-interface/)\
 [![PyPI download month](https://img.shields.io/pypi/dm/commonroad-carla-interface.svg?label=PyPI%20downloads)](https://pypi.python.org/pypi/commonroad-carla-interface/)
 [![PyPI download week](https://img.shields.io/pypi/dw/commonroad-carla-interface.svg?label=PyPI%20downloads)](https://pypi.python.org/pypi/commonroad-carla-interface/)
-[![PyPI license](https://img.shields.io/pypi/l/commonroad-carla-interface.svg)](https://pypi.python.org/pypi/commonroad-carla-interface/)
+[![PyPI license](https://img.shields.io/pypi/l/commonroad-carla-interface.svg)](https://pypi.python.org/pypi/commonroad-carla-interface/) \
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 
 The CommonRoad-CARLA Interface provides APIs to use CommonRoad-based tools together with the 3D simulator [CARLA](https://carla.org).
 
 
 ## Installation
 ### Carla
-Install Carla 9.14 via as described in the
+Install Carla 9.15 via as described in the
 [CARLA documentation](https://carla.readthedocs.io/en/latest/start_quickstart/#b-package-installation)
 (either use the system installation or download a release from their GitHub repository).
 Also add the additional maps if you want to use them.
@@ -89,7 +89,7 @@ Contributors (in alphabetic order by last name): Linge Ai, Yassine El Alami, Rup
 Miguel Marcano, Valentin Merle, Fen Shi, Dávid Tokár Zhihao Yang
 
 ## Citation
-**If you use our code for research, please consider to cite our papers:**
+**If you use our code for research, please consider to cite our papers and the CARLA publication:**
 ```
 @inproceedings{Maierhofer2024a,
 	author = {Maierhofer, Sebastian and  Althoff, Matthias},
@@ -123,4 +123,25 @@ Miguel Marcano, Valentin Merle, Fen Shi, Dávid Tokár Zhihao Yang
                     We demonstrate the functionality of the toolbox by creating CommonRoad maps and scenarios based on
                     other map formats and manually-created map data.},
 }
+
+@InProceedings{Dosovitskiy2017,
+  author    = {Alexey Dosovitskiy and German Ros and Felipe Codevilla and Antonio Lopez and Vladlen Koltun},
+  booktitle = {Proc. of the 1st Annual Conference on Robot Learning},
+  title     = {{CARLA}: {An} Open Urban Driving Simulator},
+  year      = {2017},
+  pages     = {1--16},
+  abstract  = {We introduce CARLA, an open-source simulator for autonomous driving research.
+               CARLA has been developed from the ground up to support development, training,
+               and validation of autonomous urban driving systems. In addition to open-source
+               code and protocols, CARLA provides open digital assets (urban layouts, buildings,
+               vehicles) that were created for this purpose and can be used freely.
+               The simulation platform supports flexible specification of sensor suites and
+               environmental conditions. We use CARLA to study the performance of three
+               approaches to autonomous driving: a classic modular pipeline, an end-to-end model
+               trained via imitation learning, and an end-to-end model trained via reinforcement learning.
+               The approaches are evaluated in controlled scenarios of increasing difficulty,
+               and their performance is examined via metrics provided by CARLA, illustrating the platform’s utility for autonomous driving research.},
+}
+
+
 ```

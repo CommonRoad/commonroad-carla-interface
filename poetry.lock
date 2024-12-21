@@ -243,13 +243,13 @@ shapely = ">=1.6.4"
 
 [[package]]
 name = "commonroad-io"
-version = "2024.2"
+version = "2024.3"
 description = "Python tool to read, write, and visualize CommonRoad scenarios and solutions for automated vehicles."
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "commonroad_io-2024.2-py3-none-any.whl", hash = "sha256:a34e8adfc8bbac1cfb3ba216f1996aa44b0c1c863dc47d611b0d2045e452bc68"},
-    {file = "commonroad_io-2024.2.tar.gz", hash = "sha256:13c5fd56e0699218dfb78e59e679aea1b9624f265e74bda37e4c9a8999c2211d"},
+    {file = "commonroad_io-2024.3-py3-none-any.whl", hash = "sha256:2994cda71550903ca93834c472ab14bd7f5f8aadbded8576a02055f0e01b1530"},
+    {file = "commonroad_io-2024.3.tar.gz", hash = "sha256:9561464469e83e518675cfc8e1a782eaff535aeda93803cc7facf62237b11ff3"},
 ]
 
 [package.dependencies]
@@ -258,12 +258,12 @@ iso3166 = ">=1.0.1"
 lxml = ">=4.2.2"
 matplotlib = ">=3.0.0"
 networkx = ">=2.2"
-numpy = ">=1.26.1"
+numpy = {version = ">=1.26.1", markers = "python_version < \"3.13\""}
 omegaconf = ">=2.0"
 pillow = ">=10.4.0"
 protobuf = "3.20.2"
 rtree = ">=0.8.3"
-scipy = ">=1.11.3,<2.0.0"
+scipy = {version = ">=1.11.3", markers = "python_version < \"3.13\""}
 shapely = ">=2.0.1,<3.0.0"
 tqdm = ">=4.64"
 
@@ -272,59 +272,53 @@ name = "commonroad-prediction"
 version = "0.1.1"
 description = "A collection and interface for CommonRoad prediction algorithms."
 optional = false
-python-versions = "^3.9,<3.12"
-files = []
-develop = false
+python-versions = "<3.12,>=3.9"
+files = [
+    {file = "commonroad_prediction-0.1.1-py3-none-any.whl", hash = "sha256:e65cf19d94c725f206075434ff4241bd6d7e7f3660f75c94713afda8811a4ec4"},
+    {file = "commonroad_prediction-0.1.1.tar.gz", hash = "sha256:39766779be1bfe4ba39ffffdffc78e0818aa2fc3b0bd30fef9565757a4c8943a"},
+]
 
 [package.dependencies]
 commonroad-drivability-checker = ">=2024.1"
 commonroad-io = ">=2024.1"
-imageio = "^2.31.1"
+imageio = ">=2.31.1,<3.0.0"
 numpy = "<2.0"
-
-[package.source]
-type = "git"
-url = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git"
-reference = "develop"
-resolved_reference = "1b595bd44790f592bf24e6b24e688b22cd747c75"
 
 [[package]]
 name = "commonroad-reactive-planner"
 version = "2024.1"
 description = "CommonRoad Reactive Planner: Sampling-based Frenet Planner"
 optional = false
-python-versions = ">=3.9,<3.12"
-files = []
-develop = false
+python-versions = "<3.12,>=3.8"
+files = [
+    {file = "commonroad_reactive_planner-2024.1-py3-none-any.whl", hash = "sha256:3daa3704025ba324b9344a8a129533d9d71346daac4afafb31adcd8bb5c90646"},
+    {file = "commonroad_reactive_planner-2024.1.tar.gz", hash = "sha256:6bd9568c9fbeb26d4096a25855c164fd8653eb9a9aca28dbe9f2983489c473e8"},
+]
 
 [package.dependencies]
 commonroad-drivability-checker = ">=2024.1"
-commonroad-io = ">=2024.2"
-commonroad-route-planner = ">=2024.2.0"
+commonroad-io = ">=2023.2"
+commonroad-route-planner = ">=2024.1.1"
 commonroad_vehicle_models = ">=3.0.2"
 imageio = ">=2.13.5"
 matplotlib = ">=2.2.2"
-methodtools = "^0.4.5"
+methodtools = ">=0.4.5,<0.5.0"
 networkx = ">=2.2"
-numpy = ">=1.22,<2.0"
+numpy = ">=1.22"
 omegaconf = ">=2.1.1"
 scipy = ">=1.5.2"
 triangle = ">=20230923"
 
-[package.source]
-type = "git"
-url = "git@gitlab.lrz.de:cps/reactive-planner.git"
-reference = "development"
-resolved_reference = "812cf4a6c93a5472829ba91f2ce2d4132f4bce25"
-
 [[package]]
 name = "commonroad-route-planner"
-version = "2025.0.1"
+version = "2024.2.1"
 description = "Route and reference path planning tool for CommonRoad scenarios"
 optional = false
-python-versions = "^3.8"
-files = []
-develop = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "commonroad_route_planner-2024.2.1-py3-none-any.whl", hash = "sha256:690d6dbbc45ec319e439280e46d2fce2f8ac30530a8222ea9fd961df924a0a2f"},
+    {file = "commonroad_route_planner-2024.2.1.tar.gz", hash = "sha256:60677abed85f27b54214a83e781bed3d9ae1125a294562dfb332ebfaee59ab9b"},
+]
 
 [package.dependencies]
 commonroad-drivability-checker = ">=2023.1"
@@ -334,57 +328,48 @@ networkx = ">=2.4"
 numpy = ">=1.17.4,<2.0"
 shapely = ">=1.6.4.post2"
 
-[package.source]
-type = "git"
-url = "git@gitlab.lrz.de:cps/commonroad-route-planner.git"
-reference = "develop"
-resolved_reference = "0ceae98499925929ff52338d52ba1e1a64bb75b0"
-
 [[package]]
 name = "commonroad-scenario-designer"
-version = "0.8.2"
+version = "0.8.4"
 description = "Toolbox for Map Conversion and Scenario Creation for Autonomous Vehicles"
 optional = false
-python-versions = "^3.9,<3.12"
-files = []
-develop = false
+python-versions = "<3.12,>=3.9"
+files = [
+    {file = "commonroad_scenario_designer-0.8.4-py3-none-any.whl", hash = "sha256:5feef3773e89fe1469b7cb2efbdc942f2672955ebd4640ec2159181abcde4792"},
+    {file = "commonroad_scenario_designer-0.8.4.tar.gz", hash = "sha256:0100cc2515cd825d6678798910ff1122ef13303dbdbd48de8b1c4a164e831f14"},
+]
 
 [package.dependencies]
 antlr4-python3-runtime = "4.9.3"
-commonroad-drivability-checker = "^2024.1"
-commonroad-io = "2024.2"
-eclipse-sumo = "^1.19.0"
-iso3166 = "^2.1.1"
-kdtree = "^0.16"
-lxml = "^4.9.2"
+commonroad-drivability-checker = ">=2024.1,<2025.0"
+commonroad-io = ">=2024.2,<=2024.3"
+eclipse-sumo = ">=1.19.0,<2.0.0"
+iso3166 = ">=2.1.1,<3.0.0"
+kdtree = ">=0.16,<0.17"
+lxml = ">=4.9.2,<5.0.0"
 matplotlib = ">=3.6.0"
-mercantile = "^1.2.1"
+mercantile = ">=1.2.1,<2.0.0"
 mgrs = ">=1.4.5"
-networkx = "^3.0"
-numpy = "^1.26.4,<2.0"
-omegaconf = "^2.3.0"
-ordered-set = "^4.1.0"
-pandas = "^2.0.2"
-pygeodesy = "^23.3.23"
+networkx = ">=3.0,<4.0"
+numpy = ">=1.26.4,<2.0.0"
+omegaconf = ">=2.3.0,<3.0.0"
+ordered-set = ">=4.1.0,<5.0.0"
+pandas = ">=2.0.2,<3.0.0"
+pyclothoids = ">=0.1.5,<0.2.0"
+pygeodesy = ">=23.3.23,<24.0.0"
 pymetis = ">=2020.1"
-pyproj = "^3.4.1"
+pyproj = ">=3.4.1,<4.0.0"
 pyqt6 = ">=6.6.0"
 pyyaml = "6.0"
-requests = "^2.31.0 "
-scipy = "^1.11.3"
+requests = ">=2.31.0,<3.0.0"
+scipy = ">=1.11.3,<2.0.0"
 shapely = ">=2.0.1"
 similaritymeasures = ">=0.4.4"
-sumocr = "^2024.1"
-typer = "^0.9.0"
-typing-extensions = "^4.8.0"
-urllib3 = "^2.0.3"
-utm = "^0.7.0"
-
-[package.source]
-type = "git"
-url = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git"
-reference = "cr2odr"
-resolved_reference = "12c2cb092f64606d7d2e6a3d134f5634029e09e0"
+sumocr = ">=2024.1,<2025.0"
+typer = ">=0.9.0,<0.10.0"
+typing-extensions = ">=4.8.0,<5.0.0"
+urllib3 = ">=2.0.3,<3.0.0"
+utm = ">=0.7.0,<0.8.0"
 
 [[package]]
 name = "commonroad-vehicle-models"
@@ -549,6 +534,12 @@ description = "A microscopic, multi-modal traffic simulation package"
 optional = false
 python-versions = "*"
 files = [
+    {file = "eclipse_sumo-1.21.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0f6ea51e67257728afda321f6e8be15c0c8ba5de74e095e152a50cbaed06654d"},
+    {file = "eclipse_sumo-1.21.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:013f1065eb8eef0284c43fe58ab1cfcbe435e0169fc4666efb5431da1290f6cb"},
+    {file = "eclipse_sumo-1.21.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c938594a55f4bd17c200d5c696bde78b994fde151fb91ae195ecbb08053c1713"},
+    {file = "eclipse_sumo-1.21.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:619fa8e6ca5dc2a82a132dd4ac81435df8a69c765acf36b62a2dab8d8fe1f6bf"},
+    {file = "eclipse_sumo-1.21.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b4b80fb09c4a97744e314c8c427574024503fbcc89f23faaa7e573beb9ebbc5a"},
+    {file = "eclipse_sumo-1.21.0-py2.py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:09d63d093458b059e96202f31c0527d68771d512b9764e91b7228fb30a50ef5d"},
     {file = "eclipse_sumo-1.21.0-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:919ce16c4ec1a14f85af80b87a02f49cfc153372ef23009fd96027dccb2557e2"},
     {file = "eclipse_sumo-1.21.0-py2.py3-none-win_amd64.whl", hash = "sha256:8f2942912e8edb906d76d73ec722606a7e949dadef9607ac3d1a02f3fc37f819"},
 ]
@@ -1109,18 +1100,31 @@ description = "The python version of the libsumo API to communicate with the tra
 optional = false
 python-versions = "*"
 files = [
+    {file = "libsumo-1.21.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:e61e3a146735cce3991135577d7e1286c097f0d30209eecef322d425c8fee866"},
+    {file = "libsumo-1.21.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a43a7ff0c0eb74cc3c6ec7bfe2a6612bd1f39b5ed885b169a63375760b35c7b8"},
     {file = "libsumo-1.21.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7e11a636691af34335ad690df6b8b45836685c535132f5d527444362fb01331b"},
     {file = "libsumo-1.21.0-cp310-cp310-win_amd64.whl", hash = "sha256:a9b3788eb34d5a560d13190aa4e6403c7f457b925443934bb4a74a3e509b71bf"},
+    {file = "libsumo-1.21.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:b8df1ea7f44cc1c398d7a8e5c0ccaf7fc9670a84303e10b33bf88cc02401d898"},
+    {file = "libsumo-1.21.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:78bcf5771fccec17bcab3ce353383753a577a8286daaf1bacf237d998dea9041"},
     {file = "libsumo-1.21.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2e6d73742d73f40ad3ece6b125af926b1019093585b88aaee05cab245f5b061e"},
     {file = "libsumo-1.21.0-cp311-cp311-win_amd64.whl", hash = "sha256:e8035b9a18ae7f59e2741de30bba0094c039c01adda5b883ac4ebb6ea4a02cb9"},
+    {file = "libsumo-1.21.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:ab3bcb906ab067a5f954a6591969414401239d1ed20e9e3c0cbb98104f6a00f3"},
+    {file = "libsumo-1.21.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:91d0652046273db64f9185ebed64a988d66b4e30f596b3e18d515aaab578b35a"},
     {file = "libsumo-1.21.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1b8b4a6e6093d64b8f3d036b4511018d99cdeda2d2ca445783f0bc352742b43f"},
     {file = "libsumo-1.21.0-cp312-cp312-win_amd64.whl", hash = "sha256:db0821c008dc5e4cfffb93a54551fcf7644838d39af302914885b4e03d4f7f58"},
+    {file = "libsumo-1.21.0-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:7b3a03b80e2b6d6b7129dd5cee1e2da9254cdc8eea239c3c430953ec3ed876a9"},
+    {file = "libsumo-1.21.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4e98081152e635ce62d050924cce4e41da14c10dea52286b8503394ae63dff73"},
     {file = "libsumo-1.21.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9cfa983e8fc43b2e247362fcdcfcf13ec580e63a3ba1689ca553566ac21b3b80"},
+    {file = "libsumo-1.21.0-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8b1d6187138677aec8715628d82559dcc6c4325982ef91d6ea7ec9536d29414d"},
     {file = "libsumo-1.21.0-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:42c2dbeb500a2c7885268575c3a09a2a4c0cf094d9ba9e96ebd2c95afb96b0d4"},
+    {file = "libsumo-1.21.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f635b5d8a8bdc08ad1f88d27120816a4dadb9c8fefd4de51d157c31c51a7ce83"},
     {file = "libsumo-1.21.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a24f52e391387139483bbb9aeeef82e84446f3b45b259a06d35d0c0532ac8172"},
     {file = "libsumo-1.21.0-cp37-cp37m-win_amd64.whl", hash = "sha256:a6ccfc00665cae56b0f3ad147cb63e7bf22f1c24c9ccead31734d7dd50c16919"},
+    {file = "libsumo-1.21.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2d724e7daf0ecf9466a74b575d2ac4ba1bad882cb74dae11a32b0e883e55f39a"},
     {file = "libsumo-1.21.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3bd9471b204fe83dfbf3cd02afd680cbc75ab619776978e3bdf0d8eee8edf9cf"},
     {file = "libsumo-1.21.0-cp38-cp38-win_amd64.whl", hash = "sha256:01ed0c1d1fc0cc0168fe408b78158fc9dc4850cd3324ef995f04c176299e1781"},
+    {file = "libsumo-1.21.0-cp39-cp39-macosx_14_0_arm64.whl", hash = "sha256:fbb93c89b7ade3647f54a2374283047591c70440fa43e65b3898f26c2b419fdf"},
+    {file = "libsumo-1.21.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:05409d7eb3c511a4a42ab157ad980d5edc6dd764a0d1d38a0d2e04a3b8e1c962"},
     {file = "libsumo-1.21.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:60e644aeb01fa275dbd41a0825efdc939acd41793b372edec36f03aee84f45d2"},
     {file = "libsumo-1.21.0-cp39-cp39-win_amd64.whl", hash = "sha256:f1ba3940796358a5311f4444eb84617041c198c7a6f5801558210a859c1dd5dc"},
 ]
@@ -1166,7 +1170,6 @@ files = [
     {file = "lxml-4.9.4-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:e8f9f93a23634cfafbad6e46ad7d09e0f4a25a2400e4a64b1b7b7c0fbaa06d9d"},
     {file = "lxml-4.9.4-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:3f3f00a9061605725df1816f5713d10cd94636347ed651abdbc75828df302b20"},
     {file = "lxml-4.9.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:953dd5481bd6252bd480d6ec431f61d7d87fdcbbb71b0d2bdcfc6ae00bb6fb10"},
-    {file = "lxml-4.9.4-cp312-cp312-win32.whl", hash = "sha256:266f655d1baff9c47b52f529b5f6bec33f66042f65f7c56adde3fcf2ed62ae8b"},
     {file = "lxml-4.9.4-cp312-cp312-win_amd64.whl", hash = "sha256:f1faee2a831fe249e1bae9cbc68d3cd8a30f7e37851deee4d7962b17c410dd56"},
     {file = "lxml-4.9.4-cp35-cp35m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:23d891e5bdc12e2e506e7d225d6aa929e0a0368c9916c1fddefab88166e98b20"},
     {file = "lxml-4.9.4-cp35-cp35m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e96a1788f24d03e8d61679f9881a883ecdf9c445a38f9ae3f3f193ab6c591c66"},
@@ -2100,6 +2103,87 @@ files = [
 
 [package.extras]
 tests = ["pytest"]
+
+[[package]]
+name = "pybind11"
+version = "2.13.6"
+description = "Seamless operability between C++11 and Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pybind11-2.13.6-py3-none-any.whl", hash = "sha256:237c41e29157b962835d356b370ededd57594a26d5894a795960f0047cb5caf5"},
+    {file = "pybind11-2.13.6.tar.gz", hash = "sha256:ba6af10348c12b24e92fa086b39cfba0eff619b61ac77c406167d813b096d39a"},
+]
+
+[package.extras]
+global = ["pybind11-global (==2.13.6)"]
+
+[[package]]
+name = "pyclothoids"
+version = "0.1.5"
+description = "A library for clothoid curves in Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyclothoids-0.1.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b00b55be0b1ff63ec5ac3b6875c0891a7c117163fed2b830e1d679a6eb810a0a"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e9cc6c08ebcefd6c0950c43ff6698eccf9fd21eb208ce9f5ff5adc336710f439"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:574074835bd4a369cdea6bde5b07e90f94e3a960cd25300593aec1f77cb696bd"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:ed55f098a0bedbf9b2358ce768a60b3b6a107376538bb8655395d3ed5332bc3c"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:a29002085b964483a3a90891ce1d9b3dbe2320794e35f1db591bf366877f0522"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-win32.whl", hash = "sha256:bbe76f00150f8742472753f31a4df16c8963a36a7bb9dffa9156a1ca9e1a1fd3"},
+    {file = "pyclothoids-0.1.5-cp310-cp310-win_amd64.whl", hash = "sha256:d4690dabbebe32f450820783e9ae71e316cdc5dc7e03c99b97c4fdb402c7561a"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:e413cd16d1ec35ee9b399f4efcf79fcc07d5550a533cacea079fa8b32d5d9d65"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:36595dc4667a209cda781c40d1468515eb9fb78d5e4a22c39fb4fc9538c9d7c4"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4bd1bdbd127054fd5948a15b5dd2560460942b0579a5548d2f6f7cf1ea0bb5b7"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:c093e9b9af00f115197833b93a2611f9d308e50addc1be46581dd093dc1449f0"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:162eb604973c41d54ef65bc5b85f9518d0a98698716ec17a3000ff3f04be828d"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-win32.whl", hash = "sha256:3f98fcd01920b5d56dbd695df8cba87097b835c1f80e0354ee455cdc52a930b8"},
+    {file = "pyclothoids-0.1.5-cp311-cp311-win_amd64.whl", hash = "sha256:69a9fc8a27c06b0584422c8c0eafc76d4a9128bb665c8a82c9605fe45fbe1f69"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:f540654d0cda48bdb87c37771473292a3bf3f6936a552779b3567d1e2ff54fb6"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3126bf77a9c127a5680810d832f3791f02265a97fb9f32c4dfc806731eb019c5"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2a6baa55d6b125f63227f7de777264e941d6051bb861b5a5cb6dd1de86bafe75"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:9deca2d1ba08f20ebdd734205b02bfd821213719a842821197fa59ddcfd26344"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:eb72126a9bdf21a08adc5023597ae365d45d88bab92e303fb45e864349aabb01"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-win32.whl", hash = "sha256:c1d9cfce5aa760b4673672c47f7bc7e7cfc7baab2bbe6715a9546058522f969f"},
+    {file = "pyclothoids-0.1.5-cp36-cp36m-win_amd64.whl", hash = "sha256:ea0840557ffb53ba7810230f4721ffa82946d372201bcf28674555ea4e18abbe"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:8659fab8e0d472db21ab3737348a8b604fdd624fc6b17d5ed4313a04d9a1c311"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:af7c57fd1bd7a30aa847161df5598180003d590a5772d05e31e6933d7a48b282"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e2d8a3c6b6f201d57610c899dc9734767c9de50582f6cf04129679a5608c515e"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:dc80097d31f31304746df0eb5476ca58dfc8f3a1d25c74ccce564f8af2f181a2"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:b7da119656b6e851da08fce57831a4e78d1e9cb77a59ec5543629d732205c1fb"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-win32.whl", hash = "sha256:02d5d3dfa81bd71e7e41cdbe1577533055fa459a15b812969aa0eca535ddab80"},
+    {file = "pyclothoids-0.1.5-cp37-cp37m-win_amd64.whl", hash = "sha256:a77082faedca597988bed1687580e7a0b7c998ffb38a4bff6242985b8eecfdb7"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:2cd49b54cc47b51168c101013c6849cf5d4e1418c584f6743d603d6782ac80ca"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0621a4de12aab7392654f94622d2f50666fb5ef5ced24cd1a568c35d606a8fcf"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1fc8d776bd1940fbf1387b66f955c06edddfa6930d13ff5071f6ff97bf3f2a4b"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:315d6227e42ebe7d9afd5c5ec9a889036cb4558def730c65bc7f3fc139b79103"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:d4ad3794061ed7948cf50c887ed8ed5cef4b754d4ecf7038c12ef14805e8de2c"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-win32.whl", hash = "sha256:edde2e79cbd3f9e7d8ee32b2b87c1bbdb1d5b364c478fe5f07dfeed6d3a53370"},
+    {file = "pyclothoids-0.1.5-cp38-cp38-win_amd64.whl", hash = "sha256:70adc69425cb36a3d0d029d34de6b67a46e28e2026440091a536c0127f60dfd0"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:3dce9ce2cea6d340214c44423fd7d29c0b0b0248bfd24143d2d36ed90987d86d"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ff1fb127eb78dac6564a8d15641ac6bcbe6b058bb4afd93cdf71f35b6a6d79b4"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dc2ec8a493a54ea8adf9f5481c16553aeca7d35d0903fe9b37f406c4c2888a0f"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:2a8dd945d848b2ec0f869a35e48d8af07a164c44d774be5efec7cc1fc02846e6"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:e9db4441fb579e17496cfe04e4be576aef42a923a7187d5ddc6d10346cce4674"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-win32.whl", hash = "sha256:24d2430e735a72e1fc0128f27c9584e8d7df828066a07c9efdcd7b2e1966b2ed"},
+    {file = "pyclothoids-0.1.5-cp39-cp39-win_amd64.whl", hash = "sha256:a1575d8111fab09c03ab9bd3aa524d04d0b9940028888d10e63d0869a40c0c87"},
+    {file = "pyclothoids-0.1.5-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:56ee1513b30b8e716645dd50eabcdc861b15c0f1664ca6ff2a5d21bccd0e6f20"},
+    {file = "pyclothoids-0.1.5-pp37-pypy37_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b784dc5571d69df17e5b210341134c9a322113e2185d3faa7a154ba79e330ea0"},
+    {file = "pyclothoids-0.1.5-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6d983376ad922973b07492a1bc636f426c965e2fcd0f625bd2baf3d3935cb15a"},
+    {file = "pyclothoids-0.1.5-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:d1b9708e3a558bd49f8709a6c7d020cbb0c8019c304934d011fdb148f88ea4be"},
+    {file = "pyclothoids-0.1.5-pp38-pypy38_pp73-macosx_10_9_x86_64.whl", hash = "sha256:302467febde8023e2830a5faa88dfb236decec9699dae75c1f9b98be102c0c27"},
+    {file = "pyclothoids-0.1.5-pp38-pypy38_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:88f5bc7b06a981d1e1b18988fa032271951250c6b9b10dfb32defa5da2131234"},
+    {file = "pyclothoids-0.1.5-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:46eb06f0304a9239fe17eb07405d27b5eefa54467371afb182394259387983b6"},
+    {file = "pyclothoids-0.1.5-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:6c0e659ec32808816e6e53f947e9074664036612ceff20b104ab8d261e7df5ac"},
+    {file = "pyclothoids-0.1.5-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:43cd62e1bc1b35bbb4e1137fff65b167839b395ce04420f382c08ed3f3200861"},
+    {file = "pyclothoids-0.1.5-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7637a9ad58445e2f74223108b16d34f30636cb138b3b156421d9e08a039ae8c2"},
+    {file = "pyclothoids-0.1.5-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ad9562ab68bf323a1faa1638f30a23ff4991558617698e7ab7b785f975513a8d"},
+    {file = "pyclothoids-0.1.5-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:a3450065c5c5285a62e5c13205647cbffe828eff3826658fc9a2ba59821cc5a9"},
+    {file = "pyclothoids-0.1.5.tar.gz", hash = "sha256:ebd0ecb04221499461b7665420f0ee86d61e5dcab650c143667e83070cd2a601"},
+]
+
+[package.dependencies]
+pybind11 = ">=2.4"
 
 [[package]]
 name = "pygame"
@@ -3152,4 +3236,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.11"
-content-hash = "1ee0c2746019e8e2c61d2a4481c0a53bfddf57f13dfe49804cf71c337cb4a8d5"
+content-hash = "ecdba210409d72bd02940ba09e384b63a6728242d9938d867bdebdbfb4d78f77"
