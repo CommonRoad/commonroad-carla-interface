@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "CommonRoad-Carla-Interface"
+name = "commonroad-carla-interface"
 version = "1.0.0"
 description = "Interface between CommonRoad and the traffic simulator CARLA."
 authors = ["Cyber-Physical Systems Group, Technical University of Munich <commonroad@lists.lrz.de>"]
