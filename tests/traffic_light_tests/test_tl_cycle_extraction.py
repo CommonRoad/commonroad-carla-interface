@@ -6,7 +6,7 @@
 # from tests.base_test_case.my_test_case import StandardTestCase
 # from tests.utils import TCase
 # from commonroad.scenario.traffic_light import TrafficLightState, TrafficLightCycleElement
-# # from carlacr.objects.traffic_light import extract_cycle_from_history
+# # from crcarla.objects.traffic_light import extract_cycle_from_history
 #
 #
 # RANDOM_TEST_CASE_COUNT = 10000

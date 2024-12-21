@@ -7,12 +7,18 @@ theme:
     - search.suggest
     - search.highlight
 plugins:
-  - mkdocstrings
+  - mkdocstrings :
+      handlers :
+        python :
+          options :
+            docstring_style : sphinx
   - search
 
 nav:
   - Introduction: index.md
-  - Example Usage: example.md
+  - Usage:
+      - "Example": example.md
+      - "Keyboard": keyboard.md
   - API Reference:
       - "CARLA Interface": carla_interface_api.md
       - "Configuration": config_api.md

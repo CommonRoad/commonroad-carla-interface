@@ -4,33 +4,31 @@ from pathlib import Path
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
-from crpred.basic_models.constant_velocity_predictor import (
-    ConstantVelocityLinearPredictor,
-)
+from crpred.basic_models.constant_velocity_predictor import ConstantVelocityLinearPredictor
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.controller.reactive_planner import ReactivePlannerInterface
-from carlacr.helper.config import CarlaParams, CustomVis, VehicleControlType
+from crcarla.carla_interface import CarlaInterface
+from crcarla.controller.reactive_planner import ReactivePlannerInterface
+from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 predictor = ConstantVelocityLinearPredictor()
 
+# specify map an scenario
+scenario, planning_problem_set = CommonRoadFileReader("../tutorials/scenarios/DEU_Test-1_1_T-2.xml").open()
 
-or_map = str(Path(__file__).parent.parent / "maps/DEU_Test-1_1_T-4.xodr")
-cr_map = str(Path(__file__).parent.parent / "scenarios/DEU_Test-1_1_T-4.xml")
-scenario, planning_problem_set = CommonRoadFileReader(cr_map).open()
+# configure carla-interface
 param = CarlaParams()
-param.map = or_map
+param.map = "../tutorials/maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.EGO
 param.ego_view.record_video = True
-param.ego_view.video_path = str(Path(__file__).parent.parent)
+param.ego_view.video_path = Path(__file__).parent.parent
 param.ego.carla_controller_type = VehicleControlType.TRANSFORM
-param.simulation.max_time_step = 120
+param.simulation.max_time_step = 60
 
 rp_config = ReactivePlannerConfiguration()
 rp_config.debug.draw_traj_set = False
@@ -47,6 +45,7 @@ rp_config.general.path_output = str(Path(__file__).parent.parent)
 ci = CarlaInterface(param)
 
 planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
+scenario.remove_obstacle(scenario.dynamic_obstacles[0])
 
 ci.plan(
     ReactivePlannerInterface(scenario, planning_problem, rp_config),

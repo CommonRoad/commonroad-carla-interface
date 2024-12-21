@@ -4,8 +4,8 @@ Further examples can be found [here](https://github.com/commonroad/commonroad-ca
 ```Python
 from pathlib import Path
 from commonroad.common.file_reader import CommonRoadFileReader
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis
 
 # Specify CommonRoad scenario
 cr_scenario_path = str(Path(__file__).parent.parent / "scenarios/DEU_Test-1_1_T-2.xml")

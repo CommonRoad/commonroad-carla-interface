@@ -1,0 +1,48 @@
+
+default_params_simulation:
+  percentages: [0, 25, 50, 100]
+  num_vehicles: 50
+  num_pedestrians: 5
+  distances_leading: [0.5, 1, 5, 15, 25, 50]
+  maps: ["10HD"]
+  update_seed: false
+
+distances_leading:
+  maps: ["10HD", "07"]
+
+ignore_lights_percentage:
+  num_pedestrians: 0
+  maps: ["10HD", "07"]
+
+ignore_signs_percentage:
+  num_pedestrians : 0
+  maps : [ "07" ]
+
+global_percentage_speed_difference:
+  num_pedestrians : 0
+  maps : [ "10HD", "07" ]
+
+global_percentage_pedestrians_crossing:
+  num_pedestrians : 50
+  num_vehicles: 10
+  maps : [ "10HD", "07" ]
+
+keep_right_rule_percentage:
+  num_pedestrians : 0
+  maps : [ "10HD", "07" ]
+
+ignore_walkers_percentage:
+  num_pedestrians : 50
+  maps : [ "10HD", "07" ]
+
+ignore_vehicles_percentage:
+  num_pedestrians : 0
+  maps : [ "10HD", "07" ]
+
+random_left_lane_change_percentage:
+  num_pedestrians : 0
+  maps : [ "10HD", "07" ]
+
+random_right_lane_change_percentage:
+  num_pedestrians : 0
+  maps : [ "10HD", "07" ]

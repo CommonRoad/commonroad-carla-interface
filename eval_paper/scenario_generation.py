@@ -7,64 +7,40 @@ from commonroad.common.file_writer import CommonRoadFileWriter, OverwriteExistin
 from commonroad.common.util import FileFormat
 from commonroad.scenario.scenario import Tag
 
-from carlacr.carla_interface import CarlaInterface
-from carlacr.helper.config import CarlaParams, CustomVis, SimulationParams
-
-# from carlacr.helper.utils import kill_existing_servers
-
+from crcarla.carla_interface import CarlaInterface
+from crcarla.helper.config import CarlaParams, CustomVis, SimulationParams
 
 param = CarlaParams(log_level="INFO")
 param.vehicle.vehicle_ks_state = False
-param.simulation.max_time_step = 1500
+param.simulation.max_time_step = 3000
 param.offscreen_mode = True
 param.offscreen_mode = True
 param.vis_type = CustomVis.NONE
-param.sleep_time = 120
 
-prediction_idx = 1
-counter = 0
+percentages = [25]
+num_actors = [(100, 25)]
+distances_leading = [1]
 
 
 def generate_params() -> List[List[SimulationParams]]:
-
     param.logger.info("Generate param set.")
     list_param = []
     tmp_param = copy.deepcopy(param.simulation)
 
-    def param_iteration(parameter_name: str):
-        for value in [0, 75]:
-            tmp_param2 = copy.deepcopy(tmp_param)
-            tmp_param2.tm.__setattr__(parameter_name, value)
-            param_iteration.seed_counter += 1
-            param_iteration.seed_walker_counter += 1
-            tmp_param2.tm.seed = param_iteration.seed_counter
-            tmp_param2.seed_walker = param_iteration.seed_walker_counter
-            new_map.append(copy.deepcopy(tmp_param2))
-
-    param_iteration.seed_counter = 0
-    param_iteration.seed_walker_counter = 0
-
     for idx in ["01", "02", "04", "07", "10HD"]:
         new_map = []
         tmp_param.map = f"Town{idx}"
-        for num_vehicles, number_walkers in [(50, 10), (100, 30)]:
+        for num_vehicles, number_walkers in num_actors:
             tmp_param.number_vehicles = num_vehicles
             tmp_param.number_walkers = number_walkers
             tmp_param2 = copy.deepcopy(tmp_param)
-            for global_distance_to_leading_vehicle in [0.5, 3]:
-                tmp_param2.tm.global_distance_to_leading_vehicle = global_distance_to_leading_vehicle
-                param_iteration.seed_counter += 1
-                param_iteration.seed_walker_counter += 1
-                tmp_param2.tm.seed = param_iteration.seed_counter
-                tmp_param2.seed_walker = param_iteration.seed_walker_counter
-                new_map.append(copy.deepcopy(tmp_param2))
 
-            param_iteration("global_percentage_speed_difference")
-            param_iteration("ignore_signs_percentage")
-            param_iteration("ignore_lights_percentage")
-            param_iteration("keep_right_rule_percentage")
-            param_iteration("ignore_walkers_percentage")
-            param_iteration("ignore_vehicles_percentage")
+            tmp_param2.tm.global_distance_to_leading_vehicle = distances_leading[0]
+            tmp_param2.tm.global_percentage_speed_difference = percentages[0]
+            tmp_param2.tm.ignore_signs_percentage = percentages[0]
+            tmp_param2.tm.ignore_lights_percentage = percentages[0]
+            tmp_param2.tm.keep_right_rule_percentage = percentages[0]
+            new_map.append(copy.deepcopy(tmp_param2))
 
         list_param.append(new_map)
 
@@ -77,6 +53,7 @@ failing_maps = []
 
 param.logger.info("Generate scenarios.")
 for map_list in param_sets:
+    prediction_idx = 1
     param.map = map_list[0].map
     param.logger.info("use map {}".format(param.map))
     ci = CarlaInterface(param)
@@ -112,7 +89,7 @@ for map_list in param_sets:
         scenario_path = Path(__file__).parent / "generated_scenarios"
         if not scenario_path.exists():
             scenario_path.mkdir(parents=True, exist_ok=True)
-        # Store generated scenario
+
         CommonRoadFileWriter(
             sc,
             pps,
@@ -122,6 +99,3 @@ for map_list in param_sets:
             tags={Tag.URBAN},
             file_format=FileFormat.PROTOBUF,
         ).write_to_file(str(scenario_path / (str(sc.scenario_id) + ".pb")), OverwriteExistingFile.ALWAYS)
-
-    # ci = None
-    # kill_existing_servers(60)

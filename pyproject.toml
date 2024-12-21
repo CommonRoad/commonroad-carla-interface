@@ -1,48 +1,43 @@
 [tool.poetry]
 name = "CommonRoad-Carla-Interface"
-version = "0.0.1"
+version = "1.0.0"
 description = "Interface between CommonRoad and the traffic simulator CARLA."
 authors = ["Cyber-Physical Systems Group, Technical University of Munich <commonroad@lists.lrz.de>"]
-license = "TODO"
+license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://commonroad.in.tum.de"
 keywords= ["autonomous", "automated", "vehicles", "driving", "motion", "planning", "simulation"]
 classifiers = [
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: POSIX :: Linux",
 ]
-packages = [{include = "carlacr"}]
+packages = [{include = "crcarla"}]
 
-#[tool.poetry.urls]
-#Documentation = "https://commonroad.in.tum.de/static/docs/commonroad-io/index.html"
-#Forum = "https://commonroad.in.tum.de/forum/c/commonroad-io"
-#Source = "https://gitlab.lrz.de/tum-cps/commonroad_io"
+[tool.poetry.urls]
+Documentation = "https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/"
+Forum = "https://github.com/CommonRoad/commonroad-carla-interface/discussions"
+Source = "https://github.com/CommonRoad/commonroad-carla-interface"
 
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<3.11"
+python = ">=3.9,<3.11"
+matplotlib = ">=2.2.2,<3.9.0"
 pygame = ">=2.1.2"
-commonroad-io = "2023.4"
+psutil = "^5.9.4"
+numpy = "^1.26.1"
+scipy = "^1.11.3"
 carla = "0.9.15"
 omegaconf = ">=2.1.2"
-commonroad-drivability-checker = "~=2023.1"
-commonroad-vehicle-models = "~=3.0.2"
+commonroad-io = ">=2024.2,<=2024.3"
+commonroad-drivability-checker = ">=2024.1"
+commonroad_vehicle_models = ">=3.0.2"
+commonroad-scenario-designer = "0.8.4"
+commonroad-reactive-planner = "2024.1"
+commonroad-prediction = "^0.1.1"
+commonroad-route-planner = ">=2024.2.0 < 2025.0.0"
 
-psutil = "^5.9.4"
-commonroad-scenario-designer = { git = "git@gitlab.lrz.de:cps/commonroad-scenario-designer.git", branch = "cr2odr" }
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "feature/carla" }
-commonroad-prediction = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-prediction.git", branch = "develop" }
-numpy = [
-    { version = ">=1.22, <1.26", python = "3.8" },
-    { version = "^1.26.1", python = ">=3.9,<3.13" }
-]
-scipy = [
-    { version = ">=1.10.0,<1.11", python = "3.8" },
-    { version = "^1.11.3", python = ">=3.9,<3.13" }
-]
+
 
 #[tool.poetry.group.tests]
 #optional = true
@@ -53,26 +48,30 @@ scipy = [
 optional = true
 
 [tool.poetry.group.docs.dependencies]
+mkdocs = "<1.6"
 mkdocstrings-python = "^1.8.0"
-mkdocs-material = "^9.5.10"
+mkdocs-material = "^9.5.12"
+
 
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-black = "24.1.1"
-isort = "5.13.1"
-flake8 = "6.1.0"
+ruff = "^0.5.5"
 pre-commit = "3.5.0"
 
-[tool.black]
-extend-exclude = "(gen/)"
+# Formatting
+[tool.ruff]
 line-length = 120
+indent-width = 4
+format.quote-style = "double"
+target-version = "py311"
+lint.ignore = ["E203", "F841"]
 
-[tool.isort]
-profile = "black"
-extend_skip = ["gen"]
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+
 
 [build-system]
 requires = ["poetry-core"]
