@@ -33,9 +33,10 @@ commonroad-io = ">=2024.2,<=2024.3"
 commonroad-drivability-checker = ">=2024.1"
 commonroad_vehicle_models = ">=3.0.2"
 commonroad-scenario-designer = "0.8.4"
-commonroad-reactive-planner = "2024.1"
 commonroad-prediction = "^0.1.1"
-commonroad-route-planner = ">=2024.2.0 < 2025.0.0"
+commonroad-route-planner = ">=2025.0.1"
+
+commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", rev = "812cf4a6c93a5472829ba91f2ce2d4132f4bce25"} # branch = "development" }
 
 
 
