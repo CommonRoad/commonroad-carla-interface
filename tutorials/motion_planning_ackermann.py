@@ -21,12 +21,12 @@ param.ego.carla_controller_type = VehicleControlType.ACKERMANN
 param.vis_type = CustomVis.THIRD_PERSON
 param.simulation.max_time_step = 300
 param.simulation.time_step = 0.0
-param.sync = False
+param.sync = True
 
-param.ego.control.ackermann_pid_speed_kp = 0.3
+param.ego.control.ackermann_pid_speed_kp = 0.5
 param.ego.control.ackermann_pid_speed_ki = 0.0
 param.ego.control.ackermann_pid_speed_kd = 0.0
-param.ego.control.ackermann_pid_accel_kp = 0.1
+param.ego.control.ackermann_pid_accel_kp = 0.3
 param.ego.control.ackermann_pid_accel_ki = 0.0
 param.ego.control.ackermann_pid_accel_kd = 0.0
 
@@ -56,7 +56,7 @@ ci = CarlaInterface(param)
 
 # get planning problem and remove ego vehicle from scenario
 planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
-#scenario.remove_obstacle(scenario.dynamic_obstacles[0])
+scenario.remove_obstacle(scenario.dynamic_obstacles[0])
 
 # start planning
 ci.plan(
