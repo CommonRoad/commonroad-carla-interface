@@ -9,6 +9,7 @@ default:
     - pip install poetry
     - poetry config virtualenvs.in-project true
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de".insteadOf "ssh://git@gitlab.lrz.de"
     - poetry install --with dev,docs
     - source .venv/bin/activate
 
@@ -54,6 +55,7 @@ pages:
     url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/
 
 build_pages:
+  cache: []
   stage: deploy
   script:
     - mkdocs build
