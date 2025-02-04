@@ -23,6 +23,7 @@ from commonroad_dc.geometry.geometry import (
 )
 from commonroad_rp.utility.config import VehicleConfiguration
 from crpred.predictor_interface import PredictorInterface
+from matplotlib import pyplot as plt
 from scipy import spatial
 
 from crcarla.controller.controller import CarlaController, TransformControl
@@ -193,6 +194,12 @@ class CommonRoadPlannerController(CarlaController):
         self._vehicle_params = vehicle_params
         self._current_time_step = 0
         self._logger = control_config.logger
+        self._des_vel = [pp.initial_state.velocity]
+        self._act_vel = []
+        self._des_ori = [pp.initial_state.orientation]
+        self._act_ori = []
+        self._throttle = []
+        self._brake = []
 
     def _create_controller(
         self, control_type: VehicleControlType, dt: float, control_config: ControlParams
@@ -241,7 +248,7 @@ class CommonRoadPlannerController(CarlaController):
         if self._predictor is not None:
             sc = self._predictor.predict(sc, self._current_time_step)
         # as the last planning result is needed if transform control is used, use initial state for first iteration
-        if self._current_trajectory is None:
+        if self._current_trajectory is None and isinstance(self._controller, TransformControl):
             pp = self._base_pp
         else:
             pp = get_planning_problem_from_world(
@@ -275,12 +282,60 @@ class CommonRoadPlannerController(CarlaController):
                 steer = 0
             steering_angle = make_valid_orientation(steer * (math.pi / 180))
         try:
+            self._act_vel.append(pp.initial_state.velocity)
+            self._act_ori.append(pp.initial_state.orientation)
             self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
+            if self._current_trajectory is not None:
+                self._des_vel.append(self._current_trajectory.state_list[4].velocity)
+                self._des_ori.append(self._current_trajectory.state_list[4].orientation)
+                control = self._controller.control(self._current_trajectory.state_list[4])
+                if type(self._controller) is not AckermannController:
+                    self._throttle.append(control.throttle)
+                    self._brake.append(control.brake)
+                self._current_time_step += 1
         except Exception as e:
             self.save_scenario(sc, pp)
             print(f"An error occurred: {e}")
-        self._controller.control(self._current_trajectory.state_list[1])
-        self._current_time_step += 1
+            self.plot()
+
+    def plot(self):
+        fig, ax = plt.subplots(3, 1, figsize=(10, 15))  # Three rows, one column of plots
+
+        # Plot desired and actual velocities
+        ax[0].stem(range(len(self._des_vel)), self._des_vel, basefmt=" ", linefmt='b', markerfmt='bo',
+                   label='Desired Velocity')
+        ax[0].stem(range(len(self._act_vel)), self._act_vel, basefmt=" ", linefmt='r', markerfmt='ro',
+                   label='Actual Velocity')
+        ax[0].set_title('Comparison of Actual vs. Desired Velocity')
+        ax[0].set_xlabel('Index')
+        ax[0].set_ylabel('Velocity (m/s)')
+        ax[0].legend()
+        ax[0].grid(True)
+
+        # Plot throttle and brake
+        ax[1].bar(range(len(self._throttle)), self._throttle, color='green', label='Throttle')
+        ax[1].bar(range(len(self._brake)), [-b for b in self._brake], color='red', label='Brake')
+        ax[1].set_title('Throttle and Brake Inputs')
+        ax[1].set_xlabel('Index')
+        ax[1].set_ylabel('Input Level')
+        ax[1].legend()
+        ax[1].grid(True)
+
+        # Plot desired and actual orientations
+        ax[2].plot(range(len(self._des_ori)), self._des_ori, 'b--', label='Desired Orientation')
+        ax[2].plot(range(len(self._act_ori)), self._act_ori, 'r-', label='Actual Orientation')
+        ax[2].set_title('Comparison of Actual vs. Desired Orientation')
+        ax[2].set_xlabel('Index')
+        ax[2].set_ylabel('Orientation (degrees)')
+        ax[2].legend()
+        ax[2].grid(True)
+
+        # Adjust layout
+        plt.tight_layout()
+
+        # Display the plot
+        plt.show()
+
 
     def save_scenario(self, sc, pp, index: int = 0):  # + self.config.scenario.
         scenario = copy.deepcopy(sc)
@@ -310,4 +365,3 @@ class CommonRoadPlannerController(CarlaController):
         filename = scenario_path / (network_id + ".xml")
 
         fw_pb.write_to_file(str(filename), overwrite_existing_file=OverwriteExistingFile.ALWAYS)
-        raise Exception("Could't find plan!")

@@ -4,6 +4,7 @@ import random
 from typing import List, Optional, Union
 
 import carla
+from carla import VehicleControl
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleRole, ObstacleType, SignalState
@@ -151,6 +152,11 @@ class VehicleInterface(ActorInterface):
 
             elif self._config.carla_controller_type == VehicleControlType.PATH_AGENT:
                 self._controller.set_path(self._get_path())
+
+            else:
+                # needed to avoid throttle delay (see https://github.com/carla-simulator/carla/issues/1640)
+                self._actor.apply_control(VehicleControl(manual_gear_shift=True, gear=1))
+                self._actor.apply_control(VehicleControl(manual_gear_shift=False))
 
     def _create_cr_actor(self):
         """Creates CARLA vehicle given CommonRoad dynamic obstacle."""

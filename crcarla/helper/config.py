@@ -350,10 +350,12 @@ class ControlParams(BaseParam):
     basic_control_pid_lat_kp: float = 1.95
     basic_control_pid_lat_ki: float = 0.05
     basic_control_pid_lat_kd: float = 0.2
+    basic_control_pid_max_steering: float = 0.8
 
     basic_control_pid_lon_kp: float = 1.0
     basic_control_pid_lon_ki: float = 0.05
     basic_control_pid_lon_kd: float = 0.0
+    basic_control_pid_max_break: float = 0.3
 
     ackermann_pid_speed_kp: float = 0.15
     ackermann_pid_speed_ki: float = 0.0
