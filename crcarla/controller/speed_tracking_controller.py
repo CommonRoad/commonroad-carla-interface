@@ -2,25 +2,16 @@ import copy
 import logging
 from typing import Optional
 
-import matplotlib
 import numpy as np
-from commonroad.common.file_writer import CommonRoadFileWriter
-from commonroad.common.writer.file_writer_interface import OverwriteExistingFile
 from commonroad.planning.planner_interface import TrajectoryPlannerInterface
-from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
+from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.state import KSState
 from commonroad.scenario.trajectory import Trajectory
-from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import (
-    create_collision_object,
-)
 import commonroad_route_planner.fast_api.fast_api as rfapi
 from commonroad_route_planner.reference_path import ReferencePath
 from commonroad_rp.reactive_planner import ReactivePlanner
-from commonroad_rp.state import ReactivePlannerState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
-from commonroad_rp.utility.visualization import visualize_planner_at_timestep
-from matplotlib import pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -83,15 +74,13 @@ class SpeedTrackingController(TrajectoryPlannerInterface):
         self._config.scenario = sc
         self._config.planning_problem = pp
 
-        if (len(self._act_vel) == 50):
+        if len(self._act_vel) == 50:
             print(sum(abs(a - b) for a, b in zip(self._act_vel, self._des_vel)))
             return None
-
 
         next_state = KSState(pp.initial_state.time_step, np.array([0.0, 0.0]), 0.0, 2.0, 0.0)
         state_list = [next_state, next_state]
         traj = Trajectory(pp.initial_state.time_step, state_list)
-
 
         return traj
 

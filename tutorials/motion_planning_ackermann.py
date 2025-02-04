@@ -4,7 +4,6 @@ from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface
-from crcarla.controller.speed_tracking_controller import SpeedTrackingController
 from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType
 
 # specify map an scenario

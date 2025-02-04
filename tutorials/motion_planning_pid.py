@@ -4,7 +4,6 @@ from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface
-from crcarla.controller.speed_tracking_controller import SpeedTrackingController
 from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType
 
 # specify map an scenario
@@ -59,7 +58,7 @@ ci = CarlaInterface(param)
 
 # get planning problem and remove ego vehicle from scenario
 planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
-#scenario.remove_obstacle(scenario.dynamic_obstacles[0])
+# scenario.remove_obstacle(scenario.dynamic_obstacles[0])
 
 # start planning
 ci.plan(
