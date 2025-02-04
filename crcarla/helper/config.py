@@ -367,6 +367,8 @@ class ControlParams(BaseParam):
     # Distance to be within reference point before advancing to next time step.
     distance_treshold: float = 2.5
 
+    lookahead: int = 4
+
     def pid_lat_dict(self, dt: float) -> Dict[str, float]:
         """
         Converts lateral PID parameters to dictionary.

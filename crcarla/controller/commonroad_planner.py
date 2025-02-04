@@ -189,6 +189,7 @@ class CommonRoadPlannerController(CarlaController):
         self._global_route = RouteData(compute_global_route(self._base_sc, pp))
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
+        self.lookahead = control_config.lookahead
         self._dt = dt
         self._time_horizon_sec = t_h
         self._vehicle_params = vehicle_params
@@ -286,9 +287,9 @@ class CommonRoadPlannerController(CarlaController):
             self._act_ori.append(pp.initial_state.orientation)
             self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
             if self._current_trajectory is not None:
-                self._des_vel.append(self._current_trajectory.state_list[4].velocity)
-                self._des_ori.append(self._current_trajectory.state_list[4].orientation)
-                control = self._controller.control(self._current_trajectory.state_list[4])
+                self._des_vel.append(self._current_trajectory.state_list[self.lookahead].velocity)
+                self._des_ori.append(self._current_trajectory.state_list[self.lookahead].orientation)
+                control = self._controller.control(self._current_trajectory.state_list[self.lookahead])
                 if type(self._controller) is not AckermannController:
                     self._throttle.append(control.throttle)
                     self._brake.append(control.brake)
