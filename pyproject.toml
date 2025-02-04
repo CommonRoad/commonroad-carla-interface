@@ -37,7 +37,7 @@ commonroad-scenario-designer = "0.8.4"
 commonroad-prediction = "^0.1.1"
 commonroad-route-planner = ">=2025.0.1"
 
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development" } # rev = "812cf4a6c93a5472829ba91f2ce2d4132f4bce25"}
+commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development" }
 
 
 
