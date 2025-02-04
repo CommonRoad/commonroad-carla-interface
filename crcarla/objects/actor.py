@@ -33,7 +33,6 @@ class ActorInterface(ABC):
         self._tm = tm
         self._config = config
         self._controller = None
-        self._trajectory = []  # TODO delete later and use cr-io history
         self._cr_obstacle = cr_obstacle
 
     def _spawn(self, time_step: int):
@@ -64,7 +63,9 @@ class ActorInterface(ABC):
 
         :return: List of state elements.
         """
-        return self._trajectory
+        if not hasattr(self._cr_obstacle, 'history'):
+            return []
+        return self.cr_obstacle.history
 
     @property
     def actor(self) -> carla.Actor:

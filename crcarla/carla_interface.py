@@ -632,20 +632,6 @@ class CarlaInterface:
 
         :param world: CARLA world object.
         """
-        # add current state to history
-        # self._ego.trajectory.append(self._ego.cr_obstacle.initial_state)  # TODO replace with cr-io history
-
-        # get world and extract new current state
-
-        # TODO replace with cr-io initial state
-        # if self._config.obstacle.vehicle_ks_state:
-        #     self._ego.cr_obstacle.initial_state = \
-        #         create_cr_ks_state_from_actor(world.get_actor(self._ego.carla_id),
-        #                                    self._ego.cr_obstacle.initial_state.time_step + 1)
-        # else:
-        #     self._ego.cr_obstacle.initial_state = \
-        #         create_cr_pm_state_from_actor(world.get_actor(self._ego.carla_id),
-        #                                    self._ego.cr_obstacle.initial_state.time_step + 1)
         if self._ego is not None:
             time_step = (
                 self._ego.cr_obstacle.initial_state.time_step + 1
@@ -654,10 +640,10 @@ class CarlaInterface:
             )
             if self._config.vehicle.vehicle_ks_state and self._ego.actor.is_alive:
                 state = create_cr_ks_state_from_actor(self._ego.actor, time_step)
-                self._ego.trajectory.append(state)
+                self._ego.cr_obstacle.history.append(state)
             elif self._ego.actor.is_alive:
                 state = create_cr_pm_state_from_actor(self._ego.actor, time_step)
-                self._ego.trajectory.append(state)
+                self._ego.cr_obstacle.history.append(state)
 
         for obs in self._cr_obstacles:
             # TODO Investigate the reason why certain actors are being destroyed prior to the completion of the loop.
