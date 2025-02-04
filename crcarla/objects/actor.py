@@ -63,7 +63,7 @@ class ActorInterface(ABC):
 
         :return: List of state elements.
         """
-        if not hasattr(self._cr_obstacle, 'history'):
+        if not hasattr(self._cr_obstacle, "history"):
             return []
         return self.cr_obstacle.history
 
