@@ -35,6 +35,8 @@ from crcarla.controller.vehicle_controller import (
 from crcarla.helper.config import ControlParams, VehicleControlType
 from crcarla.helper.utils import create_cr_initial_state_from_actor, create_cr_vehicle_from_actor
 
+from crcarla.visualization.controller_debug import ControllerDebug
+
 
 @dataclass
 class RouteData:
@@ -188,11 +190,13 @@ class CommonRoadPlannerController(CarlaController):
         self._global_route = RouteData(compute_global_route(self._base_sc, pp))
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
+        self.lookahead = control_config.lookahead
         self._dt = dt
         self._time_horizon_sec = t_h
         self._vehicle_params = vehicle_params
         self._current_time_step = 0
         self._logger = control_config.logger
+        self._control_debug = ControllerDebug(pp.initial_state)
 
     def _create_controller(
         self, control_type: VehicleControlType, dt: float, control_config: ControlParams
@@ -241,7 +245,7 @@ class CommonRoadPlannerController(CarlaController):
         if self._predictor is not None:
             sc = self._predictor.predict(sc, self._current_time_step)
         # as the last planning result is needed if transform control is used, use initial state for first iteration
-        if self._current_trajectory is None:
+        if self._current_trajectory is None and isinstance(self._controller, TransformControl):
             pp = self._base_pp
         else:
             pp = get_planning_problem_from_world(
@@ -275,12 +279,18 @@ class CommonRoadPlannerController(CarlaController):
                 steer = 0
             steering_angle = make_valid_orientation(steer * (math.pi / 180))
         try:
+            self._control_debug.add_act_state(pp.initial_state)
             self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
+            if self._current_trajectory is not None:
+                self._control_debug.add_des_state(self._current_trajectory, self.lookahead)
+                control = self._controller.control(self._current_trajectory.state_list[self.lookahead])
+                if type(self._controller) is PIDController:
+                    self._control_debug.add_control(control)
+                self._current_time_step += 1
         except Exception as e:
             self.save_scenario(sc, pp)
             print(f"An error occurred: {e}")
-        self._controller.control(self._current_trajectory.state_list[1])
-        self._current_time_step += 1
+            self._control_debug.plot()
 
     def save_scenario(self, sc, pp, index: int = 0):  # + self.config.scenario.
         scenario = copy.deepcopy(sc)
@@ -310,4 +320,3 @@ class CommonRoadPlannerController(CarlaController):
         filename = scenario_path / (network_id + ".xml")
 
         fw_pb.write_to_file(str(filename), overwrite_existing_file=OverwriteExistingFile.ALWAYS)
-        raise Exception("Could't find plan!")
