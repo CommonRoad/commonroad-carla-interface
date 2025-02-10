@@ -33,8 +33,9 @@ from crcarla.controller.vehicle_controller import (
     VehicleTMPathFollowingControl,
 )
 from crcarla.helper.config import ControlParams, VehicleControlType
-from crcarla.helper.controller_debug import ControllerDebug
 from crcarla.helper.utils import create_cr_initial_state_from_actor, create_cr_vehicle_from_actor
+
+from crcarla.visualization.controller_debug import ControllerDebug
 
 
 @dataclass
