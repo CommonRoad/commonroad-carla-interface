@@ -23,7 +23,6 @@ from commonroad_dc.geometry.geometry import (
 )
 from commonroad_rp.utility.config import VehicleConfiguration
 from crpred.predictor_interface import PredictorInterface
-from matplotlib import pyplot as plt
 from scipy import spatial
 
 from crcarla.controller.controller import CarlaController, TransformControl
@@ -34,6 +33,7 @@ from crcarla.controller.vehicle_controller import (
     VehicleTMPathFollowingControl,
 )
 from crcarla.helper.config import ControlParams, VehicleControlType
+from crcarla.helper.controller_debug import ControllerDebug
 from crcarla.helper.utils import create_cr_initial_state_from_actor, create_cr_vehicle_from_actor
 
 
@@ -195,12 +195,7 @@ class CommonRoadPlannerController(CarlaController):
         self._vehicle_params = vehicle_params
         self._current_time_step = 0
         self._logger = control_config.logger
-        self._des_vel = [pp.initial_state.velocity]
-        self._act_vel = []
-        self._des_ori = [pp.initial_state.orientation]
-        self._act_ori = []
-        self._throttle = []
-        self._brake = []
+        self._control_debug = ControllerDebug(pp.initial_state)
 
     def _create_controller(
         self, control_type: VehicleControlType, dt: float, control_config: ControlParams
@@ -283,61 +278,18 @@ class CommonRoadPlannerController(CarlaController):
                 steer = 0
             steering_angle = make_valid_orientation(steer * (math.pi / 180))
         try:
-            self._act_vel.append(pp.initial_state.velocity)
-            self._act_ori.append(pp.initial_state.orientation)
+            self._control_debug.add_act_state(pp.initial_state)
             self._current_trajectory = self._planner.plan(sc, pp, steering_angle=steering_angle)
             if self._current_trajectory is not None:
-                self._des_vel.append(self._current_trajectory.state_list[self.lookahead].velocity)
-                self._des_ori.append(self._current_trajectory.state_list[self.lookahead].orientation)
+                self._control_debug.add_des_state(self._current_trajectory, self.lookahead)
                 control = self._controller.control(self._current_trajectory.state_list[self.lookahead])
-                if type(self._controller) is not AckermannController:
-                    self._throttle.append(control.throttle)
-                    self._brake.append(control.brake)
+                if type(self._controller) is PIDController:
+                    self._control_debug.add_control(control)
                 self._current_time_step += 1
         except Exception as e:
             self.save_scenario(sc, pp)
             print(f"An error occurred: {e}")
-            self.plot()
-
-    def plot(self):
-        fig, ax = plt.subplots(3, 1, figsize=(10, 15))  # Three rows, one column of plots
-
-        # Plot desired and actual velocities
-        ax[0].stem(
-            range(len(self._des_vel)), self._des_vel, basefmt=" ", linefmt="b", markerfmt="bo", label="Desired Velocity"
-        )
-        ax[0].stem(
-            range(len(self._act_vel)), self._act_vel, basefmt=" ", linefmt="r", markerfmt="ro", label="Actual Velocity"
-        )
-        ax[0].set_title("Comparison of Actual vs. Desired Velocity")
-        ax[0].set_xlabel("Index")
-        ax[0].set_ylabel("Velocity (m/s)")
-        ax[0].legend()
-        ax[0].grid(True)
-
-        # Plot throttle and brake
-        ax[1].bar(range(len(self._throttle)), self._throttle, color="green", label="Throttle")
-        ax[1].bar(range(len(self._brake)), [-b for b in self._brake], color="red", label="Brake")
-        ax[1].set_title("Throttle and Brake Inputs")
-        ax[1].set_xlabel("Index")
-        ax[1].set_ylabel("Input Level")
-        ax[1].legend()
-        ax[1].grid(True)
-
-        # Plot desired and actual orientations
-        ax[2].plot(range(len(self._des_ori)), self._des_ori, "b--", label="Desired Orientation")
-        ax[2].plot(range(len(self._act_ori)), self._act_ori, "r-", label="Actual Orientation")
-        ax[2].set_title("Comparison of Actual vs. Desired Orientation")
-        ax[2].set_xlabel("Index")
-        ax[2].set_ylabel("Orientation (degrees)")
-        ax[2].legend()
-        ax[2].grid(True)
-
-        # Adjust layout
-        plt.tight_layout()
-
-        # Display the plot
-        plt.show()
+            self._control_debug.plot()
 
     def save_scenario(self, sc, pp, index: int = 0):  # + self.config.scenario.
         scenario = copy.deepcopy(sc)

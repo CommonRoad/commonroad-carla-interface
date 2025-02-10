@@ -28,6 +28,7 @@ param.ego.control.ackermann_pid_speed_kd = 0.0
 param.ego.control.ackermann_pid_accel_kp = 0.3
 param.ego.control.ackermann_pid_accel_ki = 0.0
 param.ego.control.ackermann_pid_accel_kd = 0.0
+param.ego.control.lookahead = 4
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()

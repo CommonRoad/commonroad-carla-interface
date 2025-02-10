@@ -176,5 +176,5 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         """
         shifted_traj = []
         for state in traj.state_list:
-            shifted_traj.append(ReactivePlannerState.shift_state_to_center(state, self._wb_rear_axle))
+            shifted_traj.append(state.shift_positions_to_center(self._wb_rear_axle))
         return Trajectory(traj.initial_time_step, shifted_traj)
