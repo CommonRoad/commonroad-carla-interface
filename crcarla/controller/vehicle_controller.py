@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 try:
-    from carla import AckermannControllerSettings, VehicleAckermannControl
+    from carla import AckermannControllerSettings, VehicleAckermannControl, VehicleControl
 except ImportError:
     logger.info("AckermannControl not available! Please upgrade your CARLA version!")
 
@@ -94,7 +94,7 @@ class PIDController(CarlaController):
         super().__init__(actor)
         self._pid = VehiclePIDController(actor, config.pid_lat_dict(dt), config.pid_lon_dict(dt))
 
-    def control(self, state: Optional[TraceState] = None):
+    def control(self, state: Optional[TraceState] = None) -> VehicleControl:
         """
         Computes and applies CARLA PID control for one time step.
 
@@ -105,6 +105,8 @@ class PIDController(CarlaController):
 
         control = self._pid.run_step(speed, target)
         self._actor.apply_control(control)
+
+        return control
 
 
 class AckermannController(CarlaController):
@@ -161,7 +163,7 @@ class AckermannController(CarlaController):
             jerk = (input.acceleration - acc) / self._dt
 
         ackermann_control = VehicleAckermannControl(
-            steer=state.steering_angle,
+            steer=-state.steering_angle,
             steer_speed=input_state.steering_angle_speed,
             speed=state.velocity,
             acceleration=input_state.acceleration,
