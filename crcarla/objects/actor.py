@@ -57,18 +57,6 @@ class ActorInterface(ABC):
         return self._actor is not None
 
     @property
-    def trajectory(self) -> List[Union[PMState, KSState, ExtendedPMState]]:
-        """
-        Getter for trajectory.
-
-        :return: List of state elements.
-        """
-        # check if static obstacle without history
-        if not hasattr(self._cr_obstacle, "history"):
-            return []
-        return self.cr_obstacle.history
-
-    @property
     def actor(self) -> carla.Actor:
         """
         Getter for actor.

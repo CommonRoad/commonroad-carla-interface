@@ -635,8 +635,8 @@ class CarlaInterface:
         if self._ego is not None:
             time_step = (
                 self._ego.cr_obstacle.initial_state.time_step + 1
-                if len(self._ego.trajectory) == 0
-                else self._ego.trajectory[-1].time_step + 1
+                if len(self._ego.cr_obstacle.history) == 0
+                else self._ego.cr_obstacle.history[-1].time_step + 1
             )
             if self._config.vehicle.vehicle_ks_state and self._ego.actor.is_alive:
                 state = create_cr_ks_state_from_actor(self._ego.actor, time_step)
@@ -656,8 +656,8 @@ class CarlaInterface:
 
             time_step = (
                 obs.cr_obstacle.initial_state.time_step + 1
-                if len(obs.trajectory) == 0
-                else obs.trajectory[-1].time_step + 1
+                if type(obs.cr_obstacle) is StaticObstacle or len(obs.cr_obstacle.history) == 0
+                else obs.cr_obstacle.history[-1].time_step + 1
             )
 
             if obs.cr_obstacle.obstacle_type == ObstacleType.PEDESTRIAN:
@@ -666,7 +666,8 @@ class CarlaInterface:
                 state = create_cr_ks_state_from_actor(obs.actor, time_step)
             else:
                 state = create_cr_pm_state_from_actor(obs.actor, time_step)
-            obs.trajectory.append(state)
+            if type(obs.cr_obstacle) is not StaticObstacle:
+                obs.cr_obstacle.history.append(state)
 
         for tl in self.traffic_lights:
             tl.add_color(tl.carla_actor.state)
@@ -869,7 +870,7 @@ class CarlaInterface:
             time_step += 1
             self._update_cr_state()
 
-            if self._pp is not None and self._pp.goal.is_reached(self._ego.trajectory[-1]):
+            if self._pp is not None and self._pp.goal.is_reached(self._ego.cr_obstacle.history[-1]):
                 print("CommonRoad goal reached!")
                 goal_reached = True
                 break
