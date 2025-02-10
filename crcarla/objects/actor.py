@@ -1,9 +1,8 @@
 from abc import ABC
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import carla
 from commonroad.scenario.obstacle import DynamicObstacle
-from commonroad.scenario.state import KSState, PMState, ExtendedPMState
 
 from crcarla.helper.config import PedestrianParams, VehicleParams
 
