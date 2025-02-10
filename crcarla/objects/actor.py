@@ -1,9 +1,8 @@
 from abc import ABC
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import carla
 from commonroad.scenario.obstacle import DynamicObstacle
-from commonroad.scenario.state import KSState, PMState, ExtendedPMState
 
 from crcarla.helper.config import PedestrianParams, VehicleParams
 
@@ -33,7 +32,6 @@ class ActorInterface(ABC):
         self._tm = tm
         self._config = config
         self._controller = None
-        self._trajectory = []  # TODO delete later and use cr-io history
         self._cr_obstacle = cr_obstacle
 
     def _spawn(self, time_step: int):
@@ -56,15 +54,6 @@ class ActorInterface(ABC):
         :return: Boolean indicating whether actor is spawned.
         """
         return self._actor is not None
-
-    @property
-    def trajectory(self) -> List[Union[PMState, KSState, ExtendedPMState]]:
-        """
-        Getter for trajectory.
-
-        :return: List of state elements.
-        """
-        return self._trajectory
 
     @property
     def actor(self) -> carla.Actor:
