@@ -43,7 +43,7 @@ We recommend to use PyCharm (Professional) as IDE.
 
 
 ## Getting started
-We provide [tutorial script](https://github.com/commonroad/commonroad-carla-interface/tutorials/)
+We provide [tutorial script](https://github.com/CommonRoad/commonroad-carla-interface/tree/develop/tutorials)
 for different features we support.
 A deployed version of the documentation can be found
 [here](https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/).

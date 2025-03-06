@@ -181,22 +181,23 @@ class CarlaInterface:
 
     def _start_carla_server(self):
         """Start CARLA server in desired operating mode (3D/offscreen)."""
-        path_to_carla = find_carla_distribution(self._config.default_carla_paths) / "CarlaUE4.sh"
-
+        popen_base_params = {"stdout": subprocess.PIPE, "preexec_fn": os.setsid, "shell": False}
+        self._config.logger.info("Start CARLA server.")
         kill_existing_servers(self._config.sleep_time)
 
-        self._config.logger.info("Start CARLA server.")
-        # pylint: disable=consider-using-with
-
-        popen_base_params = {"stdout": subprocess.PIPE, "preexec_fn": os.setsid, "shell": False}
-
-        if self._config.offscreen_mode:
-            cmd = [str(path_to_carla), "-RenderOffScreen", f"-carla-world-port={self._config.port}"]
+        if not self._config.use_docker:
+            path_to_carla = find_carla_distribution(self._config.default_carla_paths) / "CarlaUE4.sh"
+            if self._config.offscreen_mode:
+                cmd = [str(path_to_carla), "-RenderOffScreen", f"-carla-world-port={self._config.port}"]
+            else:
+                cmd = [str(path_to_carla), f"-carla-world-port={self._config.port}"]
         else:
-            cmd = [str(path_to_carla), f"-carla-world-port={self._config.port}"]
+            cmd = self._config.default_docker_commands[self._config.carla_version][self._config.offscreen_mode]
 
         self._carla_pid = subprocess.Popen(cmd, **popen_base_params)
-        self._config.logger.info("CARLA server started in normal visualization mode using PID %s.", self._carla_pid.pid)
+        self._config.logger.info(
+            f"CARLA server started in {'offscreen mode' if self._config.offscreen_mode else 'normal visualization'} mode using PID {self._carla_pid.pid}.",
+        )
 
         time.sleep(self._config.sleep_time)
 
