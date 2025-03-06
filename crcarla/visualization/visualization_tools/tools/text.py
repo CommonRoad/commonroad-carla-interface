@@ -25,7 +25,9 @@ class Text(VisualizationBase):
         self._vis3d = vis3d  # The 3D visualization instance
         self._data: List[dict] = []
 
-    def add_static_text_2d(self, text: str, x: float, y: float, size: float, lifetime: int=-1, color: Tuple[int, int, int]=(255, 0, 0)):
+    def add_static_text_2d(
+        self, text: str, x: float, y: float, size: float, lifetime: int = -1, color: Tuple[int, int, int] = (255, 0, 0)
+    ):
         """
         Add text on a specific projected camera position.
 

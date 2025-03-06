@@ -208,7 +208,9 @@ class BoundingBoxTool(VisualizationBase):
                 size = int(40 - 39 * dist / max_dist)
                 self._vis3D.vis_tool_controller.text.add_static_text_2d(str(int(dist)), x, y, size, 1, color2)
 
-    def vertices_to_linedata(self, verts: List[Tuple[float, float]], color: Tuple[int, int, int], show_as_3d: bool) -> dict:
+    def vertices_to_linedata(
+        self, verts: List[Tuple[float, float]], color: Tuple[int, int, int], show_as_3d: bool
+    ) -> dict:
         """
         Create lines from vertices and store corresponding information for render().
 

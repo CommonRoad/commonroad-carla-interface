@@ -33,8 +33,8 @@ class PolygonTool(VisualizationBase):
     def set_arrow(
         self,
         vehicle: carla.Vehicle,
-        max_dist: float=200,
-        size: int=40,
+        max_dist: float = 200,
+        size: int = 40,
         color: Tuple[int, int, int] = (255, 0, 0),
     ):
         """
@@ -54,7 +54,7 @@ class PolygonTool(VisualizationBase):
         self,
         vehicle: carla.Vehicle,
         polygon: shapely.Polygon,
-        max_dist: float=200,
+        max_dist: float = 200,
         color: Tuple[int, int, int] = (255, 0, 0),
     ) -> int:
         """
