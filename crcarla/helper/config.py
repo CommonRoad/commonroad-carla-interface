@@ -11,6 +11,12 @@ from typing import Any, Dict, List, Optional, Union
 import carla
 from omegaconf import OmegaConf
 
+class SupportedCARLAVersion(Enum):
+    """Supported CARLA versions."""
+
+    V_0_9_15 = "0.9.15"
+    V_0_10_0 = "0.10.0"
+
 
 class PedestrianControlType(Enum):
     """Available controller types for walkers."""
@@ -85,8 +91,8 @@ class BaseParam:
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
     kill_carla_server: bool = True
-    carla_version: str = "0.9.15"
-    use_docker: bool = True
+    carla_version: SupportedCARLAVersion = SupportedCARLAVersion.V_0_9_15
+    use_docker: bool = False
     default_carla_paths: List[str] = field(
         default_factory=lambda: [
             "/opt/carla-simulator/",
@@ -95,8 +101,6 @@ class BaseParam:
             "~/CARLA_0.9.15/",
             "~/CARLA_0.9.14_RSS/",
             "~/CARLA_0.9.14/",
-            "~/CARLA_0.9.13_RSS/",
-            "~/CARLA_0.9.13/",
             "/home/carla/",
         ]
     )

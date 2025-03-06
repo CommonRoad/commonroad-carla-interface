@@ -23,7 +23,7 @@ from commonroad.scenario.state import CustomState, ExtendedPMState, InitialState
 from commonroad.visualization.mp_renderer import MPRenderer
 from PIL import Image
 
-from crcarla.helper.config import BaseParam
+from crcarla.helper.config import BaseParam, SupportedCARLAVersion
 from crcarla.objects.actor import ActorInterface
 
 # def _get_nearby_vehicles(self, vehicles, ego, distance_th):
@@ -291,17 +291,18 @@ def make_video(path: Path, video_name: str, logger: Logger):
             shutil.rmtree(tmp_path)
 
 
-def find_carla_distribution(default_carla_paths: List[str]) -> Path:
+def find_carla_distribution(default_carla_paths: List[str], carla_version: SupportedCARLAVersion = SupportedCARLAVersion.V_0_9_15) -> Path:
     """
     Finds path of CARLA executable script based on given default paths.
 
     :param default_carla_paths: Paths to search for CARLA distribution.
+    :param carla_version: Version of CARLA to search for.
     :return: Detected path.
     """
     if default_carla_paths is None:
         default_carla_paths = BaseParam().default_carla_paths
     for default_path in default_carla_paths:
-        if (path := Path(default_path).expanduser()).exists():
+        if (path := Path(default_path).expanduser()).exists() and carla_version.value in path.name:
             return path
     raise FileNotFoundError("CARLA executable not found.")
 
