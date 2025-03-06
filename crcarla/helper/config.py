@@ -12,6 +12,13 @@ import carla
 from omegaconf import OmegaConf
 
 
+class SupportedCARLAVersion(Enum):
+    """Supported CARLA versions."""
+
+    V_0_9_15 = "0.9.15"
+    V_0_10_0 = "0.10.0"
+
+
 class PedestrianControlType(Enum):
     """Available controller types for walkers."""
 
@@ -85,17 +92,81 @@ class BaseParam:
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
     kill_carla_server: bool = True
+    carla_version: SupportedCARLAVersion = SupportedCARLAVersion.V_0_9_15
+    use_docker: bool = False
     default_carla_paths: List[str] = field(
         default_factory=lambda: [
             "/opt/carla-simulator/",
+            "~/Carla-0.10.0-Linux-Shipping/",
             "~/CARLA_0.9.15_RSS/",
             "~/CARLA_0.9.15/",
             "~/CARLA_0.9.14_RSS/",
             "~/CARLA_0.9.14/",
-            "~/CARLA_0.9.13_RSS/",
-            "~/CARLA_0.9.13/",
             "/home/carla/",
         ]
+    )
+    default_docker_commands: Dict[str, Dict[bool, List[str]]] = field(
+        default_factory=lambda: {
+            "0.10.0": {
+                False: [
+                    "docker",
+                    "run",
+                    "--runtime=nvidia",
+                    "--net=host",
+                    "--user=$(id -u):$(id -g)",
+                    "--env=DISPLAY=$DISPLAY",
+                    "--env=NVIDIA_VISIBLE_DEVICES=all",
+                    "--env=NVIDIA_DRIVER_CAPABILITIES=all",
+                    "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw",
+                    "carlasim/carla:0.10.0",
+                    "bash",
+                    "CarlaUnreal.sh",
+                    "-nosound",
+                ],
+                True: [
+                    "docker",
+                    "run",
+                    "--runtime=nvidia",
+                    "--net=host",
+                    "--env=NVIDIA_VISIBLE_DEVICES=all",
+                    "--env=NVIDIA_DRIVER_CAPABILITIES=all",
+                    "carlasim/carla:0.10.0",
+                    "bash",
+                    "CarlaUnreal.sh",
+                    "-RenderOffScreen",
+                    "-nosound",
+                ],
+            },
+            "0.9.15": {
+                False: [
+                    "docker",
+                    "run",
+                    "--privileged",
+                    "--gpus",
+                    "all",
+                    "--net=host",
+                    "-e",
+                    "DISPLAY=$DISPLAY",
+                    "carlasim/carla:0.9.15",
+                    "/bin/bash",
+                    "./CarlaUE4.sh",
+                ],
+                True: [
+                    "docker",
+                    "run",
+                    "--privileged",
+                    "--gpus",
+                    "all",
+                    "--net=host",
+                    "-v",
+                    "/tmp/.X11-unix:/tmp/.X11-unix:rw",
+                    "carlasim/carla:0.9.15",
+                    "/bin/bash",
+                    "./CarlaUE4.sh",
+                    "-RenderOffScreen",
+                ],
+            },
+        }
     )
     offscreen_mode: bool = True
     map: str = "Town01"

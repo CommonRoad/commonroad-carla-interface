@@ -19,10 +19,8 @@ class LineToVehicle(VisualizationBase):
         """
         Initializes an instance of BoundingBox3D.
 
-        :param vis3D: A reference to the 3D visualization instance.
-        :type vis3D: Visualization3D
+        :param vis3d: A reference to the 3D visualization instance.
         :param z_axis: The z-coordinate of the visualization reference point.
-        :type z_axis: float
         """
         super().__init__(z_axis)
 
@@ -37,11 +35,9 @@ class LineToVehicle(VisualizationBase):
         Enables the display of vehicles.
 
         :param vehicle: The vehicle to visualize.
-        :type vehicle: carla.Vehicle
         :param max_dist: Maximum distance to display vehicles.
-        :type max_dist: float
         :param color: Color of the bounding boxes (RGB format).
-        :type color: Tuple[int, int, int]
+
         """
         target = self._targets.setdefault(vehicle.id, {})
         target["vehicle"] = vehicle
@@ -53,7 +49,6 @@ class LineToVehicle(VisualizationBase):
         Disables the display of vehicles.
 
         :param vehicle: The vehicle to remove.
-        :type vehicle: carla.Vehicle
         """
         if vehicle.id in self._targets:
             del self._targets[vehicle.id]
@@ -63,7 +58,6 @@ class LineToVehicle(VisualizationBase):
         Called to update the current position of the bounding boxes.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().tick(clock)
         if not VisualizationBase.is_visible:
@@ -96,7 +90,6 @@ class LineToVehicle(VisualizationBase):
         Draws the bounding boxes on the display.
 
         :param display: The display to draw onto.
-        :type display: pygame.display
         """
         super().render(display)
         if not VisualizationBase.is_visible:

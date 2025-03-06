@@ -19,10 +19,8 @@ class PolygonTool(VisualizationBase):
         """
         Initializes an instance of BoundingBox3D.
 
-        :param vis3D: A reference to the 3D visualization instance.
-        :type vis3D: Visualization3D
+        :param vis3d: A reference to the 3D visualization instance.
         :param z_axis: The z-coordinate of the visualization reference point.
-        :type z_axis: float
         """
         super().__init__(z_axis)
 
@@ -35,21 +33,17 @@ class PolygonTool(VisualizationBase):
     def set_arrow(
         self,
         vehicle: carla.Vehicle,
-        max_dist=200,
-        size=40,
+        max_dist: float = 200,
+        size: int = 40,
         color: Tuple[int, int, int] = (255, 0, 0),
     ):
         """
         Enables the display of vehicles as arrows.
 
         :param vehicle: The vehicle to visualize.
-        :type vehicle: carla.Vehicle
         :param max_dist: Maximum distance to display vehicles.
-        :type max_dist: float
         :param size: Size of the arrow.
-        :type size: int
         :param color: Color of the arrow (RGB format).
-        :type color: Tuple[int, int, int]
         """
         verts = [[0, 0], [2, 2], [1, 2], [1, 4], [-1, 4], [-1, 2], [-2, 2], [0, 0]]
         scaled_verts = [[size * x, -size * y] for x, y in verts]
@@ -60,23 +54,18 @@ class PolygonTool(VisualizationBase):
         self,
         vehicle: carla.Vehicle,
         polygon: shapely.Polygon,
-        max_dist=200,
+        max_dist: float = 200,
         color: Tuple[int, int, int] = (255, 0, 0),
     ) -> int:
         """
         Enables the display of vehicles as polygons.
 
         :param vehicle: The vehicle to visualize.
-        :type vehicle: carla.Vehicle
         :param polygon: The polygon representing the shape of the vehicle.
-        :type polygon: shapely.geometry.Polygon
         :param max_dist: Maximum distance to display vehicles.
-        :type max_dist: float
         :param color: Color of the polygon (RGB format).
-        :type color: Tuple[int, int, int]
 
         :return: The index of the added polygon.
-        :rtype: int
         """
         self._id_counter += 1
         self._polygons.setdefault(
@@ -91,12 +80,11 @@ class PolygonTool(VisualizationBase):
 
         return self._id_counter
 
-    def remove_polygon(self, index):
+    def remove_polygon(self, index: int):
         """
         Disables the display of vehicles.
 
         :param index: The index of the polygon to remove.
-        :type index: int
         """
         if index in self._polygons:
             del self._polygons[index]
@@ -106,7 +94,6 @@ class PolygonTool(VisualizationBase):
         Called to update the current position of the bounding boxes.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().tick(clock)
         if not VisualizationBase.is_visible:
@@ -176,7 +163,6 @@ class PolygonTool(VisualizationBase):
         Draws the bounding boxes on the display.
 
         :param display: The display to draw onto.
-        :type display: pygame.display
         """
         super().render(display)
         if not VisualizationBase.is_visible:
