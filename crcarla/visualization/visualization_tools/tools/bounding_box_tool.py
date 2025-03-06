@@ -19,9 +19,7 @@ class BoundingBoxTool(VisualizationBase):
         Initializes an instance of BoundingBox3D.
 
         :param vis3d: A reference to the 3D visualization instance.
-        :type vis3d: Visualization3D
         :param z_axis: The z-coordinate of the visualization reference point.
-        :type z_axis: float
         """
         super().__init__(z_axis)
 
@@ -54,13 +52,9 @@ class BoundingBoxTool(VisualizationBase):
         Enables the display of vehicles.
 
         :param max_dist: Maximum distance to display vehicles.
-        :type max_dist: float
         :param color: Color of the bounding boxes (RGB format).
-        :type color: Tuple[int, int, int]
         :param print_distance: Whether to print the distance or not.
-        :type print_distance: bool
         :param show_as_3d: Whether to show the bounding boxes in 3D.
-        :type show_as_3d: bool
         """
         self._show_vehicles_dict = {
             "enable": True,
@@ -85,13 +79,9 @@ class BoundingBoxTool(VisualizationBase):
         Activates a label to display the respective bounding boxes.
 
         :param label: The label of the objects to visualize.
-        :type label: carla.CityObjectLabel
         :param max_dist: Maximum distance to display objects of this label.
-        :type max_dist: float
         :param color: Color of the bounding boxes (RGB format).
-        :type color: Tuple[int, int, int]
         :param show_as_3d: Whether to show the bounding boxes in 3D.
-        :type show_as_3d: bool
         """
         data = self._active_city_object_label.setdefault(label, {})
         if "bbs" not in data:
@@ -107,7 +97,6 @@ class BoundingBoxTool(VisualizationBase):
         Removes an activated label.
 
         :param label: The label to remove.
-        :type label: carla.CityObjectLabel
         """
         if label in self._active_city_object_label:
             self._active_city_object_label[label]["enable"] = False
@@ -117,7 +106,6 @@ class BoundingBoxTool(VisualizationBase):
         Called to update the current position of the bounding boxes.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().tick(clock)
         if not VisualizationBase.is_visible:
@@ -132,7 +120,6 @@ class BoundingBoxTool(VisualizationBase):
         Draws the bounding boxes on the display.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().render(display)
         if not VisualizationBase.is_visible:
@@ -221,19 +208,15 @@ class BoundingBoxTool(VisualizationBase):
                 size = int(40 - 39 * dist / max_dist)
                 self._vis3D.vis_tool_controller.text.add_static_text_2d(str(int(dist)), x, y, size, 1, color2)
 
-    def vertices_to_linedata(self, verts, color, show_as_3d: bool) -> dict:
+    def vertices_to_linedata(self, verts: List[Tuple[float, float]], color: Tuple[int, int, int], show_as_3d: bool) -> dict:
         """
         Create lines from vertices and store corresponding information for render().
 
         :param verts: List of vertices as tuples (x, y).
-        :type verts: List[Tuple[float, float]]
         :param color: Color of the lines in RGB format.
-        :type color: Tuple[int, int, int]
         :param show_as_3d: Choose between 2D and 3D bounding box.
-        :type show_as_3d: bool
 
         :return: A dictionary with all corresponding information to draw the lines.
-        :rtype: dict
         Contains the bounding box coordinates (x_min, y_min, x_max, y_max),
         the lines to draw (lines), and the color information (color).
         """

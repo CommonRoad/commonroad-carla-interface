@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Tuple
 
 import pygame
 
@@ -18,31 +18,23 @@ class Text(VisualizationBase):
         Set important parameters to print text with pygame.
 
         :param vis3d: Base Visualization3D instance.
-        :type vis3d: Visualization3D
         :param z_axis: The z-coordinate of the visualization reference point. Defaults to 1.
-        :type z_axis: float
         """
         super().__init__(z_axis)
 
         self._vis3d = vis3d  # The 3D visualization instance
         self._data: List[dict] = []
 
-    def add_static_text_2d(self, text, x, y, size, lifetime=-1, color=(255, 0, 0)):
+    def add_static_text_2d(self, text: str, x: float, y: float, size: float, lifetime: int=-1, color: Tuple[int, int, int]=(255, 0, 0)):
         """
         Add text on a specific projected camera position.
 
         :param text: Printed text.
-        :type text: str
         :param x: x-position.
-        :type x: float
         :param y: y-position.
-        :type y: float
         :param size: Size of the static text.
-        :type size: float
         :param lifetime: Lifetime for text object. Defaults to -1.
-        :type lifetime: int
         :param color: RGB font color. Defaults to (255, 0, 0).
-        :type color: tuple[int, int, int]
         """
         self._data.append({"text": text, "x": x, "y": y, "size": size, "color": color, "lifetime": lifetime})
 
@@ -51,20 +43,17 @@ class Text(VisualizationBase):
         Called to update the current position of the bounding boxes.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().tick(clock)
         if not VisualizationBase.is_visible:
             return
 
-    def render(self, display: pygame.display) -> bool:
+    def render(self, display: pygame.display):
         """
         Draws the text on the display.
 
         :param display: The display to draw onto.
-        :type display: pygame.display
         :return: True if the visualization is successful.
-        :rtype: bool
         """
         super().render(display)
         if not VisualizationBase.is_visible:

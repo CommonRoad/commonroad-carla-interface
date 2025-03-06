@@ -85,7 +85,7 @@ class BaseParam:
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
     kill_carla_server: bool = True
-    carla_version: str = "0.10.0"
+    carla_version: str = "0.9.15"
     use_docker: bool = True
     default_carla_paths: List[str] = field(
         default_factory=lambda: [
