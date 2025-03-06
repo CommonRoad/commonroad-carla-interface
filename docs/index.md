@@ -43,7 +43,7 @@ We recommend to use PyCharm (Professional) as IDE.
 
 
 ## Getting started
-We provide [tutorial script](https://github.com/commonroad/commonroad-carla-interface/tutorials/)
+We provide [tutorial script](https://github.com/CommonRoad/commonroad-carla-interface/tree/develop/tutorials)
 for different features we support.
 A deployed version of the documentation can be found
 [here](https://cps.pages.gitlab.lrz.de/commonroad/commonroad-carla-interface/).
@@ -64,8 +64,10 @@ We support five ways of interacting with CARLA:
 The default configuration can be found under `crcarla.helper.config` and in our documentation.
 The CARLA interface can take care of starting the CARLA server.
 The path to CARLA can either be provided manually via the config parameters or the CARLA release folder path corresponds
-to one of our default locations: /opt/carla-simulator/, /~/CARLA_0.9.14_RSS/, /~/CARLA_0.9.15/ (default paths work only
+to one of our default locations: /opt/carla-simulator/, /~/CARLA_0.9.15_RSS/, /~/CARLA_0.9.15/, /~/CARLA_0.10.0/ (default paths work only
 for Ubuntu; for a complete list of default paths, see our configuration options).
+
+> **_NOTE:_**  If you want to use CARLA 0.10.0, you need to provide the command line argument **--cvers 0.10.0**.
 
 
 ## Documentation

@@ -1,5 +1,5 @@
 import hashlib
-import logging
+from logging import Logger
 import math
 import os
 import shutil
@@ -23,12 +23,8 @@ from commonroad.scenario.state import CustomState, ExtendedPMState, InitialState
 from commonroad.visualization.mp_renderer import MPRenderer
 from PIL import Image
 
-from crcarla.helper.config import BaseParam
+from crcarla.helper.config import BaseParam, SupportedCARLAVersion
 from crcarla.objects.actor import ActorInterface
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
 
 # def _get_nearby_vehicles(self, vehicles, ego, distance_th):
 #     """Shows nearby vehicles of the hero actor"""
@@ -237,12 +233,13 @@ def calc_max_timestep(sc: Scenario) -> int:
     return np.max(time_steps) if time_steps else 0
 
 
-def find_pid_by_name(process_name: str) -> List[int]:
+def find_pid_by_name(process_name: str, logger: Logger) -> List[int]:
     """
     Get a list of all the PIDs of all the running process whose name contains
     the given string processName
 
     :param process_name: Name of process for which PID should be extracted.
+    :param logger: Logger object.
     :return: List of possible PIDs
     """
     processes = []
@@ -252,21 +249,22 @@ def find_pid_by_name(process_name: str) -> List[int]:
                 if process_name.lower() in proc.name().lower():
                     processes.append(proc.pid)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                logger.error("Error finding process.")
+                logger.info("No running process found.")
     except AttributeError:
-        logger.error("Error iterating over processes.")
+        logger.info("No running process found.")
     except KeyError:
-        logger.error("Error iterating over processes.")
+        logger.info("No running process found.")
 
     return processes
 
 
-def make_video(path: Path, video_name: str):
+def make_video(path: Path, video_name: str, logger: Logger):
     """
     Creates a video of the images recorded by camera sensor using ffmepg.
 
-    @param path: Path to png images stored by camera sensor.
-    @param video_name: Name which new video should have.
+    :param path: Path to png images stored by camera sensor.
+    :param video_name: Name which new video should have.
+    :param logger: Logger object.
     """
     tmp_path = path / "_tmp"
     if not path.exists():
@@ -293,38 +291,56 @@ def make_video(path: Path, video_name: str):
             shutil.rmtree(tmp_path)
 
 
-def find_carla_distribution(default_carla_paths: List[str]) -> Path:
+def find_carla_distribution(
+    default_carla_paths: List[str], carla_version: SupportedCARLAVersion = SupportedCARLAVersion.V_0_9_15
+) -> Path:
     """
     Finds path of CARLA executable script based on given default paths.
 
     :param default_carla_paths: Paths to search for CARLA distribution.
+    :param carla_version: Version of CARLA to search for.
     :return: Detected path.
     """
     if default_carla_paths is None:
         default_carla_paths = BaseParam().default_carla_paths
     for default_path in default_carla_paths:
-        if (path := Path(default_path).expanduser()).exists():
+        if (path := Path(default_path).expanduser()).exists() and carla_version.value in path.name:
             return path
     raise FileNotFoundError("CARLA executable not found.")
 
 
-def kill_existing_servers(sleep_time: float):
+def kill_existing_servers(sleep_time: float, logger: Logger):
     """
     Kills all running carla servers.
 
     :param sleep_time: The number of seconds to wait after killing the Carla server.
+    :param logger: Logger object.
     """
-    for pid in find_pid_by_name("CarlaUE4"):
+    pids = find_pid_by_name("CarlaUE4", logger)
+    for pid in pids:
         logger.info("Kill existing CARLA server with PID %s.", pid)
         os.killpg(os.getpgid(pid), signal.SIGTERM)
+    if len(pids) > 0:
+        time.sleep(sleep_time)
 
-    time.sleep(sleep_time)
-
-    for pid in find_pid_by_name("CarlaUE4"):
+    pids = find_pid_by_name("CarlaUE4", logger)
+    for pid in pids:
         logger.warning("CARLA server with PID %s did not terminate. Sending     SIGKILL.", pid)
         os.killpg(os.getpgid(pid), signal.SIGKILL)
 
-    time.sleep(sleep_time)
+    if len(pids) > 0:
+        time.sleep(sleep_time)
+
+    containers = ["carlasim/carla:0.10.0", "carlasim/carla:0.9.15"]
+    for container in containers:
+        try:
+            result = subprocess.run(["docker", "ps", "-q", "-f", f"name={container}"], capture_output=True, text=True)
+            container_id = result.stdout.strip()
+            if container_id:
+                logger.info(f"Stopping container {container}")
+                subprocess.run(["docker", "stop", container_id])
+        except Exception as e:
+            logger.error(f"Error stopping container {container}: {e}")
 
 
 def id_to_color(id_to_convert: Union[int, str]) -> Tuple[float, float, float]:
@@ -382,7 +398,7 @@ def render_obstacle_rectangle(state, car_width, car_length, color):
 
 def render_from_trajectory(
     scenario: Scenario,
-    actuall_trajectories: list,
+    actual_trajectories: list,
     predicted_trajectories: list,
     ids: List[str],
     actor_types: List[str],
@@ -400,7 +416,7 @@ def render_from_trajectory(
 
 
     :param scenario: The scenario to render.
-    :param actuall_trajectories: A list of the actual trajectories for the actors in the scenario.
+    :param actual_trajectories: A list of the actual trajectories for the actors in the scenario.
     :param predicted_trajectories: A list of the predicted trajectories for the actors in the scenario.
     :param ids: A list of the IDs for the actors in the scenario.
     :param actor_types: A list of the actor types for the actors in the scenario.
@@ -420,7 +436,7 @@ def render_from_trajectory(
     rnd.render()
     legend_elements = []
 
-    for i, actual_trajectory in enumerate(actuall_trajectories):
+    for i, actual_trajectory in enumerate(actual_trajectories):
         actual_label = f"{actor_types[i]} : {ids[i]}"
         predicted_label = f"Predicted : {actor_types[i]} : {ids[i]}"
 
