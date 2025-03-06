@@ -249,11 +249,11 @@ def find_pid_by_name(process_name: str, logger: Logger) -> List[int]:
                 if process_name.lower() in proc.name().lower():
                     processes.append(proc.pid)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                logger.error("Error finding process.")
+                logger.info("No running process found.")
     except AttributeError:
-        logger.error("Error iterating over processes.")
+        logger.info("No running process found.")
     except KeyError:
-        logger.error("Error iterating over processes.")
+        logger.info("No running process found.")
 
     return processes
 
@@ -313,14 +313,14 @@ def kill_existing_servers(sleep_time: float, logger: Logger):
     :param sleep_time: The number of seconds to wait after killing the Carla server.
     :param logger: Logger object.
     """
-    pids = find_pid_by_name("CarlaUE4")
+    pids = find_pid_by_name("CarlaUE4", logger)
     for pid in pids:
         logger.info("Kill existing CARLA server with PID %s.", pid)
         os.killpg(os.getpgid(pid), signal.SIGTERM)
     if len(pids) > 0:
         time.sleep(sleep_time)
 
-    pids = find_pid_by_name("CarlaUE4")
+    pids = find_pid_by_name("CarlaUE4", logger)
     for pid in pids:
         logger.warning("CARLA server with PID %s did not terminate. Sending     SIGKILL.", pid)
         os.killpg(os.getpgid(pid), signal.SIGKILL)
@@ -330,12 +330,14 @@ def kill_existing_servers(sleep_time: float, logger: Logger):
 
     containers = ["carlasim/carla:0.10.0", "carlasim/carla:0.9.15"]
     for container in containers:
-        result = subprocess.run(["docker", "ps", "-q", "-f", f"name={container}"], capture_output=True, text=True)
-        container_id = result.stdout.strip()
-
-        if container_id:
-            logger.info(f"Stopping container {container}")
-            subprocess.run(["docker", "stop", container_id])
+        try:
+            result = subprocess.run(["docker", "ps", "-q", "-f", f"name={container}"], capture_output=True, text=True)
+            container_id = result.stdout.strip()
+            if container_id:
+                logger.info(f"Stopping container {container}")
+                subprocess.run(["docker", "stop", container_id])
+        except Exception as e:
+            logger.error(f"Error stopping container {container}: {e}")
 
 
 def id_to_color(id_to_convert: Union[int, str]) -> Tuple[float, float, float]:

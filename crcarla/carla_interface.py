@@ -76,7 +76,8 @@ class CarlaInterface:
         self._client = carla.Client(self._config.host, self._config.port)
         self._client.set_timeout(self._config.client_init_timeout)
 
-        self._load_map(self._config.map)
+        if self._config.carla_version == "0.9.15":
+            self._load_map(self._config.map)
         self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
         self._ego: Optional[VehicleInterface] = None
         self.traffic_lights: List[CarlaTrafficLight] = []
@@ -154,7 +155,7 @@ class CarlaInterface:
 
             time.sleep(self._config.sleep_time)
 
-            kill_existing_servers(self._config.sleep_time)
+            kill_existing_servers(self._config.sleep_time, self._config.logger)
 
     def update_config(self, config: CarlaParams, update_map: bool = True):
         """
@@ -183,7 +184,7 @@ class CarlaInterface:
         """Start CARLA server in desired operating mode (3D/offscreen)."""
         popen_base_params = {"stdout": subprocess.PIPE, "preexec_fn": os.setsid, "shell": False}
         self._config.logger.info("Start CARLA server.")
-        kill_existing_servers(self._config.sleep_time)
+        kill_existing_servers(self._config.sleep_time, self._config.logger)
 
         if not self._config.use_docker:
             path_to_carla = find_carla_distribution(self._config.default_carla_paths) / "CarlaUE4.sh"
@@ -339,29 +340,29 @@ class CarlaInterface:
             vehicle_model=vehicle_model,
             vehicle_type=vehicle_type,
             cost_function=cost_function,
-            trajectory=Trajectory(self._ego.trajectory[0].time_step, self._ego.trajectory),
+            trajectory=Trajectory(self._ego.cr_obstacle.history[0].time_step, self._ego.cr_obstacle.history),
         )
 
     def cr_obstacles(self) -> List[Union[DynamicObstacle, StaticObstacle]]:
-        """
-        Extracts Commonroad obstacles.
+        """a
+        Extracts CommonRoad obstacles.
 
         :return: List of CommonRoad obstacles containing driven trajectory from CARLA vehicles and walkers.
         """
         for obs in self._cr_obstacles:
             obs.cr_obstacle.prediction = TrajectoryPrediction(
-                Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape
+                Trajectory(1, obs.cr_obstacle.history), obs.cr_obstacle.obstacle_shape
             )
         return [obs.cr_obstacle for obs in self._cr_obstacles]
 
     def cr_ego_obstacle(self) -> DynamicObstacle:
         """
-        Extracts Commonroad obstacle object for ego vehicle.
+        Extracts CommonRoad obstacle object for ego vehicle.
 
         :return: CommonRoad obstacle containing driven trajectory from CARLA ego vehicle.
         """
         self._ego.cr_obstacle.prediction = TrajectoryPrediction(
-            Trajectory(1, self._ego.trajectory), self._ego.cr_obstacle.obstacle_shape
+            Trajectory(1, self._ego.cr_obstacle.history), self._ego.cr_obstacle.obstacle_shape
         )
         return self._ego.cr_obstacle
 
@@ -475,7 +476,7 @@ class CarlaInterface:
 
         for obs in self._cr_obstacles[1:]:
             obs.cr_obstacle.prediction = TrajectoryPrediction(
-                Trajectory(1, obs.trajectory), obs.cr_obstacle.obstacle_shape
+                Trajectory(1, obs.cr_obstacle.history), obs.cr_obstacle.obstacle_shape
             )
             sc.add_objects(obs.cr_obstacle)
 

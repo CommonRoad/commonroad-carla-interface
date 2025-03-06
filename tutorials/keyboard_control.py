@@ -12,7 +12,7 @@ from crcarla.helper.config import CarlaParams, CustomVis, EgoPlanner
 param = CarlaParams()
 param.vehicle.vehicle_ks_state = True
 param.offscreen_mode = True  # set to false if your system is powerful enough
-param.vis_type = CustomVis.BIRD  # set to EGO if your system is powerful enough
+param.vis_type = CustomVis.THIRD_PERSON  # set to EGO if your system is powerful enough
 param.simulation.number_vehicles = 2
 param.simulation.number_walkers = 2
 param.simulation.max_time_step = 120

@@ -85,11 +85,12 @@ class BaseParam:
     sleep_time: float = 10.0  # time to move your view in carla-window
     start_carla_server: bool = True
     kill_carla_server: bool = True
-    carla_version: str = "0.9.15"
+    carla_version: str = "0.10.0"
     use_docker: bool = True
     default_carla_paths: List[str] = field(
         default_factory=lambda: [
             "/opt/carla-simulator/",
+            "~/Carla-0.10.0-Linux-Shipping/",
             "~/CARLA_0.9.15_RSS/",
             "~/CARLA_0.9.15/",
             "~/CARLA_0.9.14_RSS/",
@@ -99,38 +100,70 @@ class BaseParam:
             "/home/carla/",
         ]
     )
-    default_docker_commands: Dict[str, Dict[bool, str]] = field(
+    default_docker_commands: Dict[str, Dict[bool, List[str]]] = field(
         default_factory=lambda: {
             "0.10.0": {
-                False: (
-                    "docker run "
-                    "--runtime=nvidia "
-                    "--net=host "
-                    "--user=$(id -u):$(id -g) "
-                    "--env=DISPLAY=$DISPLAY "
-                    "--env=NVIDIA_VISIBLE_DEVICES=all "
-                    "--env=NVIDIA_DRIVER_CAPABILITIES=all "
-                    '--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" '
-                    "carlasim/carla:0.10.0 bash CarlaUnreal.sh -nosound"
-                ),
-                True: (
-                    "docker run --runtime=nvidia --net=host --env=NVIDIA_VISIBLE_DEVICES=all "
-                    "--env=NVIDIA_DRIVER_CAPABILITIES=all carlasim/carla:0.10.0 bash CarlaUnreal.sh -RenderOffScreen -nosound"
-                ),
+                False: [
+                    "docker",
+                    "run",
+                    "--runtime=nvidia",
+                    "--net=host",
+                    "--user=$(id -u):$(id -g)",
+                    "--env=DISPLAY=$DISPLAY",
+                    "--env=NVIDIA_VISIBLE_DEVICES=all",
+                    "--env=NVIDIA_DRIVER_CAPABILITIES=all",
+                    "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw",
+                    "carlasim/carla:0.10.0",
+                    "bash",
+                    "CarlaUnreal.sh",
+                    "-nosound",
+                ],
+                True: [
+                    "docker",
+                    "run",
+                    "--runtime=nvidia",
+                    "--net=host",
+                    "--env=NVIDIA_VISIBLE_DEVICES=all",
+                    "--env=NVIDIA_DRIVER_CAPABILITIES=all",
+                    "carlasim/carla:0.10.0",
+                    "bash",
+                    "CarlaUnreal.sh",
+                    "-RenderOffScreen",
+                    "-nosound",
+                ],
             },
             "0.9.15": {
-                False: (
-                    "docker run --privileged --gpus all --net=host -e DISPLAY=$DISPLAY "
-                    "carlasim/carla:0.9.15 /bin/bash ./CarlaUE4.sh"
-                ),
-                True: (
-                    "docker run --privileged --gpus all --net=host -v /tmp/.X11-unix:/tmp/.X11-unix:rw "
-                    "carlasim/carla:0.9.15 /bin/bash ./CarlaUE4.sh -RenderOffScreen"
-                ),
+                False: [
+                    "docker",
+                    "run",
+                    "--privileged",
+                    "--gpus",
+                    "all",
+                    "--net=host",
+                    "-e",
+                    "DISPLAY=$DISPLAY",
+                    "carlasim/carla:0.9.15",
+                    "/bin/bash",
+                    "./CarlaUE4.sh",
+                ],
+                True: [
+                    "docker",
+                    "run",
+                    "--privileged",
+                    "--gpus",
+                    "all",
+                    "--net=host",
+                    "-v",
+                    "/tmp/.X11-unix:/tmp/.X11-unix:rw",
+                    "carlasim/carla:0.9.15",
+                    "/bin/bash",
+                    "./CarlaUE4.sh",
+                    "-RenderOffScreen",
+                ],
             },
         }
     )
-    offscreen_mode: bool = True
+    offscreen_mode: bool = False
     map: str = "Town01"
     client_init_timeout: float = 30.0
     sync: bool = True
