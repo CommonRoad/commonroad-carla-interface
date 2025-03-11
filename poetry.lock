@@ -216,17 +216,54 @@ files = [
 markers = {main = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
+name = "commonroad-clcs"
+version = "2025.1.1"
+description = "Curvilinear (Frenet) Coordinate System for motion planning."
+optional = false
+python-versions = "<3.12,>=3.9"
+groups = ["main"]
+files = [
+    {file = "commonroad_clcs-2025.1.1-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:bbdeba22c8314a3997b0dd4a6d77b1d80bbce9ad09a19a3dfe4fa50bd6f05e85"},
+    {file = "commonroad_clcs-2025.1.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:530acaf6803a1bcdd49b9f461848e8747ee3ba91adaec4e6e5f54778684f3e79"},
+    {file = "commonroad_clcs-2025.1.1-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:ab9259f7b03025f7e225471acbe7b9ca9a3470cb174a9dc7bf2b632f101b6693"},
+    {file = "commonroad_clcs-2025.1.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:de4b55359da4b601c78f9ff98b19bb60a92c374e26a064d93ca87ff3cf5e3fe4"},
+    {file = "commonroad_clcs-2025.1.1-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7cbf46df76cb26778758064a3b23f4e0542a859d2f8b0fadd00685d59404403d"},
+    {file = "commonroad_clcs-2025.1.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:23f8dbdd9019e5e81ce379ae5720045d76483bbb1ad740bd68471d382366047c"},
+    {file = "commonroad_clcs-2025.1.1-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:045f32b8993dbfa6b86dfd34fba28ec67aa8af72982c0a5a00611b0a2d892321"},
+    {file = "commonroad_clcs-2025.1.1-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:8ebd87564db071956db7809788ca138e7f2f67696f749b4be02e8670649cd5a1"},
+    {file = "commonroad_clcs-2025.1.1-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:dcbb3026893ed901d2f9bbfeedff5142c1bd77f00bdcebf427107c4ecef32cf9"},
+    {file = "commonroad_clcs-2025.1.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e441d935263ff2b3e2d69b82b1ef9dff4c85d5575bcae431ad478023d52feaa2"},
+    {file = "commonroad_clcs-2025.1.1-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:0c9f5bc2d8ab1954b2748600948299c96489d38afc7470930364043ed287cdcd"},
+    {file = "commonroad_clcs-2025.1.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:cc1c7e21639b3aa8e5fe1a341b307b2d130f31202f1af459f9799c11844586e8"},
+    {file = "commonroad_clcs-2025.1.1.tar.gz", hash = "sha256:6266b56091d0d68cb2081539a18884d8059421538844b6ccc620a47bb12bc6bf"},
+]
+
+[package.dependencies]
+commonroad-io = ">=2023.1"
+matplotlib = ">=3.3.3"
+numpy = ">=1.19.2"
+omegaconf = ">=2.1.1"
+osqp = ">=0.6.5,<0.7.0"
+scipy = ">=1.4.1"
+shapely = ">=2.0.0"
+
+[package.extras]
+build = ["cmake (>=3.24)", "pathspec (>=0.12.1)", "pybind11 (>=2.12.0,<2.13.0)", "pyproject-metadata (>=0.7.1)", "scikit-build-core (>=0.8.0,<0.9.0)"]
+docs = ["mkdocs (>=1.6.1,<2.0.0)", "mkdocs-material (>=9.5.10,<10.0.0)", "mkdocstrings-python (>=1.8.0,<2.0.0)"]
+test = ["parameterized (>=0.9.0,<0.10.0)", "pytest (>=3.8.0)"]
+
+[[package]]
 name = "commonroad-drivability-checker"
-version = "2024.2"
+version = "2025.1"
 description = "Drivability checker for CommonRoad scenarios."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "commonroad-drivability-checker-2024.2.tar.gz", hash = "sha256:e0e1588194668da3b42e6c75476f596e681d66e89f1fccd275926a6a6bd49926"},
-    {file = "commonroad_drivability_checker-2024.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1b42ae3c65c950b8ab95195d2aae24f35fc86a28edfed03cf6f8598a7a4e6f6d"},
-    {file = "commonroad_drivability_checker-2024.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8131923139043b9c960cba11e171d91de3f0066552ab83ca70c917251e5f5a73"},
-    {file = "commonroad_drivability_checker-2024.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6d4e2e5a6b3493f06572e78a33313edd47daed31a124c79078c48a80dec5099b"},
+    {file = "commonroad-drivability-checker-2025.1.tar.gz", hash = "sha256:eaad85c972a4aa52a4d23980fd9001eee0f9be4657e155a5c1a7d91c9c1f9974"},
+    {file = "commonroad_drivability_checker-2025.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:af6d1c161cfd240ae608ee867381b56165e8f5f1510ad836f88fa0247677be15"},
+    {file = "commonroad_drivability_checker-2025.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e5e954d4f122c0949d645210c1dc03c031a47dddad71739a74837e76c55f4049"},
+    {file = "commonroad_drivability_checker-2025.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b2e9a4c9ab8002a074cba5079e8d34a0f96f267403f936a5dda00e00bb128735"},
 ]
 
 [package.dependencies]
@@ -271,67 +308,69 @@ name = "commonroad-prediction"
 version = "0.1.1"
 description = "A collection and interface for CommonRoad prediction algorithms."
 optional = false
-python-versions = "<3.12,>=3.9"
-groups = ["main"]
-files = [
-    {file = "commonroad_prediction-0.1.1-py3-none-any.whl", hash = "sha256:e65cf19d94c725f206075434ff4241bd6d7e7f3660f75c94713afda8811a4ec4"},
-    {file = "commonroad_prediction-0.1.1.tar.gz", hash = "sha256:39766779be1bfe4ba39ffffdffc78e0818aa2fc3b0bd30fef9565757a4c8943a"},
-]
-
-[package.dependencies]
-commonroad-drivability-checker = ">=2024.1"
-commonroad-io = ">=2024.1"
-imageio = ">=2.31.1,<3.0.0"
-numpy = "<2.0"
-
-[[package]]
-name = "commonroad-reactive-planner"
-version = "2024.1"
-description = "CommonRoad Reactive Planner: Sampling-based Frenet Planner"
-optional = false
-python-versions = ">=3.9,<3.12"
+python-versions = "^3.9,<3.12"
 groups = ["main"]
 files = []
 develop = false
 
 [package.dependencies]
-commonroad-drivability-checker = ">=2024.1"
-commonroad-io = ">=2024.2"
-commonroad-route-planner = ">=2024.2.0"
+commonroad-clcs = ">=2025.1"
+commonroad-drivability-checker = ">=2025.1"
+commonroad-io = ">=2024.1"
+imageio = "^2.31.1"
+numpy = "<2.0"
+
+[package.source]
+type = "git"
+url = "ssh://git@github.com/CommonRoad/commonroad-prediction.git"
+reference = "develop"
+resolved_reference = "6d6ba98a9f8db589ad08ee78e17b9f2fe48a1e34"
+
+[[package]]
+name = "commonroad-reactive-planner"
+version = "2025.1"
+description = "CommonRoad Reactive Planner: Sampling-based Frenet Planner"
+optional = false
+python-versions = "<3.12,>=3.9"
+groups = ["main"]
+files = [
+    {file = "commonroad_reactive_planner-2025.1-py3-none-any.whl", hash = "sha256:aa15b378cf5a089a69aee8df4d29d2b506d486e9c055db980747342724428e83"},
+    {file = "commonroad_reactive_planner-2025.1.tar.gz", hash = "sha256:4995a9b85220a2d4966bea8a4f316dcccc3bc4b4c1cd225b2679cfccdd74e892"},
+]
+
+[package.dependencies]
+commonroad-clcs = ">=2025.1.1,<2026.0.0"
+commonroad-drivability-checker = ">=2025.1,<2026.0"
+commonroad-io = ">=2024.3,<2025.0"
+commonroad-route-planner = ">=2025.1.0,<2026.0.0"
 commonroad_vehicle_models = ">=3.0.2"
 imageio = ">=2.13.5"
 matplotlib = ">=2.2.2"
-methodtools = "^0.4.5"
+methodtools = ">=0.4.5,<0.5.0"
 networkx = ">=2.2"
-numpy = ">=1.22,<2.0"
+numpy = ">=1.22"
 omegaconf = ">=2.1.1"
 scipy = ">=1.5.2"
 triangle = ">=20230923"
 
-[package.source]
-type = "git"
-url = "ssh://git@gitlab.lrz.de/cps/reactive-planner.git"
-reference = "development"
-resolved_reference = "2901a571e9ec73dbce77462d670505b32e443577"
-
 [[package]]
 name = "commonroad-route-planner"
-version = "2025.0.1"
+version = "2025.1.0"
 description = "Route and reference path planning tool for CommonRoad scenarios"
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "<3.12,>=3.9"
 groups = ["main"]
 files = [
-    {file = "commonroad_route_planner-2025.0.1-py3-none-any.whl", hash = "sha256:42bd2998e1237cd707cd870cdf65c12e701cf16cbb6d682137a7b6bd9a29ab7a"},
-    {file = "commonroad_route_planner-2025.0.1.tar.gz", hash = "sha256:328751b0a530d273faa00bc987cc27c49fc207058babea5952755339cababe02"},
+    {file = "commonroad_route_planner-2025.1.0-py3-none-any.whl", hash = "sha256:88b314882c94b9cf1adb060c3c58b1ef18c42224c4fd5cdc350421527fadf097"},
+    {file = "commonroad_route_planner-2025.1.0.tar.gz", hash = "sha256:677a9eaeebeb9e7595e2bd44adf1c65b5832e8267140fdc09c7a6f18e36d1c5d"},
 ]
 
 [package.dependencies]
-commonroad-drivability-checker = ">=2023.1"
+commonroad-clcs = ">=2025.1.0,<2026.0.0"
 commonroad-io = ">=2022.2"
-matplotlib = ">=3.1.2,<3.9"
+matplotlib = ">=3.1.2"
 networkx = ">=2.4"
-numpy = ">=1.17.4,<2.0"
+numpy = ">=1.17.4"
 shapely = ">=1.6.4.post2"
 
 [[package]]
@@ -339,44 +378,49 @@ name = "commonroad-scenario-designer"
 version = "0.8.4"
 description = "Toolbox for Map Conversion and Scenario Creation for Autonomous Vehicles"
 optional = false
-python-versions = "<3.12,>=3.9"
+python-versions = "^3.9,<3.12"
 groups = ["main"]
-files = [
-    {file = "commonroad_scenario_designer-0.8.4-py3-none-any.whl", hash = "sha256:5feef3773e89fe1469b7cb2efbdc942f2672955ebd4640ec2159181abcde4792"},
-    {file = "commonroad_scenario_designer-0.8.4.tar.gz", hash = "sha256:0100cc2515cd825d6678798910ff1122ef13303dbdbd48de8b1c4a164e831f14"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 antlr4-python3-runtime = "4.9.3"
-commonroad-drivability-checker = ">=2024.1,<2025.0"
-commonroad-io = ">=2024.2,<=2024.3"
-eclipse-sumo = ">=1.19.0,<2.0.0"
-iso3166 = ">=2.1.1,<3.0.0"
-kdtree = ">=0.16,<0.17"
-lxml = ">=4.9.2,<5.0.0"
+commonroad-clcs = "^2025.1"
+commonroad-drivability-checker = "^2025.1"
+commonroad-io = ">=2024.2, <=2024.3"
+eclipse-sumo = "^1.19.0"
+iso3166 = "^2.1.1"
+kdtree = "^0.16"
+lxml = "^4.9.2"
 matplotlib = ">=3.6.0"
-mercantile = ">=1.2.1,<2.0.0"
+mercantile = "^1.2.1"
 mgrs = ">=1.4.5"
-networkx = ">=3.0,<4.0"
-numpy = ">=1.26.4,<2.0.0"
-omegaconf = ">=2.3.0,<3.0.0"
-ordered-set = ">=4.1.0,<5.0.0"
-pandas = ">=2.0.2,<3.0.0"
-pyclothoids = ">=0.1.5,<0.2.0"
-pygeodesy = ">=23.3.23,<24.0.0"
+networkx = "^3.0"
+numpy = "^1.26.4,<2.0"
+omegaconf = "^2.3.0"
+ordered-set = "^4.1.0"
+pandas = "^2.0.2"
+pyclothoids = "^0.1.5"
+pygeodesy = "^23.3.23"
 pymetis = ">=2020.1"
-pyproj = ">=3.4.1,<4.0.0"
+pyproj = "^3.4.1"
 pyqt6 = ">=6.6.0"
 pyyaml = "6.0"
-requests = ">=2.31.0,<3.0.0"
-scipy = ">=1.11.3,<2.0.0"
+requests = "^2.31.0 "
+scipy = "^1.11.3"
 shapely = ">=2.0.1"
 similaritymeasures = ">=0.4.4"
-sumocr = ">=2024.1,<2025.0"
-typer = ">=0.9.0,<0.10.0"
-typing-extensions = ">=4.8.0,<5.0.0"
-urllib3 = ">=2.0.3,<3.0.0"
-utm = ">=0.7.0,<0.8.0"
+sumocr = "^2024.1"
+typer = "^0.9.0"
+typing-extensions = "^4.8.0"
+urllib3 = "^2.0.3"
+utm = "^0.7.0"
+
+[package.source]
+type = "git"
+url = "ssh://git@github.com/CommonRoad/commonroad-scenario-designer.git"
+reference = "develop"
+resolved_reference = "98be4970218700ee6ff18e30c06befaf9f0886a4"
 
 [[package]]
 name = "commonroad-vehicle-models"
@@ -1799,6 +1843,63 @@ files = [
 dev = ["black", "mypy", "pytest"]
 
 [[package]]
+name = "osqp"
+version = "0.6.7.post3"
+description = "OSQP: The Operator Splitting QP Solver"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "osqp-0.6.7.post3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f751ca1332b480753cfe3c08bf14ca66259bf69679b572e1f8095ad3e26b201d"},
+    {file = "osqp-0.6.7.post3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:a1b30df65f2d938452e3bd2ca11388b5b16ec7406daedfc4b9dce3747c282e44"},
+    {file = "osqp-0.6.7.post3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6e1c4550853a5f1e0a90ae7ccbee1cb990f34f98514911955ad14841613110dd"},
+    {file = "osqp-0.6.7.post3-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e0cce816af77b28fc5eff1a4e6d8d25d0653f48275e6e2814bd5f1767181e715"},
+    {file = "osqp-0.6.7.post3-cp310-cp310-win_amd64.whl", hash = "sha256:78a1d63b36876996a7125e061145280949334d667060a20895c5d1f183c70242"},
+    {file = "osqp-0.6.7.post3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:b1a1dcd869fd6ac501e06262c21483a3691b6281e4f3f65af6951330958b89ca"},
+    {file = "osqp-0.6.7.post3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:46b93d1110dc0ad311f6691c4df9ee41cbbde5ffc0d8c8d520d4555bf5d8765b"},
+    {file = "osqp-0.6.7.post3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5209104d6fe3ace4fdbf9ace08caa2cba9de1e7ccd5f56279a346c235917138b"},
+    {file = "osqp-0.6.7.post3-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fdfefa07740e9fb1c574cdc836e5afe2600b73c0c12089955d4ae6587c55f0eb"},
+    {file = "osqp-0.6.7.post3-cp311-cp311-win_amd64.whl", hash = "sha256:c48c91dfba02ce11e8b8f5d401ec5b67a316782bfdf4f53ca753e49907f7387f"},
+    {file = "osqp-0.6.7.post3-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:023af06764f7aba9c64536ecb7204019906bb7e78237f335f82b404f16623eef"},
+    {file = "osqp-0.6.7.post3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4cec7cb5bf1615c4129277275dc08e20a037372a874cff35eb891b4b35a463de"},
+    {file = "osqp-0.6.7.post3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eb882ab24b97b14843b7c71d2474fb8b415bafc8dd60aa94870c2ef338c20bfb"},
+    {file = "osqp-0.6.7.post3-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:502fde0ae710cef1e6418fb8d26efef9597d1dcba877489a1c2eb9c3eb2ff2e9"},
+    {file = "osqp-0.6.7.post3-cp312-cp312-win_amd64.whl", hash = "sha256:468588cfb690becba4d1f460c2a53e75530584e3efcf2caed59f5219032e6888"},
+    {file = "osqp-0.6.7.post3-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:cee478eedf9cfad11ff9c27ef0b1e032506a16888b8b874f622816cf8749db7f"},
+    {file = "osqp-0.6.7.post3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:5dd739c4c6c91e40d2e3ea2bb78c635c897e07697ab24a46d3a5d197e254b0f3"},
+    {file = "osqp-0.6.7.post3-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:002f280f23d15ad3c6386a868688f0b17c90dba13d0f7f8da1c833a14fc4d7f8"},
+    {file = "osqp-0.6.7.post3-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1a2922fe8cb666964cf01b643da81eadf4bb435139a5f042d5bb6dcb87496778"},
+    {file = "osqp-0.6.7.post3-cp313-cp313-win_amd64.whl", hash = "sha256:acb219e941f5248da5de3ee9b70e6a5aaddf5f3989dffd1d4c03b0f7b1dfa17b"},
+    {file = "osqp-0.6.7.post3-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:d12757f9594f87219820aa7ae06ce7800fef9ea52828b7d1970016d6c9749b5f"},
+    {file = "osqp-0.6.7.post3-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:565205e0dbe5b6ac1dcd7eee8d2e9c4ba5d88b7aaaa522140cdb7d197a9275bb"},
+    {file = "osqp-0.6.7.post3-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:34974c8441260e8952f63a17b0461da9b554a3ed9122042dd0f2e0a4c19e9732"},
+    {file = "osqp-0.6.7.post3-cp36-cp36m-win_amd64.whl", hash = "sha256:01d99ced6f43d0d10fa0f01631c5b0a27aca44a5e4743b7ce9a174fcfebfde6e"},
+    {file = "osqp-0.6.7.post3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:d54837f762b17cb77aa16be3e85cc424cb93fd4ec84f5cbb14f9c0520191fecf"},
+    {file = "osqp-0.6.7.post3-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c353997ebe57cd8252bd5d7100d997086ab0524b946dc49a4e4d4a774752ee9"},
+    {file = "osqp-0.6.7.post3-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:30c37552731443295b629999c6d100f76310a2cd368503095af6165e2f52993d"},
+    {file = "osqp-0.6.7.post3-cp37-cp37m-win_amd64.whl", hash = "sha256:2c3c31712c60d0421178040a6ee9644318fb579bd83375af4ffd9d5d7c9d2d2e"},
+    {file = "osqp-0.6.7.post3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:eb3c73386d18be58097115f5f8623860d5736c5b956eb54e492b91380cab549e"},
+    {file = "osqp-0.6.7.post3-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:27396891b4c52baae44d9aef4ad2abf7da9a19946c5cbdd163f96a55de02515f"},
+    {file = "osqp-0.6.7.post3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bb39a937c5fbfe935cebc21c9ef51434cabe5a6f415a775b8a0939c39aa31671"},
+    {file = "osqp-0.6.7.post3-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:204857fdd4100ad0d487cac4e9c1698843440ec49c1d49b03aa369588cd2db65"},
+    {file = "osqp-0.6.7.post3-cp38-cp38-win_amd64.whl", hash = "sha256:4981c0f2b28bce3731d614953da11b4dd30106ea3e4d7d0a5f7dd3a93270934a"},
+    {file = "osqp-0.6.7.post3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:21e605e3ec1547a23be16ea52ade3157d4e2e7935472dd9c0c089a9c6b3463be"},
+    {file = "osqp-0.6.7.post3-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:82f14aaf099be0888b47e50699006c16107b30f53a7bc27070075d56d23c822c"},
+    {file = "osqp-0.6.7.post3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7938f6e4fe2b8b9737b4b7b0dda48bf0f11c14104b79c07ce0b1fe475f4e1308"},
+    {file = "osqp-0.6.7.post3-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:298617772814480fce4610ea1f3abac3deac3ffdc978b0df4916f1021d128c66"},
+    {file = "osqp-0.6.7.post3-cp39-cp39-win_amd64.whl", hash = "sha256:894e65b8e4c81f0ef069af6b2ec398881aafe4dd265869b1647ee18a2a9393b1"},
+    {file = "osqp-0.6.7.post3.tar.gz", hash = "sha256:b0c5e0a721f21c9724097a4fd50108304d296468d124e16f34ac67046f7020e1"},
+]
+
+[package.dependencies]
+numpy = ">=1.7"
+qdldl = "*"
+scipy = ">=0.13.2"
+
+[package.extras]
+dev = ["scipy (!=1.12.0)"]
+
+[[package]]
 name = "packaging"
 version = "23.2"
 description = "Core utilities for Python packages"
@@ -2689,6 +2790,59 @@ files = [
 pyyaml = "*"
 
 [[package]]
+name = "qdldl"
+version = "0.1.7.post5"
+description = "QDLDL, a free LDL factorization routine."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "qdldl-0.1.7.post5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:882658853edd24a7d16912af29e77320e061b150b4ed7cf94fd01907f2e925b4"},
+    {file = "qdldl-0.1.7.post5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:e30a80d71ab5889a1e169304b12bc3ab69210775f6428153873584ff8dfb50e5"},
+    {file = "qdldl-0.1.7.post5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3640594ea643e4b2c2b40a6f21ad7a6c5bdfaaf5f13a5256538b631d474d7b77"},
+    {file = "qdldl-0.1.7.post5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ba00c93f547eff8aa13af300c7b7573b27caf30209b25ec8f16f2ff810b9653f"},
+    {file = "qdldl-0.1.7.post5-cp310-cp310-win_amd64.whl", hash = "sha256:66c5e0e9175dd0c2a511b4dc9e0ee106ababc5e4e05ef8107598f14e346c5632"},
+    {file = "qdldl-0.1.7.post5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:aa22df45e625c763d129b2893b284b7bde16a535a7e900288d588be9dc24fe9f"},
+    {file = "qdldl-0.1.7.post5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7e196871dafe4febb86c2886713c8a2226d19455226e56e3b9480aa78eb59b5e"},
+    {file = "qdldl-0.1.7.post5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4ba5ff31a66d1f92b41d0b97d27288d28a8c849dd6db2221a579b1a5a5a6df0f"},
+    {file = "qdldl-0.1.7.post5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c34872867c2bcac60279034594eac8dee042b9dedd4c45948e55884b8c5c9cd0"},
+    {file = "qdldl-0.1.7.post5-cp311-cp311-win_amd64.whl", hash = "sha256:b1280e886f734e3d0d67f643e3d76c55d2e23d0e7b06d89b987681dc165892c5"},
+    {file = "qdldl-0.1.7.post5-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:d67a95d0ba73147a05cf98dc9284103f64150c9e2c214cd35ee0258f06922c5e"},
+    {file = "qdldl-0.1.7.post5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2e23d684427ce49f5d657e353322363555d1a31605fe72cbe4b965a4e260742c"},
+    {file = "qdldl-0.1.7.post5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8c4953d4fe61951fb515a6439009248b5a7b73627d74ee929d02b19bea41b19d"},
+    {file = "qdldl-0.1.7.post5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:520dbe4006a333c773ff474d2dc1e0af928c0dc7d9ca36db5637ba738ee608ba"},
+    {file = "qdldl-0.1.7.post5-cp312-cp312-win_amd64.whl", hash = "sha256:13dfc0b225a5c180512488fa51f1771e8fa3c06d7fce9fd3c1d018bc03ba0eec"},
+    {file = "qdldl-0.1.7.post5-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:7600985d2321cb15f71f8bb3a92ef2a85284b4fd740d8bbd4960b8c2f7ee6d33"},
+    {file = "qdldl-0.1.7.post5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:314153f574641c846a85ff9b4a5c0e0d23e32d0de11d8381866bb27577088bef"},
+    {file = "qdldl-0.1.7.post5-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:42b1ee3840d7d8ef4f1e3ffce0620116a71abd72c52ba46e0c194d4b294a0ad2"},
+    {file = "qdldl-0.1.7.post5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cba6df1eedbaea844485e1c7a6ae9013bbdc86f07c4ebb13c89249b003de4ef4"},
+    {file = "qdldl-0.1.7.post5-cp313-cp313-win_amd64.whl", hash = "sha256:cc9be378e7bec67d4c62b7fa27cafb4f77d3e5e059d753c3dce0a5ae1ef5fea0"},
+    {file = "qdldl-0.1.7.post5-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:f25708dde1978aaec11fc161040230c007d81d4a7528c279f6045bd692bd7ea7"},
+    {file = "qdldl-0.1.7.post5-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:08c191fc6b595b5b31c5ee3b30277e77dd0e4cfc7cd452d76acb564b8342d8f5"},
+    {file = "qdldl-0.1.7.post5-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3373b02e31965a6032a6a96992737ce1986911758d96338633ebc72bdd01a216"},
+    {file = "qdldl-0.1.7.post5-cp36-cp36m-win_amd64.whl", hash = "sha256:c7db6c8426cd5bbe6dc88d6a8e4f76de01309315aa3d9f57ed03549bb8671c48"},
+    {file = "qdldl-0.1.7.post5-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:20ba0aa2e4f15c3708125493610377920132ab4542d0a6e02b190a7134ccbf3b"},
+    {file = "qdldl-0.1.7.post5-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6da81b4799dfe95ed4b17aab05777e2385417e60dfe684930b7c3c1a89502934"},
+    {file = "qdldl-0.1.7.post5-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c78bcb478ff9a791e8125685a6e0ebe666e3d75e33e84ba6ac90de182b85032e"},
+    {file = "qdldl-0.1.7.post5-cp37-cp37m-win_amd64.whl", hash = "sha256:c082c39c28def441d59812f88e7a6d2c96179bcf045a5e444aa32f49a7422284"},
+    {file = "qdldl-0.1.7.post5-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5e4d995569dd004729a9fc11b005be0051815acb60cec3f96615ac57353fcfb6"},
+    {file = "qdldl-0.1.7.post5-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:f03dc5c21deeb111b8585dc4dfba0015ef4d1c7d21267e8f3beb7383229cd1cb"},
+    {file = "qdldl-0.1.7.post5-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f64b13d37a5a4254b38370c9396196918e4463c1a9578b4b11480d4f12461090"},
+    {file = "qdldl-0.1.7.post5-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:63543e19350160d2a5f5789026678646c3290c55cd9fde0978ee7afba905b3a1"},
+    {file = "qdldl-0.1.7.post5-cp38-cp38-win_amd64.whl", hash = "sha256:9719a2baea306fe53ae53a7bbf556a4f042c7d9a218240f2410368071a3fe8f7"},
+    {file = "qdldl-0.1.7.post5-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:86e89019cf035d9c3bbd03391c59be2efd9553fcde72c8326a1d6ffa8987a5c4"},
+    {file = "qdldl-0.1.7.post5-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:6eb7368d8b82f11344e89032a29d57c2f83a4acd39e1e529a777cf1a7c15bcba"},
+    {file = "qdldl-0.1.7.post5-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1d778ce1a96e0705a2d89c69b619abdb2dfdd156157ddb4191b3086eab8f95ab"},
+    {file = "qdldl-0.1.7.post5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:aea639a5a2f85cd102710c65a709270d5293f0695a75d9656f1c175750afb065"},
+    {file = "qdldl-0.1.7.post5-cp39-cp39-win_amd64.whl", hash = "sha256:eac992a8f4287328078b6ed0f5022bf68e43d5fce3e9d067765b40c95ed45f51"},
+    {file = "qdldl-0.1.7.post5.tar.gz", hash = "sha256:0b1399e1c49b5bed5aac8fd63ef08ab708d340c37fb426fe00128bc1f36b286e"},
+]
+
+[package.dependencies]
+numpy = ">=1.7"
+scipy = ">=0.13.2"
+
+[[package]]
 name = "regex"
 version = "2024.11.6"
 description = "Alternative regular expression module, to replace re."
@@ -3388,4 +3542,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "ccfb98481c0308a333de6cb8aa7416bde7cac70bbd759c7ac204dcaa02e66866"
+content-hash = "9170fcc49bee00e6fda2f5c057702680144db4b2bb85441bdaf9c4a0f49bac00"
