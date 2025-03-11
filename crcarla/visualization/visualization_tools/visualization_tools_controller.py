@@ -26,9 +26,7 @@ class VisualizationToolsController(VisualizationBase):
         Initializes an instance of VisualizationToolsController.
 
         :param vis3d: Base Visualization3D instance.
-        :type vis3d: Visualization3D
         :param z_axis: The z-coordinate of the visualization reference point. Defaults to 1.
-        :type z_axis: float
         """
         super().__init__(z_axis)
 
@@ -48,7 +46,6 @@ class VisualizationToolsController(VisualizationBase):
         Get the camera intrinsics.
 
         :return: Camera intrinsics.
-        :rtype: np.ndarray
         """
         if None is self.__K:
             self.__K = self._vis3d.sensor_controller.camera_sensor.get_camera_intrinsics()
@@ -60,7 +57,6 @@ class VisualizationToolsController(VisualizationBase):
         Get the camera extrinsic matrix.
 
         :return: Camera extrinsic matrix.
-        :rtype: np.ndarray
         """
         if None is self.__T_CW:
             self.update_transform_cw()
@@ -99,7 +95,6 @@ class VisualizationToolsController(VisualizationBase):
         Called to update the current position of the bounding boxes.
 
         :param clock: The game clock.
-        :type clock: pygame.time.Clock
         """
         super().tick(clock)
         self.update_transform_cw()
@@ -109,9 +104,7 @@ class VisualizationToolsController(VisualizationBase):
         Project a any 3D carla location into the camera-sensor frame.
 
         :param loc: 3D carla world target location.
-        :type loc: carla.Location
         :return: Projected 2D point in the camera sensor frame.
-        :rtype: np.ndarray
         """
         # Calculate 2D projection of 3D coordinate
 
