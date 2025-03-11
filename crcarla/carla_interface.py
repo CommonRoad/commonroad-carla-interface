@@ -77,7 +77,7 @@ class CarlaInterface:
         self._client = carla.Client(self._config.host, self._config.port)
         self._client.set_timeout(self._config.client_init_timeout)
 
-        if self._config.carla_version == "0.9.15":
+        if self._config.carla_version.value == "0.9.15":
             self._load_map(self._config.map)
         self._cr_obstacles: List[Union[VehicleInterface, PedestrianInterface]] = []
         self._ego: Optional[VehicleInterface] = None
@@ -194,7 +194,7 @@ class CarlaInterface:
             else:
                 cmd = [str(path_to_carla), f"-carla-world-port={self._config.port}"]
         else:
-            cmd = self._config.default_docker_commands[self._config.carla_version][self._config.offscreen_mode]
+            cmd = self._config.default_docker_commands[self._config.carla_version.value][self._config.offscreen_mode]
 
         self._carla_pid = subprocess.Popen(cmd, **popen_base_params)
         self._config.logger.info(
