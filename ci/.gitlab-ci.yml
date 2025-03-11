@@ -10,6 +10,7 @@ default:
     - poetry config virtualenvs.in-project true
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de".insteadOf "ssh://git@gitlab.lrz.de"
+    - git config --global url."https://github.com/".insteadOf "git@github.com:"
     - poetry install --with dev,docs
     - source .venv/bin/activate
 
