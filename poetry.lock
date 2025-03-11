@@ -314,17 +314,16 @@ files = []
 develop = false
 
 [package.dependencies]
-commonroad-clcs = ">=2025.1"
-commonroad-drivability-checker = ">=2025.1"
+commonroad-drivability-checker = ">=2024.1"
 commonroad-io = ">=2024.1"
 imageio = "^2.31.1"
 numpy = "<2.0"
 
 [package.source]
 type = "git"
-url = "ssh://git@github.com/CommonRoad/commonroad-prediction.git"
-reference = "develop"
-resolved_reference = "6d6ba98a9f8db589ad08ee78e17b9f2fe48a1e34"
+url = "https://github.com/CommonRoad/commonroad-prediction"
+reference = "HEAD"
+resolved_reference = "7dae2e0f2d9b9e698cb16d5b5150ed797122b0c7"
 
 [[package]]
 name = "commonroad-reactive-planner"
@@ -418,8 +417,8 @@ utm = "^0.7.0"
 
 [package.source]
 type = "git"
-url = "ssh://git@github.com/CommonRoad/commonroad-scenario-designer.git"
-reference = "develop"
+url = "https://github.com/CommonRoad/commonroad-scenario-designer"
+reference = "HEAD"
 resolved_reference = "98be4970218700ee6ff18e30c06befaf9f0886a4"
 
 [[package]]
@@ -3542,4 +3541,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "9170fcc49bee00e6fda2f5c057702680144db4b2bb85441bdaf9c4a0f49bac00"
+content-hash = "2ac85a3826e1eebbf3c14ca2337358cc602cef6b5c1d93937ca1f9ae25e2e76e"

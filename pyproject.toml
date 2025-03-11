@@ -33,8 +33,8 @@ commonroad-io = ">=2024.2,<=2024.3"
 commonroad-drivability-checker = ">=2025.1"
 commonroad-clcs = ">=2025.1"
 commonroad_vehicle_models = ">=3.0.2"
-commonroad-scenario-designer = { git = "git@github.com:CommonRoad/commonroad-scenario-designer.git", branch = "develop" }
-commonroad-prediction = { git = "git@github.com:CommonRoad/commonroad-prediction.git", branch = "develop" }
+commonroad-scenario-designer = { git = "git+https://github.com/CommonRoad/commonroad-scenario-designer@develop" }
+commonroad-prediction = { git = "git+https://github.com/CommonRoad/commonroad-prediction@develop" }
 commonroad-route-planner = ">=2025.1.0"
 commonroad-reactive-planner = ">=2025.1.0"
 
