@@ -548,17 +548,6 @@ optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "eclipse_sumo-1.21.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:e774b48bc52ac00c3b7a5dbe259dddb862bb431ad0fde65ab5639785207dadfc"},
-    {file = "eclipse_sumo-1.21.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0f6ea51e67257728afda321f6e8be15c0c8ba5de74e095e152a50cbaed06654d"},
-    {file = "eclipse_sumo-1.21.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:22417f9a88edd7c6ac315656b07d644ee61a4ec5e53570c18238048dcf08a7f4"},
-    {file = "eclipse_sumo-1.21.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:013f1065eb8eef0284c43fe58ab1cfcbe435e0169fc4666efb5431da1290f6cb"},
-    {file = "eclipse_sumo-1.21.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:504d7b2ff6a7387108f64a1007e96a3eddf7825408443fa793a2973e462c7e9f"},
-    {file = "eclipse_sumo-1.21.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c938594a55f4bd17c200d5c696bde78b994fde151fb91ae195ecbb08053c1713"},
-    {file = "eclipse_sumo-1.21.0-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:fb22e407bf9cb4a792c58eff08ba2488118d9d82a9ec3dbfba9e4909c864d09f"},
-    {file = "eclipse_sumo-1.21.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:619fa8e6ca5dc2a82a132dd4ac81435df8a69c765acf36b62a2dab8d8fe1f6bf"},
-    {file = "eclipse_sumo-1.21.0-cp39-cp39-macosx_14_0_arm64.whl", hash = "sha256:df91d144e676dd03797fbec166df1d03efd04a5878f9900b0c83a7858eec46f9"},
-    {file = "eclipse_sumo-1.21.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b4b80fb09c4a97744e314c8c427574024503fbcc89f23faaa7e573beb9ebbc5a"},
-    {file = "eclipse_sumo-1.21.0-py2.py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:09d63d093458b059e96202f31c0527d68771d512b9764e91b7228fb30a50ef5d"},
     {file = "eclipse_sumo-1.21.0-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:919ce16c4ec1a14f85af80b87a02f49cfc153372ef23009fd96027dccb2557e2"},
     {file = "eclipse_sumo-1.21.0-py2.py3-none-win_amd64.whl", hash = "sha256:8f2942912e8edb906d76d73ec722606a7e949dadef9607ac3d1a02f3fc37f819"},
 ]
@@ -1141,31 +1130,18 @@ optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "libsumo-1.21.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:e61e3a146735cce3991135577d7e1286c097f0d30209eecef322d425c8fee866"},
-    {file = "libsumo-1.21.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a43a7ff0c0eb74cc3c6ec7bfe2a6612bd1f39b5ed885b169a63375760b35c7b8"},
     {file = "libsumo-1.21.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7e11a636691af34335ad690df6b8b45836685c535132f5d527444362fb01331b"},
     {file = "libsumo-1.21.0-cp310-cp310-win_amd64.whl", hash = "sha256:a9b3788eb34d5a560d13190aa4e6403c7f457b925443934bb4a74a3e509b71bf"},
-    {file = "libsumo-1.21.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:b8df1ea7f44cc1c398d7a8e5c0ccaf7fc9670a84303e10b33bf88cc02401d898"},
-    {file = "libsumo-1.21.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:78bcf5771fccec17bcab3ce353383753a577a8286daaf1bacf237d998dea9041"},
     {file = "libsumo-1.21.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2e6d73742d73f40ad3ece6b125af926b1019093585b88aaee05cab245f5b061e"},
     {file = "libsumo-1.21.0-cp311-cp311-win_amd64.whl", hash = "sha256:e8035b9a18ae7f59e2741de30bba0094c039c01adda5b883ac4ebb6ea4a02cb9"},
-    {file = "libsumo-1.21.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:ab3bcb906ab067a5f954a6591969414401239d1ed20e9e3c0cbb98104f6a00f3"},
-    {file = "libsumo-1.21.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:91d0652046273db64f9185ebed64a988d66b4e30f596b3e18d515aaab578b35a"},
     {file = "libsumo-1.21.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1b8b4a6e6093d64b8f3d036b4511018d99cdeda2d2ca445783f0bc352742b43f"},
     {file = "libsumo-1.21.0-cp312-cp312-win_amd64.whl", hash = "sha256:db0821c008dc5e4cfffb93a54551fcf7644838d39af302914885b4e03d4f7f58"},
-    {file = "libsumo-1.21.0-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:7b3a03b80e2b6d6b7129dd5cee1e2da9254cdc8eea239c3c430953ec3ed876a9"},
-    {file = "libsumo-1.21.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4e98081152e635ce62d050924cce4e41da14c10dea52286b8503394ae63dff73"},
     {file = "libsumo-1.21.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9cfa983e8fc43b2e247362fcdcfcf13ec580e63a3ba1689ca553566ac21b3b80"},
-    {file = "libsumo-1.21.0-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8b1d6187138677aec8715628d82559dcc6c4325982ef91d6ea7ec9536d29414d"},
     {file = "libsumo-1.21.0-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:42c2dbeb500a2c7885268575c3a09a2a4c0cf094d9ba9e96ebd2c95afb96b0d4"},
-    {file = "libsumo-1.21.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f635b5d8a8bdc08ad1f88d27120816a4dadb9c8fefd4de51d157c31c51a7ce83"},
     {file = "libsumo-1.21.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a24f52e391387139483bbb9aeeef82e84446f3b45b259a06d35d0c0532ac8172"},
     {file = "libsumo-1.21.0-cp37-cp37m-win_amd64.whl", hash = "sha256:a6ccfc00665cae56b0f3ad147cb63e7bf22f1c24c9ccead31734d7dd50c16919"},
-    {file = "libsumo-1.21.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2d724e7daf0ecf9466a74b575d2ac4ba1bad882cb74dae11a32b0e883e55f39a"},
     {file = "libsumo-1.21.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3bd9471b204fe83dfbf3cd02afd680cbc75ab619776978e3bdf0d8eee8edf9cf"},
     {file = "libsumo-1.21.0-cp38-cp38-win_amd64.whl", hash = "sha256:01ed0c1d1fc0cc0168fe408b78158fc9dc4850cd3324ef995f04c176299e1781"},
-    {file = "libsumo-1.21.0-cp39-cp39-macosx_14_0_arm64.whl", hash = "sha256:fbb93c89b7ade3647f54a2374283047591c70440fa43e65b3898f26c2b419fdf"},
-    {file = "libsumo-1.21.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:05409d7eb3c511a4a42ab157ad980d5edc6dd764a0d1d38a0d2e04a3b8e1c962"},
     {file = "libsumo-1.21.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:60e644aeb01fa275dbd41a0825efdc939acd41793b372edec36f03aee84f45d2"},
     {file = "libsumo-1.21.0-cp39-cp39-win_amd64.whl", hash = "sha256:f1ba3940796358a5311f4444eb84617041c198c7a6f5801558210a859c1dd5dc"},
 ]
@@ -1477,7 +1453,6 @@ optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "methodtools-0.4.7-py2.py3-none-any.whl", hash = "sha256:5e188c780b236adc12e75b5f078c5afb419ef99eb648569fc6d7071f053a1f11"},
     {file = "methodtools-0.4.7.tar.gz", hash = "sha256:e213439dd64cfe60213f7015da6efe5dd4003fd89376db3baa09fe13ec2bb0ba"},
 ]
 
@@ -2502,7 +2477,6 @@ python-versions = ">=3.9"
 groups = ["main"]
 files = [
     {file = "PyQt6-6.8.0-cp39-abi3-macosx_10_14_universal2.whl", hash = "sha256:8c5c05f5fdff31a5887dbc29b27615b09df467631238d7b449283809ffca6228"},
-    {file = "PyQt6-6.8.0-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3a4354816f11e812b727206a9ea6e79ff3774f1bb7228ad4b9318442d2c64ff9"},
     {file = "PyQt6-6.8.0-cp39-abi3-manylinux_2_35_x86_64.whl", hash = "sha256:452bae5840077bf0f146c798d7777f70d7bdd0c7dcfa9ee7a415c1daf2d10038"},
     {file = "PyQt6-6.8.0-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:cf7123caea14e7ecf10bd12cae48e8d9970ef7caf627bc7d7988b0baa209adb3"},
     {file = "PyQt6-6.8.0-cp39-abi3-win_amd64.whl", hash = "sha256:a9913d479f1ffee804bf7f232079baea4fb4b221a8f4890117588917a54ea30d"},
@@ -2522,11 +2496,8 @@ optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "PyQt6_Qt6-6.8.1-1-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:2f4b8b55b1414b93f340f22e8c88d25550efcdebc4b65a3927dd947b73bd4358"},
-    {file = "PyQt6_Qt6-6.8.1-1-py3-none-manylinux_2_39_aarch64.whl", hash = "sha256:98aa99fe38ae68c5318284cd28f3479ba538c40bf6ece293980abae0925c1b24"},
     {file = "PyQt6_Qt6-6.8.1-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:1eb8460a1fdb38d0b2458c2974c01d471c1e59e4eb19ea63fc447aaba3ad530e"},
     {file = "PyQt6_Qt6-6.8.1-py3-none-macosx_11_0_arm64.whl", hash = "sha256:9f3790c4ce4dc576e48b8718d55fb8743057e6cbd53a6ca1dd253ffbac9b7287"},
-    {file = "PyQt6_Qt6-6.8.1-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:d6ca5d2b9d2ec0ee4a814b2175f641a5c4299cb80b45e0f5f8356632663f89b3"},
     {file = "PyQt6_Qt6-6.8.1-py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:08065d595f1e6fc2dde9f4450eeff89082f4bad26f600a8e9b9cc5966716bfcf"},
     {file = "PyQt6_Qt6-6.8.1-py3-none-manylinux_2_39_aarch64.whl", hash = "sha256:20843cb86bd94942d1cd99e39bf1aeabb875b241a35a8ab273e4bbbfa63776db"},
     {file = "PyQt6_Qt6-6.8.1-py3-none-win_amd64.whl", hash = "sha256:006d786693d0511fbcf184a862edbd339c6ed1bb3bd9de363d73a19ed4b23dff"},
