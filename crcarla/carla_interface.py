@@ -865,7 +865,13 @@ class CarlaInterface:
                 else:
                     clock.tick_busy_loop()
                 if isinstance(self._ego.planner, ReactivePlannerInterface):
-                    vis_world.set_trajectory_set([self._ego.planner.optimal[0], self._ego.planner.shifted_traj, self._ego.planner.get_planner().infeasible_count_kinematics])
+                    vis_world.set_trajectory_set(
+                        [
+                            self._ego.planner.optimal[0],
+                            self._ego.planner.shifted_traj,
+                            self._ego.planner.get_planner().infeasible_count_kinematics,
+                        ]
+                    )
                 vis_world.tick(clock)
                 vis_world.render(display)
                 pygame.display.flip()

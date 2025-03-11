@@ -156,19 +156,24 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 for traj in self._planner.stored_trajectories:
                     # convert Cartesian sample to state list
                     cart_state_list: List[ReactivePlannerState] = traj.cartesian.convert_to_rp_state_list(
-                            init_time_step=self._planner.x_0.time_step, init_yaw_rate=self._planner.x_0.yaw_rate, dt=self._planner.dt,
-                            wheelbase=self._planner.vehicle_params.wheelbase, scaling_factor=self._planner.config.planning.factor)
+                        init_time_step=self._planner.x_0.time_step,
+                        init_yaw_rate=self._planner.x_0.yaw_rate,
+                        dt=self._planner.dt,
+                        wheelbase=self._planner.vehicle_params.wheelbase,
+                        scaling_factor=self._planner.config.planning.factor,
+                    )
 
                     # create Cartesian output trajectory
                     cart_traj: Trajectory = Trajectory(self._planner.x_0.time_step, cart_state_list)
 
                     # correct orientations of Cartesian output trajectory
-                    cart_traj_corrected = shift_orientation(cart_traj, interval_start=self._planner.x_0.orientation - np.pi,
-                                                            interval_end=self._planner.x_0.orientation + np.pi)
+                    cart_traj_corrected = shift_orientation(
+                        cart_traj,
+                        interval_start=self._planner.x_0.orientation - np.pi,
+                        interval_end=self._planner.x_0.orientation + np.pi,
+                    )
 
                     self.shifted_traj.append(self.convert_from_rear_to_middle(cart_traj_corrected))
-
-
 
             return self.convert_from_rear_to_middle(self._optimal[0])
 

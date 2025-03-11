@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, List
 
 import carla
 import pygame
@@ -49,7 +49,9 @@ class TrajectoryTool(VisualizationBase):
         num_infeasible_trajectories = 0
         if not self._config.traj_show_only_optimal:
             if self._config.traj_show_only_feasible:
-                trajectories += self._vis3d.trajectories[1][:len(self._vis3d.trajectories[1]) - self._vis3d.trajectories[2]]
+                trajectories += self._vis3d.trajectories[1][
+                    : len(self._vis3d.trajectories[1]) - self._vis3d.trajectories[2]
+                ]
                 num_infeasible_trajectories = 0
             else:
                 trajectories = [self._vis3d.trajectories[0]] + self._vis3d.trajectories[1]
@@ -60,7 +62,9 @@ class TrajectoryTool(VisualizationBase):
         for i in range(len(trajectories)):
             last = ego_image_point
             for state in trajectories[i].state_list:
-                traj_point = self._vis3d.vis_tool_controller.get_image_point(carla.Location(state.position[0], -state.position[1], ego_location.z))
+                traj_point = self._vis3d.vis_tool_controller.get_image_point(
+                    carla.Location(state.position[0], -state.position[1], ego_location.z)
+                )
                 color = "red" if i < num_infeasible_trajectories else "green" if i < len(trajectories) - 1 else "black"
 
                 self._lines.append(
