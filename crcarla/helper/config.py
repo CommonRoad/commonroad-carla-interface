@@ -253,6 +253,7 @@ class WeatherParams(BaseParam):
 class ViewParams(BaseParam):
     """General parameters of CARLA world views."""
 
+    is_visible: bool = True
     vis_hud: bool = True
     width: int = 1280
     height: int = 720
@@ -261,6 +262,9 @@ class ViewParams(BaseParam):
     third_person_dist_m: float = 5.0
     third_person_z_axis_m: float = 4.0
     third_person_angle_deg: float = -20.0
+
+    traj_show_only_optimal: bool = True
+    traj_show_only_feasible: bool = True
 
     @property
     def camera_transform_bird_values(self) -> carla.Transform:

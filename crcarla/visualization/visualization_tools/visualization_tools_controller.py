@@ -10,6 +10,7 @@ from crcarla.visualization.visualization_tools.tools.bounding_box_tool import Bo
 from crcarla.visualization.visualization_tools.tools.line_to_vehicle import LineToVehicle
 from crcarla.visualization.visualization_tools.tools.polygon_tool import PolygonTool
 from crcarla.visualization.visualization_tools.tools.text import Text
+from crcarla.visualization.visualization_tools.tools.trajectories import TrajectoryTool
 
 if TYPE_CHECKING:
     from crcarla.visualization.visualization3D import Visualization3D
@@ -39,6 +40,7 @@ class VisualizationToolsController(VisualizationBase):
         self._line_to_vehicle: LineToVehicle = None
         self.text: Text = None
         self._poly_tool: PolygonTool = None
+        self.trajectory_tool: TrajectoryTool = None
 
     @property
     def _camera_intriniscs(self) -> np.ndarray:
@@ -77,6 +79,7 @@ class VisualizationToolsController(VisualizationBase):
         self._line_to_vehicle = LineToVehicle(self._vis3d)
         self.text = Text(self._vis3d)
         self._poly_tool = PolygonTool(self._vis3d)
+        self.trajectory_tool = TrajectoryTool(self._vis3d)
 
         self._bb_tool.show_vehicles(200, show_as_3d=True)
         self._bb_tool.show_city_object_label(

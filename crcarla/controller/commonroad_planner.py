@@ -190,7 +190,10 @@ class CommonRoadPlannerController(CarlaController):
         self._global_route = RouteData(compute_global_route(self._base_sc, pp))
         self._current_trajectory = None
         self._controller = self._create_controller(control_type, dt, control_config)
-        self.lookahead = control_config.lookahead
+        if type(self._controller) is TransformControl:
+            self.lookahead = 1
+        else:
+            self.lookahead = control_config.lookahead
         self._dt = dt
         self._time_horizon_sec = t_h
         self._vehicle_params = vehicle_params
