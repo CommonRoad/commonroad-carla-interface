@@ -17,7 +17,7 @@ from commonroad.planning.planning_problem import PlanningProblem, PlanningProble
 from commonroad.scenario.scenario import Scenario, Tag
 from commonroad.scenario.state import CustomState, InitialState, TraceState
 from commonroad.scenario.trajectory import Trajectory
-from commonroad_dc.geometry.geometry import (
+from commonroad_clcs.util import (
     compute_orientation_from_polyline,
     compute_pathlength_from_polyline,
 )

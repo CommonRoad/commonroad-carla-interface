@@ -30,15 +30,14 @@ scipy = "^1.11.3"
 carla = ">=0.9.15,<=0.10.0"
 omegaconf = ">=2.1.2"
 commonroad-io = ">=2024.2,<=2024.3"
-commonroad-drivability-checker = ">=2024.1"
+commonroad-drivability-checker = ">=2025.1"
+commonroad-clcs = ">=2025.1"
 commonroad_vehicle_models = ">=3.0.2"
-commonroad-scenario-designer = ">=0.8.4"
-commonroad-prediction = "^0.1.1"
-commonroad-route-planner = ">=2025.0.1"
-
-commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", rev = "2901a571e9ec73dbce77462d670505b32e443577"}
+commonroad-scenario-designer = { git = "git+https://github.com/CommonRoad/commonroad-scenario-designer@develop" }
+commonroad-prediction = { git = "git+https://github.com/CommonRoad/commonroad-prediction@develop" }
+commonroad-route-planner = ">=2025.1.0"
+commonroad-reactive-planner = ">=2025.1.0"
 commonroad-idm-planner = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-idm-planner.git", branch = "fix-poetry"}
-
 
 
 #[tool.poetry.group.tests]
