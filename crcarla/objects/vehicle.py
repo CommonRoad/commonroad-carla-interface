@@ -65,7 +65,7 @@ class VehicleInterface(ActorInterface):
         :param pp: CommonRoad planning problem.
         """
         super().__init__(cr_obstacle, world, tm, actor, config)
-        self._planner = planner
+        self.planner = planner
         self._predictor = predictor
         self._pp = pp
         self._sc = sc
@@ -80,7 +80,7 @@ class VehicleInterface(ActorInterface):
             elif self._config.ego_planner is EgoPlanner.PLANNER:
                 self._controller = CommonRoadPlannerController(
                     self._actor,
-                    self._planner,
+                    self.planner,
                     self._predictor,
                     self._pp,
                     self._sc,

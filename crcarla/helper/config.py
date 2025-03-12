@@ -62,6 +62,12 @@ class ApproximationType(Enum):
     AREA = 2
 
 
+class TrajectoryVisualization(Enum):
+    ONLY_OPTIMAL = 0
+    ONLY_FEASABLE = 1
+    ALL = 2
+
+
 def _dict_to_params(dict_params: Dict, cls: Any) -> Any:
     """
     Converts dictionary to parameter class.
@@ -324,6 +330,7 @@ class WeatherParams(BaseParam):
 class ViewParams(BaseParam):
     """General parameters of CARLA world views."""
 
+    is_visible: bool = True  # turn visualization tools on/off (e.g. trajectories, bounding boxes etc.)
     vis_hud: bool = True
     width: int = 1280
     height: int = 720
@@ -332,6 +339,8 @@ class ViewParams(BaseParam):
     third_person_dist_m: float = 5.0
     third_person_z_axis_m: float = 4.0
     third_person_angle_deg: float = -20.0
+
+    trajectory_vis: TrajectoryVisualization = TrajectoryVisualization.ONLY_OPTIMAL
 
     @property
     def camera_transform_bird_values(self) -> carla.Transform:

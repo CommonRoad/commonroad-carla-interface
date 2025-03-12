@@ -52,6 +52,7 @@ class Visualization3D(VisualizationBase):
         self.canvas_controller = CanvasController(self)
         self.sensor_controller = SensorController(self)
         self.vis_tool_controller = VisualizationToolsController(self)
+        VisualizationBase.is_visible = config.visualization.is_visible
 
         # store information to display
         self.server_fps = 0

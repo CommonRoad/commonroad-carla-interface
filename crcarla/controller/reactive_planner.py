@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 from commonroad.common.file_writer import CommonRoadFileWriter
@@ -9,6 +9,7 @@ from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import Trajectory
+from commonroad_clcs.config import CLCSParams
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import (
     create_collision_object,
 )
@@ -17,6 +18,8 @@ from commonroad_route_planner.reference_path import ReferencePath
 from commonroad_rp.reactive_planner import ReactivePlanner
 from commonroad_rp.state import ReactivePlannerState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
+from commonroad_rp.utility.general import shift_orientation
+from commonroad_rp.utility.utils_coordinate_system import CoordinateSystem
 from commonroad_rp.utility.visualization import visualize_planner_at_timestep
 
 logger = logging.getLogger(__name__)
@@ -38,6 +41,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
 
         :param config: Reactive planner configuration parameters.
         """
+        self.shifted_traj = []
         self._config = config
         self._config.scenario = sc
         self._config.planning_problem = pp
@@ -47,7 +51,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config.planning.route = route
         self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)
-        self._planner.set_reference_path(route.reference_path)
+        self._planner.set_reference_path(None, CoordinateSystem(route.reference_path, clcs_params=CLCSParams()))
         self._optimal = None
         self._error_counter = 0
         self._store_failing_scenarios = store_failing_scenarios
@@ -58,6 +62,10 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._planner.set_collision_checker(sc)
         self._cc = self._planner.collision_checker
         self._wb_rear_axle = self._planner.config.vehicle.wb_rear_axle
+        self.draw_trajectories = self._config.debug.draw_traj_set
+
+    def get_planner(self) -> ReactivePlanner:
+        return self._planner
 
     def plan(
         self,
@@ -130,7 +138,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
 
             # visualize the current time step of the simulation
             if self._config.debug.save_plots or self._config.debug.show_plots:
-                self._ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal[0].state_list)
+                self.ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal[0].state_list)
                 sampled_trajectory_bundle = None
                 if self._config.debug.draw_traj_set:
                     sampled_trajectory_bundle = copy.deepcopy(self._planner.stored_trajectories)
@@ -138,12 +146,36 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 visualize_planner_at_timestep(
                     scenario=self._config.scenario,
                     planning_problem=self._config.planning_problem,
-                    ego=self._ego_vehicle,
+                    ego=self.ego_vehicle,
                     traj_set=sampled_trajectory_bundle,
                     ref_path=self._planner.reference_path,
                     timestep=self._planner.x_0.time_step,
                     config=self._config,
                 )
+
+            if self.draw_trajectories:
+                self.shifted_traj = []
+                for traj in self._planner.stored_trajectories:
+                    # convert Cartesian sample to state list
+                    cart_state_list: List[ReactivePlannerState] = traj.cartesian.convert_to_rp_state_list(
+                        init_time_step=self._planner.x_0.time_step,
+                        init_yaw_rate=self._planner.x_0.yaw_rate,
+                        dt=self._planner.dt,
+                        wheelbase=self._planner.vehicle_params.wheelbase,
+                        scaling_factor=self._planner.config.planning.factor,
+                    )
+
+                    # create Cartesian output trajectory
+                    cart_traj: Trajectory = Trajectory(self._planner.x_0.time_step, cart_state_list)
+
+                    # correct orientations of Cartesian output trajectory
+                    cart_traj_corrected = shift_orientation(
+                        cart_traj,
+                        interval_start=self._planner.x_0.orientation - np.pi,
+                        interval_end=self._planner.x_0.orientation + np.pi,
+                    )
+
+                    self.shifted_traj.append(self.convert_from_rear_to_middle(cart_traj_corrected))
 
             return self.convert_from_rear_to_middle(self._optimal[0])
 
@@ -176,5 +208,9 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         """
         shifted_traj = []
         for state in traj.state_list:
-            shifted_traj.append(state.shift_positions_to_center(self._wb_rear_axle))
+            shifted_traj.append(ReactivePlannerState.shift_state_to_center(state, self._wb_rear_axle))
         return Trajectory(traj.initial_time_step, shifted_traj)
+
+    @property
+    def optimal(self):
+        return self._optimal
