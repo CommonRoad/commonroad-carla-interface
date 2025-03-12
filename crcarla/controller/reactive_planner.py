@@ -9,6 +9,7 @@ from commonroad.planning.planner_interface import TrajectoryPlannerInterface
 from commonroad.planning.planning_problem import PlanningProblem, PlanningProblemSet
 from commonroad.scenario.scenario import Scenario
 from commonroad.scenario.trajectory import Trajectory
+from commonroad_clcs.config import CLCSParams
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import (
     create_collision_object,
 )
@@ -18,6 +19,7 @@ from commonroad_rp.reactive_planner import ReactivePlanner
 from commonroad_rp.state import ReactivePlannerState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 from commonroad_rp.utility.general import shift_orientation
+from commonroad_rp.utility.utils_coordinate_system import CoordinateSystem
 from commonroad_rp.utility.visualization import visualize_planner_at_timestep
 
 logger = logging.getLogger(__name__)
@@ -49,7 +51,7 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config.planning.route = route
         self._config.planning.reference_path = route.reference_path
         self._planner = ReactivePlanner(config)
-        self._planner.set_reference_path(route.reference_path)
+        self._planner.set_reference_path(None, CoordinateSystem(route.reference_path, clcs_params=CLCSParams()))
         self._optimal = None
         self._error_counter = 0
         self._store_failing_scenarios = store_failing_scenarios
