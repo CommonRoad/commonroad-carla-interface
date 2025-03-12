@@ -35,6 +35,7 @@ from crdesigner.map_conversion.map_conversion_interface import (
 )
 from crpred.predictor_interface import PredictorInterface
 
+from crcarla.controller.reactive_planner import ReactivePlannerInterface
 from crcarla.helper.config import CarlaParams, CustomVis, EgoPlanner, WeatherParams
 from crcarla.helper.traffic_generation import create_actors
 from crcarla.helper.utils import (
@@ -865,6 +866,14 @@ class CarlaInterface:
                     clock.tick_busy_loop(1 / self._config.simulation.time_step)
                 else:
                     clock.tick_busy_loop()
+                if isinstance(self._ego.planner, ReactivePlannerInterface):
+                    vis_world.set_trajectory_set(
+                        [
+                            self._ego.planner.optimal[0],
+                            self._ego.planner.shifted_traj,
+                            self._ego.planner.get_planner().infeasible_count_kinematics,
+                        ]
+                    )
                 vis_world.tick(clock)
                 vis_world.render(display)
                 pygame.display.flip()
