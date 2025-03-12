@@ -63,7 +63,6 @@ class ApproximationType(Enum):
 
 
 class TrajectoryVisualization(Enum):
-
     ONLY_OPTIMAL = 0
     ONLY_FEASABLE = 1
     ALL = 2
@@ -331,7 +330,7 @@ class WeatherParams(BaseParam):
 class ViewParams(BaseParam):
     """General parameters of CARLA world views."""
 
-    is_visible: bool = True     # turn visualization tools on/off (e.g. trajectories, bounding boxes etc.)
+    is_visible: bool = True  # turn visualization tools on/off (e.g. trajectories, bounding boxes etc.)
     vis_hud: bool = True
     width: int = 1280
     height: int = 720
