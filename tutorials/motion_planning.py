@@ -20,7 +20,7 @@ param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
-rp_config.debug.draw_traj_set = False
+rp_config.debug.draw_traj_set = True
 rp_config.debug.draw_icons = True
 rp_config.debug.save_plots = True
 rp_config.debug.plots_file_format = "svg"

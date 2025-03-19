@@ -58,7 +58,7 @@ def sort_vehicles_by_dist(
 
     vehicles: carla.ActorList = [(x, distance(x.get_location())) for x in vehicles if x.id != actor.id]
     if len(vehicles) == 0:
-        return None
+        return []
     vehicles = sorted(vehicles, key=lambda vehicles: vehicles[1])
     if max_dist > 0.0:
         for i, (_, d) in enumerate(vehicles):

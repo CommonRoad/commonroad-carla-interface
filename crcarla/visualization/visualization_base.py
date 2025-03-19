@@ -38,6 +38,7 @@ class VisualizationBase(ABC):
         super().__init__()
         self._z_axis = z_axis
         self.__instances.append(weakref.ref(self))
+        self.trajectories = []
 
     @classmethod
     def get_instances(cls) -> List["VisualizationBase"]:
@@ -120,3 +121,6 @@ class VisualizationBase(ABC):
 
         """
         logger.debug("VisualizationBase object %s destroyed", self.__class__.__name__)
+
+    def set_trajectory_set(self, trajectories):
+        self.trajectories = trajectories
