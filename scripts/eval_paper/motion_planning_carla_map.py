@@ -79,4 +79,6 @@ CommonRoadFileWriter(
     affiliation="Technical University of Munich",
     source="CARLA",
     tags={Tag.URBAN},
-).write_to_file(str(Path(__file__).parent.parent.parent / "scenarios/ZAM_CARLATown06-1-1_1_T-1.xml"), OverwriteExistingFile.ALWAYS)
+).write_to_file(
+    str(Path(__file__).parent.parent.parent / "scenarios/ZAM_CARLATown06-1-1_1_T-1.xml"), OverwriteExistingFile.ALWAYS
+)

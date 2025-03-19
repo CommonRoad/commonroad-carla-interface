@@ -900,7 +900,12 @@ class CarlaInterface:
             vis_world.destroy()
 
         if self._config.ego_view.record_video:
-            make_video(self._config.ego_view.video_path, self._config.ego_view.video_name, self._config.logger, self._config.visualization.remove_tmp_files)
+            make_video(
+                self._config.ego_view.video_path,
+                self._config.ego_view.video_name,
+                self._config.logger,
+                self._config.visualization.remove_tmp_files,
+            )
 
         for camera_actor in camera_actors:
             if camera_actor.is_alive:
