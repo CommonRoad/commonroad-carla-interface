@@ -47,8 +47,8 @@ class TrajectoryTool(VisualizationBase):
 
         trajectories = [self._vis3d.trajectories[0]]
         num_infeasible_trajectories = 0
-        if not self._config.traj_show_only_optimal:
-            if self._config.traj_show_only_feasible:
+        if not self._config.trajectory_vis.ONLY_OPTIMAL:
+            if self._config.trajectory_vis.ONLY_FEASABLE:
                 trajectories += self._vis3d.trajectories[1][
                     : len(self._vis3d.trajectories[1]) - self._vis3d.trajectories[2]
                 ]
