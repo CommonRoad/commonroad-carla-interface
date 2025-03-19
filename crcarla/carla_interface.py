@@ -823,6 +823,7 @@ class CarlaInterface:
 
         vis_world, clock, display = self._init_visualization(obstacle_only)
 
+        vis_id = None
         if not self._config.offscreen_mode and not self._config.sync:
             spectator = self._world.get_spectator()
             world_snapshot = self._world.wait_for_tick()
@@ -892,14 +893,19 @@ class CarlaInterface:
 
         print("Simulation finished.")
 
-        if not self._config.offscreen_mode:
+        if not self._config.offscreen_mode and not self._config.sync:
             self._world.remove_on_tick(vis_id)
 
         if vis_world is not None:
             vis_world.destroy()
 
         if self._config.ego_view.record_video:
-            make_video(self._config.ego_view.video_path, self._config.ego_view.video_name)
+            make_video(
+                self._config.ego_view.video_path,
+                self._config.ego_view.video_name,
+                self._config.logger,
+                self._config.visualization.remove_tmp_files,
+            )
 
         for camera_actor in camera_actors:
             if camera_actor.is_alive:
