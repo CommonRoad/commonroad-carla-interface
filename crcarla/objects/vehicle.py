@@ -174,6 +174,8 @@ class VehicleInterface(ActorInterface):
                     best_dist = dist
                     closest = point
             actor = self._world.try_spawn_actor(obstacle_blueprint, closest)
+            if actor is None:
+                raise RuntimeError("Spawning CR obstacle failed.")
             logger.info(
                 "Obstacle %s spawned %s m away from original position",
                 self.cr_obstacle.obstacle_id,
