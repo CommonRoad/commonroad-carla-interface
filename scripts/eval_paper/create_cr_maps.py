@@ -55,6 +55,6 @@ for carla_map in maps:
     config.verification.formulas = formulas
     scenario.replace_lanelet_network(verify_and_repair_map(scenario.lanelet_network, config)[0])
     CommonRoadFileWriter(scenario, planning_problem_set=PlanningProblemSet()).write_to_file(
-        filename=str(Path(__file__).parent.parent / f"scenarios/{scenario.scenario_id}.xml"),
+        filename=str(Path(__file__).parent.parent.parent / f"scenarios/{scenario.scenario_id}.xml"),
         overwrite_existing_file=OverwriteExistingFile.ALWAYS,
     )

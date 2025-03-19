@@ -333,6 +333,7 @@ class ViewParams(BaseParam):
     third_person_dist_m: float = 5.0
     third_person_z_axis_m: float = 4.0
     third_person_angle_deg: float = -20.0
+    remove_tmp_files: bool = True
 
     traj_show_only_optimal: bool = True
     traj_show_only_feasible: bool = True

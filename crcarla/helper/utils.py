@@ -258,13 +258,14 @@ def find_pid_by_name(process_name: str, logger: Logger) -> List[int]:
     return processes
 
 
-def make_video(path: Path, video_name: str, logger: Logger):
+def make_video(path: Path, video_name: str, logger: Logger, remove_tmp: bool = True):
     """
     Creates a video of the images recorded by camera sensor using ffmepg.
 
     :param path: Path to png images stored by camera sensor.
     :param video_name: Name which new video should have.
     :param logger: Logger object.
+    :param remove_tmp: Boolean indicating whether temporary folder should be removed.
     """
     tmp_path = path / "_tmp"
     if not path.exists():
@@ -278,7 +279,9 @@ def make_video(path: Path, video_name: str, logger: Logger):
             f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{tmp_path}/*.png'"
             f" -c:v libx264 -pix_fmt yuv420p {video_path}"
         )
-        shutil.rmtree(tmp_path)
+
+        if remove_tmp:
+            shutil.rmtree(tmp_path)
 
         if video_path.exists():
             logger.debug("mp4 created!")
@@ -287,7 +290,7 @@ def make_video(path: Path, video_name: str, logger: Logger):
             logger.debug("mp4 created!")
         else:
             logger.error(e)
-        if tmp_path.exists():
+        if tmp_path.exists() and remove_tmp:
             shutil.rmtree(tmp_path)
 
 
