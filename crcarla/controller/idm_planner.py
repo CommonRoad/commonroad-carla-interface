@@ -22,9 +22,9 @@ class IDMPlannerInterface(TrajectoryPlannerInterface):
 
     def __init__(self, sc: Scenario, pp: PlanningProblem, config: IDMConfig):
         """
-        Initialization for reactive planner interface.
+        Initialization for idm planner interface.
 
-        :param config: Reactive planner configuration parameters.
+        :param config: IDM planner configuration parameters.
         """
         reference_path: ReferencePath = generate_reference_path_from_lanelet_network_and_planning_problem(
             lanelet_network=sc.lanelet_network, planning_problem=pp
@@ -44,7 +44,7 @@ class IDMPlannerInterface(TrajectoryPlannerInterface):
         steering_angle: float = 0.0,
     ) -> IDMTrajectory | None:
         """
-        Performs trajectory planning of reactive planner.
+        Performs trajectory planning of IDM planner.
 
         :param sc: CommonRoad scenario.
         :param pp: CommonRoad planning problem.
