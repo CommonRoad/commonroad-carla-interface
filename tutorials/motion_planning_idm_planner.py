@@ -1,7 +1,7 @@
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 
-from commonroad_idm_planner.configuration.planner_config import IDMConfig, IDMConfigFactory
+from commonroad_idm_planner.configuration.planner_config import IDMConfigFactory
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.idm_planner import IDMPlannerInterface

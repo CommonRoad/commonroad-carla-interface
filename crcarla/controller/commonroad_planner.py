@@ -272,8 +272,11 @@ class CommonRoadPlannerController(CarlaController):
 
         # if transform control, steering needs to be set manual because actual steering angle is always zero
         if isinstance(self._controller, TransformControl):
-            if (self._current_trajectory is None or
-                    self._current_trajectory is not None and not hasattr(self._current_trajectory.state_list[1], "steering_angle")):
+            if (
+                self._current_trajectory is None
+                or self._current_trajectory is not None
+                and not hasattr(self._current_trajectory.state_list[1], "steering_angle")
+            ):
                 steering_angle = 0
             else:
                 steering_angle = self._current_trajectory.state_list[1].steering_angle
