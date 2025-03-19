@@ -16,7 +16,13 @@ from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface
-from crcarla.helper.config import CarlaParams, CustomVis, VehicleControlType, SupportedCARLAVersion
+from crcarla.helper.config import (
+    CarlaParams,
+    CustomVis,
+    VehicleControlType,
+    SupportedCARLAVersion,
+    TrajectoryVisualization,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -29,6 +35,7 @@ param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = False
 param.vis_type = CustomVis.THIRD_PERSON
+param.visualization.trajectory_vis = TrajectoryVisualization.ALL
 param.ego_view.record_video = True
 param.ego_view.video_path = Path(__file__).parent.parent.parent
 param.ego.carla_controller_type = VehicleControlType.TRANSFORM
