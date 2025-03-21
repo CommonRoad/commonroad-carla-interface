@@ -21,7 +21,7 @@ param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
-rp_config.debug.draw_traj_set = True
+rp_config.debug.draw_traj_set = True  # needs to be set for CARLA visualization of trajectories
 rp_config.debug.draw_icons = True
 rp_config.debug.save_plots = True
 rp_config.debug.plots_file_format = "svg"
@@ -46,7 +46,7 @@ scenario.remove_obstacle(scenario.dynamic_obstacles[0])
 
 # start planning
 ci.plan(
-    ReactivePlannerInterface(scenario, planning_problem, rp_config),
+    ReactivePlannerInterface(scenario, planning_problem, rp_config, draw_trajectories=True),
     None,
     scenario,
     list(planning_problem_set.planning_problem_dict.values())[0],

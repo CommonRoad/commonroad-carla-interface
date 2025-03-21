@@ -45,14 +45,15 @@ param.visualization.remove_tmp_files = False
 rp_config = ReactivePlannerConfiguration()
 rp_config.debug.draw_icons = True
 rp_config.debug.save_plots = True
+rp_config.debug.draw_traj_set = True  # needs to be set for CARLA visualization of trajectories
 rp_config.debug.draw_ref_path = True
 rp_config.debug.plots_file_format = "svg"
-
 rp_config.planning.replanning_frequency = 1
 rp_config.sampling.d_min = -1
 rp_config.sampling.d_max = 1
 rp_config.planning.time_steps_computation = 60
 rp_config.general.path_output = str(Path(__file__).parent.parent)
+
 ci = CarlaInterface(param)
 
 # map can be created using the script create_cr_maps.py
@@ -72,7 +73,7 @@ planning_problem = PlanningProblem(
     goal_region=GoalRegion([PMState(time_step=Interval(0, 120), position=Rectangle(10, 3, np.array([400, -145.5])))]),
 )
 ci.plan(
-    ReactivePlannerInterface(scenario, planning_problem, rp_config),
+    ReactivePlannerInterface(scenario, planning_problem, rp_config, draw_trajectories=True),
     None,
     None,
     planning_problem,
