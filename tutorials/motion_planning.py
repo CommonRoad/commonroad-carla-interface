@@ -4,7 +4,7 @@ from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface
-from crcarla.helper.config import CarlaParams, CustomVis
+from crcarla.helper.config import CarlaParams, CustomVis, TrajectoryVisualization
 
 # specify map an scenario
 scenario, planning_problem_set = CommonRoadFileReader("scenarios/DEU_Test-1_1_T-2.xml").open()
@@ -16,6 +16,7 @@ param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.THIRD_PERSON
+param.visualization.trajectory_vis = TrajectoryVisualization.ALL
 param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner

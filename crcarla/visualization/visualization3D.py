@@ -112,6 +112,7 @@ class Visualization3D(VisualizationBase):
         for obj in VisualizationBase.get_instances():
             if self is not obj:
                 obj.render(display)  # all VisualizationBase objects
+        # pygame.image.save(display, "frame.png")
 
     def destroy(self):
         """Destroys the sensors and the ego vehicle."""

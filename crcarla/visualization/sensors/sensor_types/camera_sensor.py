@@ -26,9 +26,8 @@ class CameraSensor(VisualizationBase):
         Initialization of camera manager.
 
         :param parent_actor: Parent CARLA actor.
-        :param hud: Head-up display object.
-        :param gamma_correction: Gamma correction value for camera lens.
-        :param path: Path where video should be stored.
+        :param config: Carla parameters.
+        :param canvas_controller: Canvas controller object.
         """
         super().__init__(z_axis=-1.0)  # must have for VisualizationBase inheriting __init__()
 
