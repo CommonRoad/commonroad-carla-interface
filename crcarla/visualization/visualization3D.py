@@ -9,7 +9,7 @@
 # Allows controlling a vehicle with a keyboard. For a simpler and more
 # documented example, please take a look at tutorial.py.
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import carla
 import pygame
@@ -47,9 +47,9 @@ class Visualization3D(VisualizationBase):
         self.config = config
         self._ego_vehicle = ego_vehicle
         self._vehicles = []
-        self._vehicles_by_dist: List[Tuple[carla.Vehicle, float]] = None
+        self._vehicles_by_dist: Optional[List[Tuple[carla.Vehicle, float]]] = None
 
-        self.canvas_controller = CanvasController(self)
+        self.canvas_controller = CanvasController(self, hud=config.visualization.vis_hud)
         self.sensor_controller = SensorController(self)
         self.vis_tool_controller = VisualizationToolsController(self)
         VisualizationBase.is_visible = config.visualization.is_visible

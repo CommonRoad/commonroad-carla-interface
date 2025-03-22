@@ -20,7 +20,7 @@ class CollisionSensor(VisualizationBase):
         Initialization of collision sensor.
 
         :param parent_actor: Parent CARLA actor.
-        :param hud: Head-up display object.
+        :param canvas_controller: Head-up display object.
         """
         super().__init__()  # must have for VisualizationBase inheriting __init__()
 
