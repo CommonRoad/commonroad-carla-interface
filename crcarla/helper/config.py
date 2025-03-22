@@ -64,8 +64,9 @@ class ApproximationType(Enum):
 
 class TrajectoryVisualization(Enum):
     ONLY_OPTIMAL = 0
-    ONLY_FEASABLE = 1
+    ONLY_FEASIBLE = 1
     ALL = 2
+    NONE = 3
 
 
 def _dict_to_params(dict_params: Dict, cls: Any) -> Any:
