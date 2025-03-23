@@ -1,6 +1,6 @@
 import datetime
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import carla
 import pygame
@@ -11,15 +11,13 @@ from crcarla.visualization.common import get_actor_display_name, sort_vehicles_b
 from crcarla.visualization.visualization_base import VisualizationBase
 
 if TYPE_CHECKING:
-    from crcarla.visualization.visualization3D import (  # from crcarla.visualization.visualization2D import World2D
-        Visualization3D,
-    )
+    from crcarla.visualization.visualization3D import Visualization3D
 
 
 class CanvasController(VisualizationBase):
-    """Mananage the canvas ui elements."""
+    """Manage the canvas ui elements."""
 
-    def __init__(self, vis3d: "Visualization3D", z_axis: float = 100) -> None:
+    def __init__(self, vis3d: "Visualization3D", z_axis: float = 100, hud: bool = True) -> None:
         """Must have for VisualizationBase inheriting."""
         super().__init__(z_axis)
 
@@ -31,14 +29,20 @@ class CanvasController(VisualizationBase):
             (self._vis3d.config.ego_view.width, 40),
             (0, self._vis3d.config.ego_view.height - 40),
         )
-        # self._help = HelpText(Text.font_mono_16(), self._config.width, self._config.height)
 
         self._info_text = []
-        self._show_info = True
+        self._show_info = hud
 
     # ==========================================
     # Render pipeline
     # ==========================================
+
+    def change_status(self, new_status: Optional[bool] = None) -> None:
+        """Activate the canvas controller."""
+        if new_status is not None:
+            self._show_info = new_status
+        else:
+            self._show_info = not self._show_info
 
     def tick(self, clock: pygame.time.Clock):
         super().tick(clock)
@@ -60,9 +64,11 @@ class CanvasController(VisualizationBase):
         Sets notification text.
 
         :param text: Text which should be displayed.
-        :param seconds: Time how long text is shown.
+        :param t_ms: Time how long text is shown.
+        :param color: Color of the text.
         """
-        self._notification_text.set_text(text, color, t_ms)
+        if self._show_info:
+            self._notification_text.set_text(text, color, t_ms)
 
     def error(self, text: str):
         """
@@ -70,15 +76,10 @@ class CanvasController(VisualizationBase):
 
         :param text: Text which should be displayed.
         """
-        self.notify(f"Error: {text}", color=COLOR_RED)
-
-    # ==========================================
-    # Private
-    # ==========================================
+        if self._show_info:
+            self.notify(f"Error: {text}", color=COLOR_RED)
 
     def _create_info_text(self):
-        info_text = []
-
         t = self._vis3d.ego_vehicle.get_transform()
         v = self._vis3d.ego_vehicle.get_velocity()
         c = self._vis3d.ego_vehicle.get_control()
@@ -143,37 +144,36 @@ class CanvasController(VisualizationBase):
         return info_text
 
     def _render_info_text(self, display: pygame.surface.Surface):
-        if self._show_info:
-            info_surface = pygame.Surface((220, self._vis3d.config.ego_view.height))
-            info_surface.set_alpha(100)
-            display.blit(info_surface, (0, 0))
-            v_offset = 4
-            bar_h_offset = 100
-            bar_width = 106
-            for item in self._info_text:
-                if v_offset + 18 > self._vis3d.config.ego_view.height:
-                    break
-                if isinstance(item, list):
-                    if len(item) > 1:
-                        points = [(x + 8, v_offset + 8 + (1.0 - y) * 30) for x, y in enumerate(item)]
-                        pygame.draw.lines(display, (255, 136, 0), False, points, 2)
-                    item = None
-                    v_offset += 18
-                elif isinstance(item, tuple):
-                    if isinstance(item[1], bool):
-                        rect = pygame.Rect((bar_h_offset, v_offset + 8), (6, 6))
-                        pygame.draw.rect(display, (255, 255, 255), rect, 0 if item[1] else 1)
-                    else:
-                        rect_border = pygame.Rect((bar_h_offset, v_offset + 8), (bar_width, 6))
-                        pygame.draw.rect(display, (255, 255, 255), rect_border, 1)
-                        f = (item[1] - item[2]) / (item[3] - item[2])
-                        if item[2] < 0.0:
-                            rect = pygame.Rect((bar_h_offset + f * (bar_width - 6), v_offset + 8), (6, 6))
-                        else:
-                            rect = pygame.Rect((bar_h_offset, v_offset + 8), (f * bar_width, 6))
-                        pygame.draw.rect(display, (255, 255, 255), rect)
-                    item = item[0]
-                if item:  # At this point has to be a str.
-                    surface = Text.font_mono().render(item, True, (255, 255, 255))
-                    display.blit(surface, (8, v_offset))
+        info_surface = pygame.Surface((220, self._vis3d.config.ego_view.height))
+        info_surface.set_alpha(100)
+        display.blit(info_surface, (0, 0))
+        v_offset = 4
+        bar_h_offset = 100
+        bar_width = 106
+        for item in self._info_text:
+            if v_offset + 18 > self._vis3d.config.ego_view.height:
+                break
+            if isinstance(item, list):
+                if len(item) > 1:
+                    points = [(x + 8, v_offset + 8 + (1.0 - y) * 30) for x, y in enumerate(item)]
+                    pygame.draw.lines(display, (255, 136, 0), False, points, 2)
+                item = None
                 v_offset += 18
+            elif isinstance(item, tuple):
+                if isinstance(item[1], bool):
+                    rect = pygame.Rect((bar_h_offset, v_offset + 8), (6, 6))
+                    pygame.draw.rect(display, (255, 255, 255), rect, 0 if item[1] else 1)
+                else:
+                    rect_border = pygame.Rect((bar_h_offset, v_offset + 8), (bar_width, 6))
+                    pygame.draw.rect(display, (255, 255, 255), rect_border, 1)
+                    f = (item[1] - item[2]) / (item[3] - item[2])
+                    if item[2] < 0.0:
+                        rect = pygame.Rect((bar_h_offset + f * (bar_width - 6), v_offset + 8), (6, 6))
+                    else:
+                        rect = pygame.Rect((bar_h_offset, v_offset + 8), (f * bar_width, 6))
+                    pygame.draw.rect(display, (255, 255, 255), rect)
+                item = item[0]
+            if item:  # At this point has to be a str.
+                surface = Text.font_mono().render(item, True, (255, 255, 255))
+                display.blit(surface, (8, v_offset))
+            v_offset += 18

@@ -48,10 +48,11 @@ class VehicleControlType(Enum):
 class CustomVis(Enum):
     """Available visualization types."""
 
-    BIRD = 0
+    BIRD2D = 0
     THIRD_PERSON = 1
     DRIVER = 2
-    NONE = 3
+    BIRD3D = 3
+    NONE = 4
 
 
 class ApproximationType(Enum):
@@ -64,8 +65,9 @@ class ApproximationType(Enum):
 
 class TrajectoryVisualization(Enum):
     ONLY_OPTIMAL = 0
-    ONLY_FEASABLE = 1
+    ONLY_FEASIBLE = 1
     ALL = 2
+    NONE = 3
 
 
 def _dict_to_params(dict_params: Dict, cls: Any) -> Any:
@@ -179,7 +181,7 @@ class BaseParam:
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
-    vis_type: CustomVis = CustomVis.BIRD
+    vis_type: CustomVis = CustomVis.BIRD2D
     log_level: str = "ERROR"
     __initialized: bool = field(init=False, default=False, repr=False)
 
@@ -326,12 +328,71 @@ class WeatherParams(BaseParam):
     rayleigh_scattering_scale: float = 0.0331
 
 
+class VisActivation:
+    """Activation of visualization tools."""
+
+    _is_visible: bool = True  # shortcut for turning visualization tools on/off (e.g. trajectories, bounding boxes etc.)
+    _hud: bool = True
+    _trajectory: TrajectoryVisualization = TrajectoryVisualization.NONE
+    _bounding_boxes: bool = False
+    _line: bool = False
+    _text: bool = False
+    _polygon: bool = False
+
+    @property
+    def hud(self) -> bool:
+        return self._hud and self._is_visible
+
+    @hud.setter
+    def hud(self, value: bool):
+        self._hud = value
+
+    @property
+    def trajectory(self) -> TrajectoryVisualization:
+        return self._trajectory if self._is_visible else TrajectoryVisualization.NONE
+
+    @trajectory.setter
+    def trajectory(self, value: TrajectoryVisualization):
+        self._trajectory = value
+
+    @property
+    def bounding_boxes(self) -> bool:
+        return self._bounding_boxes and self._is_visible
+
+    @bounding_boxes.setter
+    def bounding_boxes(self, value: bool):
+        self._bounding_boxes = value
+
+    @property
+    def line(self) -> bool:
+        return self._line and self._is_visible
+
+    @line.setter
+    def line(self, value: bool):
+        self._line = value
+
+    @property
+    def text(self) -> bool:
+        return self._text and self._is_visible
+
+    @text.setter
+    def text(self, value: bool):
+        self._text = value
+
+    @property
+    def polygon(self) -> bool:
+        return self._polygon and self._is_visible
+
+    @polygon.setter
+    def polygon(self, value: bool):
+        self._polygon = value
+
+
 @dataclass
 class ViewParams(BaseParam):
     """General parameters of CARLA world views."""
 
-    is_visible: bool = True  # turn visualization tools on/off (e.g. trajectories, bounding boxes etc.)
-    vis_hud: bool = True
+    vis_activation: VisActivation = field(default_factory=VisActivation)
     width: int = 1280
     height: int = 720
     description: str = "Keyboard Control"
@@ -340,10 +401,9 @@ class ViewParams(BaseParam):
     third_person_z_axis_m: float = 4.0
     third_person_angle_deg: float = -20.0
     remove_tmp_files: bool = True
-    trajectory_vis: TrajectoryVisualization = TrajectoryVisualization.ONLY_OPTIMAL
 
     @property
-    def camera_transform_bird_values(self) -> carla.Transform:
+    def camera_transform_bird(self) -> carla.Transform:
         return carla.Transform(carla.Location(z=40, x=-45, y=19), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0))
 
     @property
