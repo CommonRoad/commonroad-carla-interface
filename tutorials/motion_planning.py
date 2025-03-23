@@ -16,7 +16,9 @@ param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
 param.vis_type = CustomVis.THIRD_PERSON
-param.visualization.trajectory_vis = TrajectoryVisualization.ALL
+param.visualization.vis_activation.trajectory = TrajectoryVisualization.NONE
+param.visualization.vis_activation.hud = False
+param.visualization.vis_activation.bounding_boxes = True
 param.simulation.max_time_step = 300
 
 # configure CommonRoad reactive planner

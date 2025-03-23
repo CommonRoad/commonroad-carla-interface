@@ -40,7 +40,7 @@ class TrajectoryTool(VisualizationBase):
         :type clock: pygame.time.Clock
         """
         super().tick(clock)
-        if not VisualizationBase.is_visible:
+        if not VisualizationBase.is_visible or self._config.vis_activation.trajectory.NONE:
             return
         ego_vehicle = self._vis3d.ego_vehicle
         ego_location = ego_vehicle.get_location()
@@ -48,8 +48,8 @@ class TrajectoryTool(VisualizationBase):
 
         trajectories = [self._vis3d.trajectories[0]]
         num_infeasible_trajectories = 0
-        if self._config.trajectory_vis is not TrajectoryVisualization.ONLY_OPTIMAL:
-            if self._config.trajectory_vis is TrajectoryVisualization.ONLY_FEASIBLE:
+        if self._config.vis_activation.trajectory is not TrajectoryVisualization.ONLY_OPTIMAL:
+            if self._config.vis_activation.trajectory is TrajectoryVisualization.ONLY_FEASIBLE:
                 trajectories += self._vis3d.trajectories[1][
                     : len(self._vis3d.trajectories[1]) - self._vis3d.trajectories[2]
                 ]

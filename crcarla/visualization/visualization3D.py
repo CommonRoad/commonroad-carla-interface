@@ -1,16 +1,4 @@
-#!/usr/bin/env python
-
-# Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
-
-# Allows controlling a vehicle with a keyboard. For a simpler and more
-# documented example, please take a look at tutorial.py.
-
 from typing import List, Tuple, Optional
-
 import carla
 import pygame
 
@@ -19,9 +7,7 @@ from crcarla.visualization.canvas.canvas_controller import CanvasController
 from crcarla.visualization.common import get_actor_display_name, sort_vehicles_by_dist
 from crcarla.visualization.sensors.sensor_controller import SensorController
 from crcarla.visualization.visualization_base import VisualizationBase
-from crcarla.visualization.visualization_tools.visualization_tools_controller import (
-    VisualizationToolsController,
-)
+from crcarla.visualization.visualization_tools.visualization_tools_controller import VisualizationToolsController
 
 
 class Visualization3D(VisualizationBase):
@@ -49,10 +35,11 @@ class Visualization3D(VisualizationBase):
         self._vehicles = []
         self._vehicles_by_dist: Optional[List[Tuple[carla.Vehicle, float]]] = None
 
-        self.canvas_controller = CanvasController(self, hud=config.visualization.vis_hud)
+        self.canvas_controller = CanvasController(self, hud=config.visualization.vis_activation.hud)
         self.sensor_controller = SensorController(self)
-        self.vis_tool_controller = VisualizationToolsController(self)
-        VisualizationBase.is_visible = config.visualization.is_visible
+        self.vis_tool_controller = VisualizationToolsController(
+            self, vis_activation=config.visualization.vis_activation
+        )
 
         # store information to display
         self.server_fps = 0
@@ -66,10 +53,6 @@ class Visualization3D(VisualizationBase):
 
         # Restart/reinitialize the visualization
         self.restart()
-
-    # ==========================================
-    # Overwrite pipeline from VisualizationBase
-    # ==========================================
 
     def restart(self):
         super().restart()
@@ -126,10 +109,6 @@ class Visualization3D(VisualizationBase):
         if self._ego_vehicle is not None:
             self._ego_vehicle.destroy()
 
-    # ==========================================
-    # Properties
-    # ==========================================
-
     @property
     def ego_vehicle(self) -> carla.Vehicle:
         """
@@ -160,10 +139,6 @@ class Visualization3D(VisualizationBase):
         :return: List of vehicles.
         """
         return self._vehicles_by_dist
-
-    # ==========================================
-    # Private
-    # ==========================================
 
     def _on_world_tick(self, timestamp: carla.Timestamp):
         """

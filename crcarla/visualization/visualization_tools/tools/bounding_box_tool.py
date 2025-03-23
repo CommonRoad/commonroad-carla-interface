@@ -14,7 +14,7 @@ class BoundingBoxTool(VisualizationBase):
     A class to visualize bounding boxes of objects in a 3D world.
     """
 
-    def __init__(self, vis3d: "Visualization3D", z_axis: float = 1) -> None:
+    def __init__(self, vis3d: "Visualization3D", print_distance: bool, z_axis: float = 1) -> None:
         """
         Initializes an instance of BoundingBox3D.
 
@@ -34,7 +34,7 @@ class BoundingBoxTool(VisualizationBase):
             "color": (255, 0, 0),
             "show_as_3d": False,
             "max_dist": 200.0,
-            "print_distance": True,
+            "print_distance": print_distance,
         }
         self._forward_delta_distance = 1.0
 
