@@ -1,10 +1,12 @@
+from pathlib import Path
+
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
 from crcarla.controller.reactive_planner import ReactivePlannerInterface
-from crcarla.helper.config import CarlaParams, CustomVis
+from crcarla.helper.config import CarlaParams, CustomVis, TrajectoryVisualization
 
 # specify map an scenario
 scenario, planning_problem_set = CommonRoadFileReader("scenarios/DEU_Test-1_1_T-2.xml").open()
@@ -15,14 +17,19 @@ param.map = "maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.vis_type = CustomVis.THIRD_PERSON
-param.simulation.max_time_step = 300
+param.vis_type = CustomVis.BIRD3D
+param.visualization.vis_activation.trajectory = TrajectoryVisualization.ALL
+param.visualization.vis_activation.hud = False
+param.ego_view.record_video = True
+param.ego_view.video_path = Path(__file__).parent / "video"
+param.visualization.vis_activation.bounding_boxes = True
+param.simulation.max_time_step = 20
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
-rp_config.debug.draw_traj_set = True
-rp_config.debug.draw_icons = True
-rp_config.debug.save_plots = True
+rp_config.debug.draw_traj_set = True  # needs to be set for CARLA visualization of trajectories
+rp_config.debug.draw_icons = False
+rp_config.debug.save_plots = False
 rp_config.debug.plots_file_format = "svg"
 
 # sampling params
@@ -45,7 +52,7 @@ scenario.remove_obstacle(scenario.dynamic_obstacles[0])
 
 # start planning
 ci.plan(
-    ReactivePlannerInterface(scenario, planning_problem, rp_config),
+    ReactivePlannerInterface(scenario, planning_problem, rp_config, draw_trajectories=True),
     None,
     scenario,
     list(planning_problem_set.planning_problem_dict.values())[0],

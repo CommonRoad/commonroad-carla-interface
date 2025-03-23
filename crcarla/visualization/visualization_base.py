@@ -26,7 +26,7 @@ class VisualizationBase(ABC):
     """
 
     __instances: List[weakref.ref] = []
-    is_visible = False
+    is_visible = True
 
     def __init__(self, z_axis: float = 1.0) -> None:
         """

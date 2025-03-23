@@ -1,16 +1,5 @@
-#!/usr/bin/env python
-
-# Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
-
-# Allows controlling a vehicle with a keyboard. For a simpler and more
-# documented example, please take a look at tutorial.py.
-
-from typing import List, Tuple
-
+import shutil
+from typing import List, Tuple, Optional
 import carla
 import pygame
 
@@ -19,9 +8,7 @@ from crcarla.visualization.canvas.canvas_controller import CanvasController
 from crcarla.visualization.common import get_actor_display_name, sort_vehicles_by_dist
 from crcarla.visualization.sensors.sensor_controller import SensorController
 from crcarla.visualization.visualization_base import VisualizationBase
-from crcarla.visualization.visualization_tools.visualization_tools_controller import (
-    VisualizationToolsController,
-)
+from crcarla.visualization.visualization_tools.visualization_tools_controller import VisualizationToolsController
 
 
 class Visualization3D(VisualizationBase):
@@ -47,12 +34,13 @@ class Visualization3D(VisualizationBase):
         self.config = config
         self._ego_vehicle = ego_vehicle
         self._vehicles = []
-        self._vehicles_by_dist: List[Tuple[carla.Vehicle, float]] = None
+        self._vehicles_by_dist: Optional[List[Tuple[carla.Vehicle, float]]] = None
 
-        self.canvas_controller = CanvasController(self)
+        self.canvas_controller = CanvasController(self, hud=config.visualization.vis_activation.hud)
         self.sensor_controller = SensorController(self)
-        self.vis_tool_controller = VisualizationToolsController(self)
-        VisualizationBase.is_visible = config.visualization.is_visible
+        self.vis_tool_controller = VisualizationToolsController(
+            self, vis_activation=config.visualization.vis_activation
+        )
 
         # store information to display
         self.server_fps = 0
@@ -62,14 +50,16 @@ class Visualization3D(VisualizationBase):
         self.frame = 0
         self.simulation_time = 0
 
+        self._images = []  # images to store videos
+        self.recording = config.ego_view.record_video
+        self.path = config.ego_view.video_path
+        if (tmp_path := self.path / "_tmp").exists():
+            shutil.rmtree(tmp_path)
+
         self._on_world_tick_ID = self.carla_world.on_tick(self._on_world_tick)
 
         # Restart/reinitialize the visualization
         self.restart()
-
-    # ==========================================
-    # Overwrite pipeline from VisualizationBase
-    # ==========================================
 
     def restart(self):
         super().restart()
@@ -112,6 +102,7 @@ class Visualization3D(VisualizationBase):
         for obj in VisualizationBase.get_instances():
             if self is not obj:
                 obj.render(display)  # all VisualizationBase objects
+        self._images.append(display.copy())
 
     def destroy(self):
         """Destroys the sensors and the ego vehicle."""
@@ -124,10 +115,6 @@ class Visualization3D(VisualizationBase):
 
         if self._ego_vehicle is not None:
             self._ego_vehicle.destroy()
-
-    # ==========================================
-    # Properties
-    # ==========================================
 
     @property
     def ego_vehicle(self) -> carla.Vehicle:
@@ -160,10 +147,6 @@ class Visualization3D(VisualizationBase):
         """
         return self._vehicles_by_dist
 
-    # ==========================================
-    # Private
-    # ==========================================
-
     def _on_world_tick(self, timestamp: carla.Timestamp):
         """
         Callback for CARLA world tick.
@@ -177,3 +160,13 @@ class Visualization3D(VisualizationBase):
 
     def __get_vehicles(self) -> carla.ActorList:
         return self.carla_world.get_actors().filter(self.config.ego_view.object_filter)
+
+    def save_images_as_png(self):
+        """
+        Saves the images in self._images as PNG files.
+        """
+        if not (self.path / "_tmp").exists():
+            (self.path / "_tmp").mkdir(parents=True, exist_ok=True)
+        for idx, image in enumerate(self._images):
+            image_path = f"{self.path}/_tmp/{idx}.png"
+            pygame.image.save(image, image_path)

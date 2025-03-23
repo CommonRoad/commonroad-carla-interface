@@ -19,7 +19,7 @@ param.map = "maps/DEU_Test-1_1_T-2.xodr"
 param.ego.vehicle_ks_state = False
 param.vehicle.vehicle_ks_state = False
 param.offscreen_mode = True
-param.vis_type = CustomVis.BIRD
+param.vis_type = CustomVis.BIRD2D
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
