@@ -269,16 +269,17 @@ def make_video(path: Path, video_name: str, logger: Logger, remove_tmp: bool = T
     """
     if not path.exists():
         raise RuntimeError(f"make_video: Path {path} does not exist.")
+    path_tmp = path / "_tmp"
     video_path = path / f"{video_name}.mp4"
     try:
         logger.debug("Start creating video.")
         os.system(
-            f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{path}/*.png'"
+            f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{path_tmp}/*.png'"
             f" -c:v libx264 -pix_fmt yuv420p {video_path}"
         )
 
         if remove_tmp:
-            shutil.rmtree(path)
+            shutil.rmtree(path_tmp)
 
         if video_path.exists():
             logger.debug("mp4 created!")
@@ -288,7 +289,7 @@ def make_video(path: Path, video_name: str, logger: Logger, remove_tmp: bool = T
         else:
             logger.error(e)
         if path.exists() and remove_tmp:
-            shutil.rmtree(path)
+            shutil.rmtree(path_tmp)
 
 
 def find_carla_distribution(

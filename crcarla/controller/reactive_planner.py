@@ -68,6 +68,8 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._cc = self._planner.collision_checker
         self._wb_rear_axle = self._planner.config.vehicle.wb_rear_axle
         self.draw_trajectories = draw_trajectories
+        if self.draw_trajectories:
+            self._planner._draw_traj_set = True
 
     def get_planner(self) -> ReactivePlanner:
         return self._planner
@@ -141,13 +143,14 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
                 # TODO: sample emergency brake trajectory if no trajectory is found
                 self._cr_state_list = None
 
+            sampled_trajectory_bundle = None
             # visualize the current time step of the simulation
-            if self._config.debug.save_plots or self._config.debug.show_plots:
+            if self._config.debug.save_plots or self._config.debug.show_plots or self.draw_trajectories:
                 self.ego_vehicle = self._planner.convert_state_list_to_commonroad_object(self._optimal[0].state_list)
-                sampled_trajectory_bundle = None
                 if self._config.debug.draw_traj_set:
                     sampled_trajectory_bundle = copy.deepcopy(self._planner.stored_trajectories)
 
+            if self._config.debug.save_plots or self._config.debug.show_plots:
                 visualize_planner_at_timestep(
                     scenario=self._config.scenario,
                     planning_problem=self._config.planning_problem,

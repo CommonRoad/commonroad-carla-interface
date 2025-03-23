@@ -1,3 +1,4 @@
+import shutil
 from typing import List, Tuple, Optional
 import carla
 import pygame
@@ -49,7 +50,11 @@ class Visualization3D(VisualizationBase):
         self.frame = 0
         self.simulation_time = 0
 
-        self._images = [] # images to store videos
+        self._images = []  # images to store videos
+        self.recording = config.ego_view.record_video
+        self.path = config.ego_view.video_path
+        if (tmp_path := self.path / "_tmp").exists():
+            shutil.rmtree(tmp_path)
 
         self._on_world_tick_ID = self.carla_world.on_tick(self._on_world_tick)
 
@@ -156,10 +161,12 @@ class Visualization3D(VisualizationBase):
     def __get_vehicles(self) -> carla.ActorList:
         return self.carla_world.get_actors().filter(self.config.ego_view.object_filter)
 
-    def save_images_as_png(self, path: str):
+    def save_images_as_png(self):
         """
         Saves the images in self._images as PNG files.
         """
+        if not (self.path / "_tmp").exists():
+            (self.path / "_tmp").mkdir(parents=True, exist_ok=True)
         for idx, image in enumerate(self._images):
-            image_path = f"{path}/frame_{idx}.png"
+            image_path = f"{self.path}/_tmp/{idx}.png"
             pygame.image.save(image, image_path)

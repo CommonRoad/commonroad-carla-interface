@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.common.solution import VehicleType
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
@@ -18,14 +20,16 @@ param.offscreen_mode = True
 param.vis_type = CustomVis.BIRD3D
 param.visualization.vis_activation.trajectory = TrajectoryVisualization.ALL
 param.visualization.vis_activation.hud = False
+param.ego_view.record_video = True
+param.ego_view.video_path = Path(__file__).parent / "video"
 param.visualization.vis_activation.bounding_boxes = True
-param.simulation.max_time_step = 300
+param.simulation.max_time_step = 20
 
 # configure CommonRoad reactive planner
 rp_config = ReactivePlannerConfiguration()
 rp_config.debug.draw_traj_set = True  # needs to be set for CARLA visualization of trajectories
-rp_config.debug.draw_icons = True
-rp_config.debug.save_plots = True
+rp_config.debug.draw_icons = False
+rp_config.debug.save_plots = False
 rp_config.debug.plots_file_format = "svg"
 
 # sampling params

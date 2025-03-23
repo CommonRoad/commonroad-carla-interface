@@ -1,4 +1,3 @@
-import shutil
 import weakref
 from typing import TYPE_CHECKING, List, Tuple
 
@@ -40,12 +39,6 @@ class CameraSensor(VisualizationBase):
         self._config = config
         self._canvas_controller = canvas_controller
 
-        # Recording status and path for video storage
-        self.recording = config.ego_view.record_video
-        self.path = config.ego_view.video_path
-        if (tmp_path := self.path / "_tmp").exists():
-            shutil.rmtree(tmp_path)
-
         self._camera_transforms = self._create_camera_transforms()
         self.sensors = self._create_sensors()
 
@@ -53,8 +46,6 @@ class CameraSensor(VisualizationBase):
 
         self.transform_index = 0
         self.set_sensor(0, notify=False)
-
-        self._images = []  # storage for images
 
     def _create_camera_transforms(self) -> List[Tuple[carla.Transform]]:
         """
@@ -225,10 +216,6 @@ class CameraSensor(VisualizationBase):
             self._canvas_controller.notify(self.sensors[index][2])
         self.index = index
 
-    def toggle_recording(self):
-        """Activates/deactivates camera recording."""
-        self.recording = not self.recording
-
     def render(self, display: pygame.display):
         """
         Renders camera.
@@ -268,14 +255,8 @@ class CameraSensor(VisualizationBase):
             array = array[:, :, :3]
             array = array[:, :, ::-1]
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-            if self.recording:
-                self._images.append(image)
 
     def destroy(self):
-        if self.recording:
-            for image in self._images:
-                image.save_to_disk(f"{self.path}/_tmp/%08d" % image.frame)
-
         super().destroy()
         self.sensor.stop()
         self.sensor.destroy()
