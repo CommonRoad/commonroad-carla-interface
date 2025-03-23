@@ -211,7 +211,7 @@ class CarlaInterface:
         settings.fixed_delta_seconds = self._config.simulation.time_step
         settings.max_substep_delta_time = self._config.simulation.max_substep_delta_time
         settings.max_substeps = self._config.simulation.max_substeps
-        settings.no_rendering_mode = self._config.vis_type == CustomVis.BIRD
+        settings.no_rendering_mode = self._config.vis_type == CustomVis.BIRD2D
         self._world.apply_settings(settings)
 
     def _init_carla_traffic_manager(self):
@@ -764,12 +764,12 @@ class CarlaInterface:
             display = self._init_display()
             clock = pygame.time.Clock()
 
-        if self._config.vis_type is CustomVis.BIRD and not obstacle_only:
+        if self._config.vis_type is CustomVis.BIRD2D and not obstacle_only:
             self._config.logger.info("Init 2D.")
             hud = HUD2D("CARLA 2D", self._config.visualization.width, self._config.visualization.height)
             vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.birds_eye_view)
         elif (
-            self._config.vis_type is CustomVis.THIRD_PERSON or self._config.vis_type is CustomVis.DRIVER
+            self._config.vis_type in[CustomVis.THIRD_PERSON, CustomVis.DRIVER, CustomVis.BIRD3D]
         ) and not obstacle_only:
             self._config.logger.info("Init 3D.")
             vis_world = Visualization3D(self._world, self._config, self._ego.actor)
@@ -862,7 +862,7 @@ class CarlaInterface:
                 for tl in self.traffic_lights:
                     tl.tick(time_step)
 
-            if self._config.vis_type is not CustomVis.NONE and not obstacle_only:
+            if self._config.vis_type not in [CustomVis.NONE, CustomVis.BIRD2D] and not obstacle_only:
                 if self._config.simulation.time_step != 0:
                     clock.tick_busy_loop(1 / self._config.simulation.time_step)
                 else:

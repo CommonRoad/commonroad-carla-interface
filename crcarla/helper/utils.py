@@ -515,7 +515,7 @@ def render_trajectory_video(
     if exclude_pedestrians:
         obstacles = [obs for obs in obstacles if "Vehicle" in type(obs).__name__]
 
-    actuall_trajectories = [obs.trajectory for obs in obstacles]
+    actual_trajectories = [obs.trajectory for obs in obstacles]
     predicted_trajectories = [obs.cr_obstacle.prediction.trajectory.state_list for obs in obstacles]
     ids = [obs.cr_obstacle.obstacle_id for obs in obstacles]
     actor_types = ["Vehicle" if "Vehicle" in type(obs).__name__ else "Pedestrian" for obs in obstacles]
@@ -525,11 +525,11 @@ def render_trajectory_video(
     # pylint: disable=protected-access
     car_lengths = [obs._actor.bounding_box.extent.x * 2 for obs in obstacles]
 
-    number_of_frames = len(actuall_trajectories[0])
+    number_of_frames = len(actual_trajectories[0])
     for i in range(number_of_frames):
         plt.figure()
 
-        actual = [a[i] for a in actuall_trajectories]
+        actual = [a[i] for a in actual_trajectories]
 
         render_from_trajectory(
             scenario,

@@ -1,6 +1,6 @@
 import shutil
 import weakref
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Tuple
 
 import carla
 import numpy as np
@@ -56,12 +56,11 @@ class CameraSensor(VisualizationBase):
 
         self._images = []  # storage for images
 
-    def _create_camera_transforms(self):
+    def _create_camera_transforms(self) -> List[Tuple[carla.Transform]]:
         """
         Creates camera transforms based on the type of the parent actor.
 
         :return: List of camera transforms.
-        :rtype: List
         """
         bound_x = 0.5 + self._parent.bounding_box.extent.x
         bound_y = 0.5 + self._parent.bounding_box.extent.y
@@ -69,24 +68,34 @@ class CameraSensor(VisualizationBase):
 
         if not self._parent.type_id.startswith("walker.pedestrian"):
             # Camera transforms for non-pedestrian actors
-            return [
-                # 3rd person view
-                (
+            transform_view = None
+            if self._config.vis_type == CustomVis.THIRD_PERSON:
+                transform_view =  (
                     carla.Transform(
                         carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
                         carla.Rotation(pitch=8.0),
                     ),
                     carla.AttachmentType.SpringArm,
                 )
-                if self._config.vis_type == CustomVis.THIRD_PERSON
-                # driver view
-                else (
+            elif self._config.vis_type == CustomVis.DRIVER:
+                transform_view = (
                     carla.Transform(
                         carla.Location(x=-0.01 * bound_x, y=-0.3 * bound_y, z=1.0 * bound_z),
                         carla.Rotation(pitch=0.0),
                     ),
                     carla.AttachmentType.Rigid,
-                ),
+                )
+            elif self._config.vis_type == CustomVis.BIRD3D:
+                transform_view = (
+                    carla.Transform(
+                        carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=75.0 * bound_z),
+                        carla.Rotation(pitch=0.0),
+                    ),
+                    carla.AttachmentType.SpringArm,
+                )
+
+            return [
+                transform_view,
                 (
                     carla.Transform(carla.Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)),
                     carla.AttachmentType.Rigid,

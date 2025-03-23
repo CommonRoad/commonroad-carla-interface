@@ -48,10 +48,11 @@ class VehicleControlType(Enum):
 class CustomVis(Enum):
     """Available visualization types."""
 
-    BIRD = 0
+    BIRD2D = 0
     THIRD_PERSON = 1
     DRIVER = 2
-    NONE = 3
+    BIRD3D = 3
+    NONE = 4
 
 
 class ApproximationType(Enum):
@@ -180,7 +181,7 @@ class BaseParam:
     client_init_timeout: float = 30.0
     sync: bool = True
     autopilot: bool = False
-    vis_type: CustomVis = CustomVis.BIRD
+    vis_type: CustomVis = CustomVis.BIRD2D
     log_level: str = "ERROR"
     __initialized: bool = field(init=False, default=False, repr=False)
 
@@ -402,7 +403,7 @@ class ViewParams(BaseParam):
     remove_tmp_files: bool = True
 
     @property
-    def camera_transform_bird_values(self) -> carla.Transform:
+    def camera_transform_bird(self) -> carla.Transform:
         return carla.Transform(carla.Location(z=40, x=-45, y=19), carla.Rotation(pitch=-90.0, yaw=0.0, roll=-90.0))
 
     @property
