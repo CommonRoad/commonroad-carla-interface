@@ -70,7 +70,7 @@ class CameraSensor(VisualizationBase):
             # Camera transforms for non-pedestrian actors
             transform_view = None
             if self._config.vis_type == CustomVis.THIRD_PERSON:
-                transform_view =  (
+                transform_view = (
                     carla.Transform(
                         carla.Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
                         carla.Rotation(pitch=8.0),

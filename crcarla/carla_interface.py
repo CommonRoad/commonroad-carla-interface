@@ -769,7 +769,7 @@ class CarlaInterface:
             hud = HUD2D("CARLA 2D", self._config.visualization.width, self._config.visualization.height)
             vis_world = World2D("CARLA 2D", self._world, hud, self._ego.actor, self._config.birds_eye_view)
         elif (
-            self._config.vis_type in[CustomVis.THIRD_PERSON, CustomVis.DRIVER, CustomVis.BIRD3D]
+            self._config.vis_type in [CustomVis.THIRD_PERSON, CustomVis.DRIVER, CustomVis.BIRD3D]
         ) and not obstacle_only:
             self._config.logger.info("Init 3D.")
             vis_world = Visualization3D(self._world, self._config, self._ego.actor)
