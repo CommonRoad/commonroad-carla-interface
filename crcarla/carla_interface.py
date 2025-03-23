@@ -900,6 +900,7 @@ class CarlaInterface:
             vis_world.destroy()
 
         if self._config.ego_view.record_video:
+            vis_world.save_images_as_png(str(self._config.ego_view.video_path))
             make_video(
                 self._config.ego_view.video_path,
                 self._config.ego_view.video_name,

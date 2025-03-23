@@ -269,11 +269,7 @@ class CameraSensor(VisualizationBase):
             array = array[:, :, ::-1]
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
             if self.recording:
-                # pylint: disable=protected-access
                 self._images.append(image)
-
-    # if self.recording:
-    # image.save_to_disk(f'{self.path}/_tmp/%08d' % image.frame)
 
     def destroy(self):
         if self.recording:

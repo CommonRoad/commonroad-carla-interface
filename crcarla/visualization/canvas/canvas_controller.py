@@ -67,7 +67,8 @@ class CanvasController(VisualizationBase):
         :param t_ms: Time how long text is shown.
         :param color: Color of the text.
         """
-        self._notification_text.set_text(text, color, t_ms)
+        if self._show_info:
+            self._notification_text.set_text(text, color, t_ms)
 
     def error(self, text: str):
         """
@@ -75,7 +76,8 @@ class CanvasController(VisualizationBase):
 
         :param text: Text which should be displayed.
         """
-        self.notify(f"Error: {text}", color=COLOR_RED)
+        if self._show_info:
+            self.notify(f"Error: {text}", color=COLOR_RED)
 
     def _create_info_text(self):
         t = self._vis3d.ego_vehicle.get_transform()

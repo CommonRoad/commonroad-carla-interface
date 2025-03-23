@@ -40,6 +40,8 @@ class FadingText(Text):
         """
         super().tick(clock)
 
+        if self._ms_duration == 0:
+            return
         delta_ms = clock.get_time()
         self._ms_left = max(0, self._ms_left - delta_ms)
         alpha = float(self._ms_left) / float(self._ms_duration) * 255.0

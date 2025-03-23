@@ -267,21 +267,18 @@ def make_video(path: Path, video_name: str, logger: Logger, remove_tmp: bool = T
     :param logger: Logger object.
     :param remove_tmp: Boolean indicating whether temporary folder should be removed.
     """
-    tmp_path = path / "_tmp"
     if not path.exists():
-        path.mkdir(parents=True, exist_ok=True)
-    if not tmp_path.exists():
-        tmp_path.mkdir(parents=True, exist_ok=True)
+        raise RuntimeError(f"make_video: Path {path} does not exist.")
     video_path = path / f"{video_name}.mp4"
     try:
         logger.debug("Start creating video.")
         os.system(
-            f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{tmp_path}/*.png'"
+            f"ffmpeg -framerate 10 -hide_banner -loglevel error -pattern_type glob -i '{path}/*.png'"
             f" -c:v libx264 -pix_fmt yuv420p {video_path}"
         )
 
         if remove_tmp:
-            shutil.rmtree(tmp_path)
+            shutil.rmtree(path)
 
         if video_path.exists():
             logger.debug("mp4 created!")
@@ -290,8 +287,8 @@ def make_video(path: Path, video_name: str, logger: Logger, remove_tmp: bool = T
             logger.debug("mp4 created!")
         else:
             logger.error(e)
-        if tmp_path.exists() and remove_tmp:
-            shutil.rmtree(tmp_path)
+        if path.exists() and remove_tmp:
+            shutil.rmtree(path)
 
 
 def find_carla_distribution(

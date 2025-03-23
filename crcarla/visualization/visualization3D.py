@@ -49,6 +49,8 @@ class Visualization3D(VisualizationBase):
         self.frame = 0
         self.simulation_time = 0
 
+        self._images = [] # images to store videos
+
         self._on_world_tick_ID = self.carla_world.on_tick(self._on_world_tick)
 
         # Restart/reinitialize the visualization
@@ -95,7 +97,7 @@ class Visualization3D(VisualizationBase):
         for obj in VisualizationBase.get_instances():
             if self is not obj:
                 obj.render(display)  # all VisualizationBase objects
-        # pygame.image.save(display, "frame.png")
+        self._images.append(display.copy())
 
     def destroy(self):
         """Destroys the sensors and the ego vehicle."""
@@ -153,3 +155,11 @@ class Visualization3D(VisualizationBase):
 
     def __get_vehicles(self) -> carla.ActorList:
         return self.carla_world.get_actors().filter(self.config.ego_view.object_filter)
+
+    def save_images_as_png(self, path: str):
+        """
+        Saves the images in self._images as PNG files.
+        """
+        for idx, image in enumerate(self._images):
+            image_path = f"{path}/frame_{idx}.png"
+            pygame.image.save(image, image_path)
