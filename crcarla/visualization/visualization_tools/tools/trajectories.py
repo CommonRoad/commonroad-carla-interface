@@ -40,7 +40,11 @@ class TrajectoryTool(VisualizationBase):
         :type clock: pygame.time.Clock
         """
         super().tick(clock)
-        if not VisualizationBase.is_visible or self._config.vis_activation.trajectory is TrajectoryVisualization.NONE:
+        if (
+            not VisualizationBase.is_visible
+            or self._config.vis_activation.trajectory is TrajectoryVisualization.NONE
+            or len(self._vis3d.trajectories) == 0
+        ):
             return
         ego_vehicle = self._vis3d.ego_vehicle
         ego_location = ego_vehicle.get_location()

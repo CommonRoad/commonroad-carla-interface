@@ -37,6 +37,8 @@ commonroad-scenario-designer = { git = "git+https://github.com/CommonRoad/common
 commonroad-prediction = { git = "git+https://github.com/CommonRoad/commonroad-prediction@develop" }
 commonroad-route-planner = ">=2025.1.0"
 commonroad-reactive-planner = ">=2025.1.0"
+commonroad-idm-planner = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-idm-planner.git", branch = "develop"}
+
 
 #[tool.poetry.group.tests]
 #optional = true
