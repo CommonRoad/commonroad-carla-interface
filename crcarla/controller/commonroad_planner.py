@@ -1,5 +1,6 @@
 import copy
 import math
+import traceback
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
@@ -271,7 +272,11 @@ class CommonRoadPlannerController(CarlaController):
 
         # if transform control, steering needs to be set manual because actual steering angle is always zero
         if isinstance(self._controller, TransformControl):
-            if self._current_trajectory is None:
+            if (
+                self._current_trajectory is None
+                or self._current_trajectory is not None
+                and not hasattr(self._current_trajectory.state_list[1], "steering_angle")
+            ):
                 steering_angle = 0
             else:
                 steering_angle = self._current_trajectory.state_list[1].steering_angle
@@ -292,7 +297,7 @@ class CommonRoadPlannerController(CarlaController):
                 self._current_time_step += 1
         except Exception as e:
             self.save_scenario(sc, pp)
-            print(f"An error occurred: {e}")
+            traceback.print_exc()
             self._control_debug.plot()
 
     def save_scenario(self, sc, pp, index: int = 0):  # + self.config.scenario.
