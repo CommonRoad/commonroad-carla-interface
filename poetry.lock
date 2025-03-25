@@ -296,8 +296,8 @@ numpy = ">=1.17.4,<2.0"
 [package.source]
 type = "git"
 url = "ssh://git@gitlab.lrz.de/cps/commonroad/commonroad-idm-planner.git"
-reference = "higher-drivability-checker-version"
-resolved_reference = "91ea4d919dc5a9642982840bfd68b93834b53234"
+reference = "develop"
+resolved_reference = "1ec7a6194fdceb0bc1503aa80bdb4436d200df11"
 
 [[package]]
 name = "commonroad-io"
@@ -1520,6 +1520,7 @@ optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
+    {file = "methodtools-0.4.7-py2.py3-none-any.whl", hash = "sha256:5e188c780b236adc12e75b5f078c5afb419ef99eb648569fc6d7071f053a1f11"},
     {file = "methodtools-0.4.7.tar.gz", hash = "sha256:e213439dd64cfe60213f7015da6efe5dd4003fd89376db3baa09fe13ec2bb0ba"},
 ]
 
@@ -3534,4 +3535,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "66e4b02aa658ca1af2e8fcfb05d72620ce573eeeff61e62a718d26cf10da7647"
+content-hash = "1141bed4d17c4aa147098fb4eb02aa9f183babcff41e2254cfdc045e881da50f"
