@@ -353,27 +353,31 @@ name = "commonroad-reactive-planner"
 version = "2025.1"
 description = "CommonRoad Reactive Planner: Sampling-based Frenet Planner"
 optional = false
-python-versions = "<3.12,>=3.9"
+python-versions = ">=3.9,<3.12"
 groups = ["main"]
-files = [
-    {file = "commonroad_reactive_planner-2025.1-py3-none-any.whl", hash = "sha256:aa15b378cf5a089a69aee8df4d29d2b506d486e9c055db980747342724428e83"},
-    {file = "commonroad_reactive_planner-2025.1.tar.gz", hash = "sha256:4995a9b85220a2d4966bea8a4f316dcccc3bc4b4c1cd225b2679cfccdd74e892"},
-]
+files = []
+develop = false
 
 [package.dependencies]
-commonroad-clcs = ">=2025.1.1,<2026.0.0"
-commonroad-drivability-checker = ">=2025.1,<2026.0"
-commonroad-io = ">=2024.3,<2025.0"
-commonroad-route-planner = ">=2025.1.0,<2026.0.0"
+commonroad-clcs = "^2025.1.1"
+commonroad-drivability-checker = "^2025.1"
+commonroad-io = "^2024.3"
+commonroad-route-planner = "^2025.1.0"
 commonroad_vehicle_models = ">=3.0.2"
 imageio = ">=2.13.5"
 matplotlib = ">=2.2.2"
-methodtools = ">=0.4.5,<0.5.0"
+methodtools = "^0.4.5"
 networkx = ">=2.2"
 numpy = ">=1.22"
 omegaconf = ">=2.1.1"
 scipy = ">=1.5.2"
 triangle = ">=20230923"
+
+[package.source]
+type = "git"
+url = "ssh://git@gitlab.lrz.de/cps/reactive-planner.git"
+reference = "development"
+resolved_reference = "0ca205f652ff8fc847bc0e3b4bb2393da963fd93"
 
 [[package]]
 name = "commonroad-route-planner"
@@ -3535,4 +3539,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "1141bed4d17c4aa147098fb4eb02aa9f183babcff41e2254cfdc045e881da50f"
+content-hash = "7578f8cef888085bd4d835d2ae7d6aab0dc94b52f8e25361d6097fbdd3ac03c4"
