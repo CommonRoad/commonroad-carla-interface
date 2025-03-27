@@ -38,6 +38,7 @@ commonroad-prediction = { git = "git+https://github.com/CommonRoad/commonroad-pr
 commonroad-route-planner = ">=2025.1.0"
 commonroad-reactive-planner = { git = "git@gitlab.lrz.de:cps/reactive-planner.git", branch = "development"}
 commonroad-idm-planner = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-idm-planner.git", branch = "develop"}
+commonroad-velocity-planner = { git = "git@gitlab.lrz.de:cps/commonroad/commonroad-velocity-planner.git", branch = "empty-state-list-for-goal-region-possible"}
 
 
 #[tool.poetry.group.tests]

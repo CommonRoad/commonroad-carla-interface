@@ -22,6 +22,10 @@ from commonroad_rp.utility.general import shift_orientation
 from commonroad_rp.utility.utils_coordinate_system import CoordinateSystem
 from commonroad_rp.utility.visualization import visualize_planner_at_timestep
 
+from commonroad_velocity_planner.configuration.configuration_builder import ConfigurationBuilder
+from commonroad_velocity_planner.velocity_planner_interface import IVelocityPlanner
+from commonroad_velocity_planner.velocity_planning_problem import VppBuilder
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -60,7 +64,14 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._optimal = None
         self._error_counter = 0
         self._store_failing_scenarios = store_failing_scenarios
-        self._reference_velocity = 15  # TODO use velocity-planner
+
+        # velocity planning
+        self.global_trajectory = IVelocityPlanner().plan_velocity(reference_path=route,
+                planner_config=ConfigurationBuilder().get_predefined_configuration(),
+                velocity_planning_problem=VppBuilder().build_vpp(reference_path=route,
+                        planning_problem=self._config.planning_problem,
+                        default_goal_velocity=self._config.planning_problem.initial_state.velocity))
+
         tmp_sc = copy.deepcopy(sc)
         for obs in tmp_sc.obstacles:
             tmp_sc.remove_obstacle(obs)
@@ -93,10 +104,10 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config.scenario = sc
         self._config.planning_problem = pp
 
-        # set reference velocity for planner
-        self._planner.set_desired_velocity(
-            desired_velocity=self._reference_velocity, current_speed=pp.initial_state.velocity
-        )
+        desired_speed: float = self.global_trajectory.get_velocity_at_position_with_lookahead(
+                position=self._planner.x_0.position, lookahead_s=self._config.planning.planning_horizon)
+        self._planner.set_desired_velocity(desired_velocity=desired_speed)
+
 
         # self._planner.set_collision_checker(sc)
         cc_scenario = copy.deepcopy(self._cc)
