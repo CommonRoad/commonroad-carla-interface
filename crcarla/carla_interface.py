@@ -384,6 +384,7 @@ class CarlaInterface:
         config = open_drive_config
         config.initial_cr_id = initial_id
         config.proj_string_odr = None
+        config.filter_types = ["driving"]
         scenario = opendrive_to_commonroad(odr_path, odr_conf=config)
 
         # Delete temporary file
