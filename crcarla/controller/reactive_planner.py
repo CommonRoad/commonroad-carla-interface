@@ -66,11 +66,15 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._store_failing_scenarios = store_failing_scenarios
 
         # velocity planning
-        self.global_trajectory = IVelocityPlanner().plan_velocity(reference_path=route,
-                planner_config=ConfigurationBuilder().get_predefined_configuration(),
-                velocity_planning_problem=VppBuilder().build_vpp(reference_path=route,
-                        planning_problem=self._config.planning_problem,
-                        default_goal_velocity=self._config.planning_problem.initial_state.velocity))
+        self.global_trajectory = IVelocityPlanner().plan_velocity(
+            reference_path=route,
+            planner_config=ConfigurationBuilder().get_predefined_configuration(),
+            velocity_planning_problem=VppBuilder().build_vpp(
+                reference_path=route,
+                planning_problem=self._config.planning_problem,
+                default_goal_velocity=self._config.planning_problem.initial_state.velocity,
+            ),
+        )
 
         tmp_sc = copy.deepcopy(sc)
         for obs in tmp_sc.obstacles:
@@ -105,9 +109,9 @@ class ReactivePlannerInterface(TrajectoryPlannerInterface):
         self._config.planning_problem = pp
 
         desired_speed: float = self.global_trajectory.get_velocity_at_position_with_lookahead(
-                position=self._planner.x_0.position, lookahead_s=self._config.planning.planning_horizon)
+            position=self._planner.x_0.position, lookahead_s=self._config.planning.planning_horizon
+        )
         self._planner.set_desired_velocity(desired_velocity=desired_speed)
-
 
         # self._planner.set_collision_checker(sc)
         cc_scenario = copy.deepcopy(self._cc)

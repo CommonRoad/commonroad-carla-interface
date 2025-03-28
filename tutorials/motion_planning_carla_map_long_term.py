@@ -2,11 +2,9 @@ from pathlib import Path
 
 import numpy as np
 from commonroad.common.solution import VehicleType
-from commonroad.common.util import Interval
-from commonroad.geometry.shape import Rectangle
 from commonroad.planning.goal import GoalRegion
 from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.state import InitialState, PMState
+from commonroad.scenario.state import InitialState
 from commonroad_rp.utility.config import ReactivePlannerConfiguration
 
 from crcarla.carla_interface import CarlaInterface
@@ -77,9 +75,7 @@ planning_problem = PlanningProblem(
         yaw_rate=0.0,
         slip_angle=0.0,
     ),
-    goal_region=GoalRegion(
-        []
-    ),
+    goal_region=GoalRegion([]),
 )
 
 # start planning
